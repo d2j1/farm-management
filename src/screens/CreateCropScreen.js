@@ -22,21 +22,23 @@ const CustomPicker = ({ label, selectedValue, onValueChange, items }) => (
     </View>
 );
 
-const CreateCropScreen = ({ navigation }) => {
+const CreateCropScreen = ({ route, navigation }) => {
+    const existingCrop = route.params?.crop;
+
     // Primary
-    const [landId, setLandId] = useState('');
-    const [area, setArea] = useState('');
-    const [unit, setUnit] = useState('Acres');
-    const [cropName, setCropName] = useState('');
-    const [sowDate, setSowDate] = useState(new Date().toISOString().split('T')[0]);
+    const [landId, setLandId] = useState(existingCrop?.land_identifier || '');
+    const [area, setArea] = useState(existingCrop?.total_area ? existingCrop.total_area.toString() : '');
+    const [unit, setUnit] = useState(existingCrop?.area_unit || 'Acres');
+    const [cropName, setCropName] = useState(existingCrop?.crop_name || '');
+    const [sowDate, setSowDate] = useState(existingCrop?.sowing_date || new Date().toISOString().split('T')[0]);
     const [showSowDate, setShowSowDate] = useState(false);
 
     // Secondary
-    const [variety, setVariety] = useState('');
-    const [soilType, setSoilType] = useState('Black');
-    const [expectedHarvest, setExpectedHarvest] = useState('');
+    const [variety, setVariety] = useState(existingCrop?.variety || '');
+    const [soilType, setSoilType] = useState(existingCrop?.soil_type || 'Black');
+    const [expectedHarvest, setExpectedHarvest] = useState(existingCrop?.expected_harvest_date || '');
     const [showExpectedHarvest, setShowExpectedHarvest] = useState(false);
-    const [prevCrop, setPrevCrop] = useState('');
+    const [prevCrop, setPrevCrop] = useState(existingCrop?.previous_crop || '');
 
     const saveCrop = async () => {
         if (!landId.trim() || !area.trim() || !cropName.trim()) {
@@ -46,20 +48,37 @@ const CreateCropScreen = ({ navigation }) => {
 
         try {
             const db = await getDb();
-            const result = await db.runAsync(
-                `INSERT INTO crops 
-        (land_identifier, total_area, area_unit, crop_name, sowing_date, variety, soil_type, expected_harvest_date, previous_crop) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [landId, parseFloat(area), unit, cropName, sowDate, variety, soilType, expectedHarvest, prevCrop]
-            );
+            const areaNum = parseFloat(area);
 
-            if (result.changes > 0) {
-                Alert.alert('Success', 'Crop cycle created!');
-                navigation.goBack(); // Return to dashboard
+            if (existingCrop) {
+                const result = await db.runAsync(
+                    `UPDATE crops SET 
+                    land_identifier = ?, total_area = ?, area_unit = ?, crop_name = ?, sowing_date = ?, 
+                    variety = ?, soil_type = ?, expected_harvest_date = ?, previous_crop = ?
+                    WHERE id = ?`,
+                    [landId, areaNum, unit, cropName, sowDate, variety, soilType, expectedHarvest, prevCrop, existingCrop.id]
+                );
+
+                if (result.changes > 0) {
+                    Alert.alert('Success', 'Crop details updated!');
+                    navigation.goBack(); // Return to dashboard
+                }
+            } else {
+                const result = await db.runAsync(
+                    `INSERT INTO crops 
+            (land_identifier, total_area, area_unit, crop_name, sowing_date, variety, soil_type, expected_harvest_date, previous_crop) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [landId, areaNum, unit, cropName, sowDate, variety, soilType, expectedHarvest, prevCrop]
+                );
+
+                if (result.changes > 0) {
+                    Alert.alert('Success', 'Crop cycle created!');
+                    navigation.goBack(); // Return to dashboard
+                }
             }
         } catch (error) {
             console.error('Save Crop Error:', error);
-            Alert.alert('Error', 'Failed to create crop instance.');
+            Alert.alert('Error', 'Failed to save crop instance.');
         }
     };
 
@@ -141,7 +160,7 @@ const CreateCropScreen = ({ navigation }) => {
             <TextInput style={styles.input} placeholder="e.g., Soyabean" value={prevCrop} onChangeText={setPrevCrop} />
 
             <TouchableOpacity style={styles.saveBtn} onPress={saveCrop}>
-                <Text style={styles.saveBtnText}>Create Crop Workspace</Text>
+                <Text style={styles.saveBtnText}>{existingCrop ? 'Update Crop Details' : 'Create Crop Workspace'}</Text>
             </TouchableOpacity>
 
             <View style={{ height: 40 }} />

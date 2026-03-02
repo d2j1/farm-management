@@ -31,7 +31,8 @@ export const initDB = async () => {
         variety TEXT,
         soil_type TEXT,
         expected_harvest_date TEXT,
-        previous_crop TEXT
+        previous_crop TEXT,
+        status TEXT DEFAULT 'Active'
       );
       CREATE TABLE IF NOT EXISTS activities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +65,18 @@ export const initDB = async () => {
       );
     `);
 
+    // Migration to add 'status' column if it doesn't exist
+    try {
+      const result = await database.getAllAsync("PRAGMA table_info(crops)");
+      const hasStatusColumn = result.some(column => column.name === 'status');
 
+      if (!hasStatusColumn) {
+        await database.execAsync("ALTER TABLE crops ADD COLUMN status TEXT DEFAULT 'Active'");
+        console.log("Migration: Added 'status' column to 'crops' table.");
+      }
+    } catch (migError) {
+      console.error('Migration error:', migError);
+    }
 
     console.log('Database initialized successfully for Crop-Centric architecture');
   } catch (error) {

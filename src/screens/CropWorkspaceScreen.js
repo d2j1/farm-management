@@ -15,6 +15,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const scrollViewRef = useRef(null);
     const [clickOutsideCatcher, setClickOutsideCatcher] = useState(false);
 
+    // Main Crop Menu State
+    const [cropMenuVisible, setCropMenuVisible] = useState(false);
+
     // Activities State
     const [activities, setActivities] = useState([]);
     const [actType, setActType] = useState('Sowing');
@@ -69,8 +72,84 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                     </View>
                 </View>
             ),
+            headerRight: () => (
+                <TouchableOpacity onPress={() => setCropMenuVisible(true)} style={{ padding: 10 }}>
+                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#555' }}>⋮</Text>
+                </TouchableOpacity>
+            ),
         });
     }, [navigation, crop]);
+
+    const handleEditCrop = () => {
+        setCropMenuVisible(false);
+        navigation.navigate('CreateCrop', { crop });
+    };
+
+    const handleDeactivateCrop = () => {
+        setCropMenuVisible(false);
+        Alert.alert(
+            "Deactivate Crop",
+            `Are you sure you want to deactivate ${crop.crop_name}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Deactivate", style: "destructive", onPress: async () => {
+                        try {
+                            const db = await getDb();
+                            await db.runAsync("UPDATE crops SET status = 'Inactive' WHERE id = ?", [crop.id]);
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Error deactivating:', error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleActivateCrop = () => {
+        setCropMenuVisible(false);
+        Alert.alert(
+            "Activate Crop",
+            `Are you sure you want to activate ${crop.crop_name}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Activate", style: "default", onPress: async () => {
+                        try {
+                            const db = await getDb();
+                            await db.runAsync("UPDATE crops SET status = 'Active' WHERE id = ?", [crop.id]);
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Error activating:', error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleDeleteCrop = () => {
+        setCropMenuVisible(false);
+        Alert.alert(
+            "Delete Crop",
+            `Are you sure you want to permanently delete ${crop.crop_name}? This cannot be undone.`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete", style: "destructive", onPress: async () => {
+                        try {
+                            const db = await getDb();
+                            await db.runAsync("DELETE FROM crops WHERE id = ?", [crop.id]);
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Error deleting:', error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     useEffect(() => {
         loadData();
@@ -437,6 +516,31 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
             </View>
 
+            {/* Top Right Crop context Menu modal */}
+            <Modal visible={cropMenuVisible} transparent={true} animationType="fade" onRequestClose={() => setCropMenuVisible(false)}>
+                <TouchableWithoutFeedback onPress={() => setCropMenuVisible(false)}>
+                    <View style={styles.cropMenuOverlay}>
+                        <View style={styles.cropMenuContainer}>
+                            <TouchableOpacity style={styles.cropMenuItem} onPress={handleEditCrop}>
+                                <Text style={styles.cropMenuItemText}>Edit crop details</Text>
+                            </TouchableOpacity>
+                            {crop.status !== 'Inactive' ? (
+                                <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeactivateCrop}>
+                                    <Text style={styles.cropMenuItemText}>Deactivate crop</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity style={styles.cropMenuItem} onPress={handleActivateCrop}>
+                                    <Text style={styles.cropMenuItemText}>Activate crop</Text>
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeleteCrop}>
+                                <Text style={[styles.cropMenuItemText, { color: '#D32F2F' }]}>Delete crop</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+
             {/* Swipable Content */}
             <ScrollView
                 ref={scrollViewRef}
@@ -761,6 +865,11 @@ const styles = StyleSheet.create({
     menuDivider: { height: 1, backgroundColor: '#EEE' },
     menuItemTextEdit: { color: '#007BFF', fontSize: 16, fontWeight: '500' },
     menuItemTextDelete: { color: '#D32F2F', fontSize: 16, fontWeight: '500' },
+
+    cropMenuOverlay: { flex: 1 },
+    cropMenuContainer: { position: 'absolute', top: 50, right: 10, backgroundColor: 'white', borderRadius: 8, paddingVertical: 5, minWidth: 160, elevation: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
+    cropMenuItem: { paddingVertical: 12, paddingHorizontal: 16 },
+    cropMenuItemText: { fontSize: 16, color: '#333' },
 
     input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
 

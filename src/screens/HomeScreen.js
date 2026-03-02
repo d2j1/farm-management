@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Modal, TouchableWithoutFeedback, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
@@ -39,7 +39,7 @@ const HomeScreen = ({ navigation }) => {
                     (SELECT activity_type FROM activities WHERE crop_id = c.id ORDER BY date DESC, id DESC LIMIT 1) as lastActivity,
                     (SELECT date FROM activities WHERE crop_id = c.id ORDER BY date DESC, id DESC LIMIT 1) as lastActivityDate
                 FROM crops c
-                ORDER BY c.id DESC
+                ORDER BY CASE WHEN c.status = 'Active' THEN 1 ELSE 2 END, c.id DESC
             `);
             setCrops(cropRows);
         } catch (error) {
@@ -61,15 +61,16 @@ const HomeScreen = ({ navigation }) => {
             >
                 <View style={styles.cropHeader}>
                     <Text style={styles.cropName}>🌾 {item.crop_name}</Text>
-                    <View style={styles.statusBadge}>
-                        <Text style={styles.statusText}>Active</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={[styles.statusBadge, item.status === 'Inactive' && styles.statusBadgeInactive]}>
+                            <Text style={[styles.statusText, item.status === 'Inactive' && styles.statusTextInactive]}>{item.status || 'Active'}</Text>
+                        </View>
                     </View>
                 </View>
 
                 <View style={styles.cropInfoRow}>
                     <Text style={styles.cropLand}>📍 {item.land_identifier}</Text>
                     <Text style={styles.cropArea}>📏 {item.total_area} {item.area_unit}</Text>
-                    <Text style={styles.cropDate}>🌱 Sown: {item.sowing_date}</Text>
                 </View>
 
                 {/* Financial Summary */}
@@ -175,11 +176,12 @@ const styles = StyleSheet.create({
     cropName: { fontSize: 20, fontWeight: 'bold', color: '#222' },
     statusBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
     statusText: { fontSize: 12, color: '#2E7D32', fontWeight: 'bold' },
+    statusBadgeInactive: { backgroundColor: '#F0F0F0' },
+    statusTextInactive: { color: '#777' },
 
     cropInfoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 15 },
     cropLand: { fontSize: 14, color: '#555', fontWeight: '500' },
     cropArea: { fontSize: 14, color: '#555', fontWeight: '500' },
-    cropDate: { fontSize: 14, color: '#555', fontWeight: '500' },
 
     financialRow: { flexDirection: 'row', backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#F0F0F0' },
     financialCol: { flex: 1, alignItems: 'center' },
