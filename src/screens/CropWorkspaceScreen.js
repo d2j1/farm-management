@@ -11,6 +11,7 @@ const CropWorkspaceScreen = ({ route }) => {
     const { crop } = route.params; // Passed from HomeScreen
     const [tab, setTab] = useState('Activities'); // 'Activities' | 'Expenses'
     const scrollViewRef = useRef(null);
+    const [clickOutsideCatcher, setClickOutsideCatcher] = useState(false);
 
     // Activities State
     const [activities, setActivities] = useState([]);
@@ -31,6 +32,7 @@ const CropWorkspaceScreen = ({ route }) => {
     // Context Menu State
     const [menuVisibleId, setMenuVisibleId] = useState(null);
     const [menuType, setMenuType] = useState(null); // 'activity' | 'expense'
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
 
     useEffect(() => {
         loadData();
@@ -173,19 +175,25 @@ const CropWorkspaceScreen = ({ route }) => {
 
 
 
-    const toggleMenu = (id, type) => {
-        if (menuVisibleId === id && menuType === type) {
-            setMenuVisibleId(null);
-            setMenuType(null);
-        } else {
-            setMenuVisibleId(id);
-            setMenuType(type);
-        }
+    const handleMenuPress = (event, item, type) => {
+        const { pageX, pageY } = event.nativeEvent;
+        // Position menu slightly below the touch point, and aligned to the right edge (using screenWidth)
+        setMenuPos({ top: pageY + 15, right: screenWidth - pageX - 20 });
+        setMenuVisibleId(item.id);
+        setMenuType(type);
     };
+
+    const closeMenu = () => {
+        setMenuVisibleId(null);
+        setMenuType(null);
+    };
+
+
 
     const renderActivity = ({ item, index }) => {
         const isLast = index === activities.length - 1;
         const isFirst = index === 0;
+
         return (
             <View style={styles.timelineContainer}>
                 <View style={styles.timelineLeft}>
@@ -198,24 +206,11 @@ const CropWorkspaceScreen = ({ route }) => {
                             <Text style={styles.cardHeader}>{item.activity_type}</Text>
                             <Text style={styles.dateText}>{item.date}</Text>
                         </View>
-                        <TouchableOpacity onPress={() => toggleMenu(item.id, 'activity')} style={styles.menuDotsBtn}>
+                        <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'activity')} style={styles.menuDotsBtn}>
                             <Text style={styles.menuDotsText}>⋮</Text>
                         </TouchableOpacity>
                     </View>
                     {item.notes ? <Text style={styles.cardNotes}>{item.notes}</Text> : null}
-
-                    {/* Activity Context Menu */}
-                    {menuVisibleId === item.id && menuType === 'activity' && (
-                        <View style={styles.contextMenu}>
-                            <TouchableOpacity style={styles.menuItem} onPress={() => openEditActivity(item)}>
-                                <Text style={styles.menuItemTextEdit}>Edit</Text>
-                            </TouchableOpacity>
-                            <View style={styles.menuDivider} />
-                            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisibleId(null); deleteActivity(item.id); }}>
-                                <Text style={styles.menuItemTextDelete}>Delete</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
                 </View>
             </View>
         );
@@ -223,33 +218,22 @@ const CropWorkspaceScreen = ({ route }) => {
 
 
 
-    const renderExpense = ({ item }) => (
-        <View style={styles.cardContainer}>
-            <View style={styles.cardRow}>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.cardHeader}>{item.category} • {item.date}</Text>
-                    {item.remarks ? <Text style={styles.cardNotes}>{item.remarks}</Text> : null}
+    const renderExpense = ({ item }) => {
+        return (
+            <View style={styles.cardContainer}>
+                <View style={styles.cardRow}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.cardHeader}>{item.category} • {item.date}</Text>
+                        {item.remarks ? <Text style={styles.cardNotes}>{item.remarks}</Text> : null}
+                    </View>
+                    <Text style={styles.amountText}>₹{item.amount.toFixed(2)}</Text>
+                    <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'expense')} style={styles.menuDotsBtn}>
+                        <Text style={styles.menuDotsText}>⋮</Text>
+                    </TouchableOpacity>
                 </View>
-                <Text style={styles.amountText}>₹{item.amount.toFixed(2)}</Text>
-                <TouchableOpacity onPress={() => toggleMenu(item.id, 'expense')} style={styles.menuDotsBtn}>
-                    <Text style={styles.menuDotsText}>⋮</Text>
-                </TouchableOpacity>
             </View>
-
-            {/* Expense Context Menu */}
-            {menuVisibleId === item.id && menuType === 'expense' && (
-                <View style={[styles.contextMenu, { top: 40, right: 15 }]}>
-                    <TouchableOpacity style={styles.menuItem} onPress={() => openEditExpense(item)}>
-                        <Text style={styles.menuItemTextEdit}>Edit</Text>
-                    </TouchableOpacity>
-                    <View style={styles.menuDivider} />
-                    <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisibleId(null); deleteExpense(item.id); }}>
-                        <Text style={styles.menuItemTextDelete}>Delete</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-        </View>
-    );
+        );
+    };
 
     const switchTab = (newTab) => {
         setTab(newTab);
@@ -382,6 +366,38 @@ const CropWorkspaceScreen = ({ route }) => {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
+
+            {/* Global Context Menu Modal positioned exactly where tapped */}
+            <Modal visible={menuVisibleId !== null} transparent={true} animationType="none" onRequestClose={closeMenu}>
+                <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPressOut={closeMenu}>
+                    <View style={[styles.contextMenu, { top: menuPos.top, right: menuPos.right }]}>
+                        <TouchableOpacity style={styles.menuItem} onPress={() => {
+                            const itemId = menuVisibleId;
+                            const t = menuType;
+                            closeMenu();
+                            if (t === 'activity') {
+                                const item = activities.find(a => a.id === itemId);
+                                if (item) openEditActivity(item);
+                            } else {
+                                const item = expenses.find(e => e.id === itemId);
+                                if (item) openEditExpense(item);
+                            }
+                        }}>
+                            <Text style={styles.menuItemTextEdit}>Edit</Text>
+                        </TouchableOpacity>
+                        <View style={styles.menuDivider} />
+                        <TouchableOpacity style={styles.menuItem} onPress={() => {
+                            const itemId = menuVisibleId;
+                            const t = menuType;
+                            closeMenu();
+                            if (t === 'activity') deleteActivity(itemId);
+                            else deleteExpense(itemId);
+                        }}>
+                            <Text style={styles.menuItemTextDelete}>Delete</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
@@ -434,7 +450,7 @@ const styles = StyleSheet.create({
     menuDotsBtn: { padding: 5, paddingHorizontal: 10 },
     menuDotsText: { fontSize: 22, color: '#888', fontWeight: 'bold' },
 
-    contextMenu: { position: 'absolute', top: 40, right: 10, backgroundColor: 'white', borderRadius: 8, elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, zIndex: 10, minWidth: 100 },
+    contextMenu: { position: 'absolute', backgroundColor: 'white', borderRadius: 8, elevation: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, zIndex: 9999, minWidth: 120 },
     menuItem: { paddingVertical: 10, paddingHorizontal: 15 },
     menuDivider: { height: 1, backgroundColor: '#EEE' },
     menuItemTextEdit: { color: '#007BFF', fontSize: 16, fontWeight: '500' },
