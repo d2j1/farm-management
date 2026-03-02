@@ -96,41 +96,50 @@ const HomeScreen = ({ navigation }) => {
         );
     };
 
+    const ListHeader = () => (
+        <>
+            {farmProfile ? (
+                <View style={styles.profileCard}>
+                    <Text style={styles.greeting}>Hello, {farmProfile.name} 👋</Text>
+                    <Text style={styles.detail}>📍 {farmProfile.village}  •  🌾 {farmProfile.acreage} Acres</Text>
+                </View>
+            ) : (
+                <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>No profile found.</Text>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Profile')}>
+                        <Text style={styles.buttonText}>Create Profile</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Active Crops List */}
+            <Text style={styles.sectionTitle}>Active Crop Instances</Text>
+        </>
+    );
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>{t('dashboard')}</Text>
             </View>
             <View style={styles.container}>
-
-                {farmProfile ? (
-                    <View style={styles.profileCard}>
-                        <Text style={styles.greeting}>Hello, {farmProfile.name} 👋</Text>
-                        <Text style={styles.detail}>📍 {farmProfile.village}  •  🌾 {farmProfile.acreage} Acres</Text>
-                    </View>
-                ) : (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyText}>No profile found.</Text>
-                        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Profile')}>
-                            <Text style={styles.buttonText}>Create Profile</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-
-                {/* Active Crops List */}
-                <Text style={styles.sectionTitle}>Active Crop Instances</Text>
                 {loading ? (
-                    <ActivityIndicator size="small" color="#2E7D32" />
-                ) : crops.length > 0 ? (
+                    <>
+                        <ListHeader />
+                        <ActivityIndicator size="small" color="#2E7D32" style={{ marginTop: 20 }} />
+                    </>
+                ) : (
                     <FlatList
+                        ListHeaderComponent={ListHeader}
                         data={crops}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={renderCropCard}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 80 }}
+                        ListEmptyComponent={() => (
+                            <Text style={styles.emptyCropsText}>No crops managed yet. Tap the + to start a new farming cycle.</Text>
+                        )}
                     />
-                ) : (
-                    <Text style={styles.emptyCropsText}>No crops managed yet. Tap the + to start a new farming cycle.</Text>
                 )}
 
                 {/* Floating Action Button */}
