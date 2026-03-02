@@ -30,8 +30,17 @@ const HomeScreen = ({ navigation }) => {
                 setFarmProfile(profileRows[0]);
             }
 
-            // Load active crops
-            const cropRows = await db.getAllAsync('SELECT * FROM crops ORDER BY id DESC');
+            // Load active crops with totals and latest activity
+            const cropRows = await db.getAllAsync(`
+                SELECT 
+                    c.*,
+                    COALESCE((SELECT SUM(amount) FROM expenses WHERE crop_id = c.id), 0) as totalExpense,
+                    COALESCE((SELECT SUM(amount) FROM earnings WHERE crop_id = c.id), 0) as totalEarning,
+                    (SELECT activity_type FROM activities WHERE crop_id = c.id ORDER BY date DESC, id DESC LIMIT 1) as lastActivity,
+                    (SELECT date FROM activities WHERE crop_id = c.id ORDER BY date DESC, id DESC LIMIT 1) as lastActivityDate
+                FROM crops c
+                ORDER BY c.id DESC
+            `);
             setCrops(cropRows);
         } catch (error) {
             console.error('Error loading home data:', error);
@@ -40,19 +49,52 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const renderCropCard = ({ item }) => (
-        <TouchableOpacity
-            style={styles.cropCard}
-            onPress={() => navigation.navigate('CropWorkspace', { crop: item })}
-        >
-            <View style={styles.cropHeader}>
-                <Text style={styles.cropName}>🌾 {item.crop_name}</Text>
-                <Text style={styles.cropDate}>Sown: {item.sowing_date}</Text>
-            </View>
-            <Text style={styles.cropLand}>{item.land_identifier}</Text>
-            <Text style={styles.cropArea}>{item.total_area} {item.area_unit}</Text>
-        </TouchableOpacity>
-    );
+    const cropColors = ['#FF9800', '#4CAF50', '#2196F3', '#f44336', '#9C27B0', '#00BCD4', '#FFEB3B', '#795548'];
+
+    const renderCropCard = ({ item, index }) => {
+        const borderLeftColor = cropColors[index % cropColors.length];
+
+        return (
+            <TouchableOpacity
+                style={[styles.cropCard, { borderLeftColor }]}
+                onPress={() => navigation.navigate('CropWorkspace', { crop: item })}
+            >
+                <View style={styles.cropHeader}>
+                    <Text style={styles.cropName}>🌾 {item.crop_name}</Text>
+                    <View style={styles.statusBadge}>
+                        <Text style={styles.statusText}>Active</Text>
+                    </View>
+                </View>
+
+                <View style={styles.cropInfoRow}>
+                    <Text style={styles.cropLand}>📍 {item.land_identifier}</Text>
+                    <Text style={styles.cropArea}>📏 {item.total_area} {item.area_unit}</Text>
+                    <Text style={styles.cropDate}>🌱 Sown: {item.sowing_date}</Text>
+                </View>
+
+                {/* Financial Summary */}
+                <View style={styles.financialRow}>
+                    <View style={styles.financialCol}>
+                        <Text style={styles.financialLabel}>Expenses</Text>
+                        <Text style={[styles.financialValue, { color: '#D32F2F' }]}>₹{item.totalExpense ? item.totalExpense.toFixed(2) : '0.00'}</Text>
+                    </View>
+                    <View style={styles.financialDivider} />
+                    <View style={styles.financialCol}>
+                        <Text style={styles.financialLabel}>Earnings</Text>
+                        <Text style={[styles.financialValue, { color: '#2E7D32' }]}>₹{item.totalEarning ? item.totalEarning.toFixed(2) : '0.00'}</Text>
+                    </View>
+                </View>
+
+                {/* Activity Summary */}
+                {item.lastActivity ? (
+                    <View style={styles.activityRow}>
+                        <Text style={styles.activityLabel}>Latest Activity:</Text>
+                        <Text style={styles.activityText} numberOfLines={1}>{item.lastActivity} ({item.lastActivityDate})</Text>
+                    </View>
+                ) : null}
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -119,12 +161,27 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#444', marginBottom: 10 },
     emptyCropsText: { color: '#888', fontStyle: 'italic', marginTop: 10 },
 
-    cropCard: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, marginBottom: 12, borderLeftWidth: 4, borderLeftColor: '#FF8F00', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
-    cropHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
-    cropName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-    cropDate: { fontSize: 12, color: '#888' },
-    cropLand: { fontSize: 15, color: '#555', marginBottom: 3 },
-    cropArea: { fontSize: 14, color: '#777', fontWeight: '500' },
+    cropCard: { backgroundColor: '#FFF', padding: 16, borderRadius: 12, marginBottom: 16, borderLeftWidth: 5, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+    cropHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    cropName: { fontSize: 20, fontWeight: 'bold', color: '#222' },
+    statusBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+    statusText: { fontSize: 12, color: '#2E7D32', fontWeight: 'bold' },
+
+    cropInfoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 15 },
+    cropLand: { fontSize: 14, color: '#555', fontWeight: '500' },
+    cropArea: { fontSize: 14, color: '#555', fontWeight: '500' },
+    cropDate: { fontSize: 14, color: '#555', fontWeight: '500' },
+
+    financialRow: { flexDirection: 'row', backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#F0F0F0' },
+    financialCol: { flex: 1, alignItems: 'center' },
+    financialDivider: { width: 1, backgroundColor: '#E0E0E0', marginHorizontal: 10 },
+    financialLabel: { fontSize: 12, color: '#666', textTransform: 'uppercase', marginBottom: 4, fontWeight: '600' },
+    financialValue: { fontSize: 18, fontWeight: 'bold' },
+
+    activityRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', padding: 10, borderRadius: 6 },
+    activityLabel: { fontSize: 13, color: '#555', fontWeight: '600', marginRight: 6 },
+    activityText: { fontSize: 13, color: '#333', flex: 1, fontWeight: '500' },
+    activityTextNone: { fontSize: 13, color: '#999', fontStyle: 'italic', flex: 1 },
 
     fab: { position: 'absolute', bottom: 30, right: 30, backgroundColor: '#2E7D32', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
     fabIcon: { fontSize: 32, color: 'white', fontWeight: 'bold', marginTop: -2 }
