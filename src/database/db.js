@@ -52,6 +52,16 @@ export const initDB = async () => {
         remarks TEXT,
         FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE
       );
+      CREATE TABLE IF NOT EXISTS earnings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        crop_id INTEGER NOT NULL,
+        category TEXT NOT NULL,
+        amount REAL NOT NULL,
+        payment_mode TEXT,
+        date TEXT NOT NULL,
+        remarks TEXT,
+        FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE
+      );
     `);
 
 

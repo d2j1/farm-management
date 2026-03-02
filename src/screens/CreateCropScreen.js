@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker'; // We need to install this or use built in approach. For now we use standard Picker if installed, or build a simple mock.
 import { getDb } from '../database/db';
 
@@ -28,11 +29,13 @@ const CreateCropScreen = ({ navigation }) => {
     const [unit, setUnit] = useState('Acres');
     const [cropName, setCropName] = useState('');
     const [sowDate, setSowDate] = useState(new Date().toISOString().split('T')[0]);
+    const [showSowDate, setShowSowDate] = useState(false);
 
     // Secondary
     const [variety, setVariety] = useState('');
     const [soilType, setSoilType] = useState('Black');
     const [expectedHarvest, setExpectedHarvest] = useState('');
+    const [showExpectedHarvest, setShowExpectedHarvest] = useState(false);
     const [prevCrop, setPrevCrop] = useState('');
 
     const saveCrop = async () => {
@@ -81,7 +84,24 @@ const CreateCropScreen = ({ navigation }) => {
             <TextInput style={styles.input} placeholder="e.g., Sugarcane" value={cropName} onChangeText={setCropName} />
 
             <Text style={styles.label}>Sowing / Planting Date</Text>
-            <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={sowDate} onChangeText={setSowDate} />
+            <TouchableOpacity onPress={() => setShowSowDate(true)}>
+                <View style={styles.input}>
+                    <Text style={{ fontSize: 16 }}>{sowDate}</Text>
+                </View>
+            </TouchableOpacity>
+            {showSowDate && (
+                <DateTimePicker
+                    value={new Date(sowDate)}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowSowDate(Platform.OS === 'ios');
+                        if (selectedDate && event.type !== 'dismissed') {
+                            setSowDate(selectedDate.toISOString().split('T')[0]);
+                        }
+                    }}
+                />
+            )}
 
             <Text style={styles.sectionHeader}>Secondary Details (Optional)</Text>
 
@@ -96,7 +116,26 @@ const CreateCropScreen = ({ navigation }) => {
             />
 
             <Text style={styles.label}>Expected Harvest Date</Text>
-            <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={expectedHarvest} onChangeText={setExpectedHarvest} />
+            <TouchableOpacity onPress={() => setShowExpectedHarvest(true)}>
+                <View style={styles.input}>
+                    <Text style={{ fontSize: 16, color: expectedHarvest ? '#000' : '#888' }}>
+                        {expectedHarvest || 'Select Date'}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+            {showExpectedHarvest && (
+                <DateTimePicker
+                    value={expectedHarvest ? new Date(expectedHarvest) : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setShowExpectedHarvest(Platform.OS === 'ios');
+                        if (selectedDate && event.type !== 'dismissed') {
+                            setExpectedHarvest(selectedDate.toISOString().split('T')[0]);
+                        }
+                    }}
+                />
+            )}
 
             <Text style={styles.label}>Previous Crop (Rotation Tracking)</Text>
             <TextInput style={styles.input} placeholder="e.g., Soyabean" value={prevCrop} onChangeText={setPrevCrop} />
