@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { useColorScheme } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,9 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function HomeTabs() {
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -32,9 +36,11 @@ function HomeTabs() {
 
                     return <Ionicons name={iconName} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: '#2E7D32',
-                tabBarInactiveTintColor: 'gray',
+                tabBarActiveTintColor: isDark ? '#81C784' : '#2E7D32',
+                tabBarInactiveTintColor: isDark ? '#aaa' : 'gray',
                 tabBarStyle: {
+                    backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
+                    borderTopColor: isDark ? '#333' : '#EEE',
                     paddingBottom: 10,
                     paddingTop: 10,
                     height: 70,
@@ -53,12 +59,15 @@ function HomeTabs() {
 }
 
 export default function AppNavigator() {
+    const scheme = useColorScheme();
+    const isDark = scheme === 'dark';
+
     return (
-        <NavigationContainer>
+        <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,
-                    headerStyle: { backgroundColor: '#1B5E20' },
+                    headerStyle: { backgroundColor: isDark ? '#121212' : '#1B5E20' },
                     headerTintColor: '#fff',
                     headerTitleStyle: { fontWeight: 'bold' },
                 }}

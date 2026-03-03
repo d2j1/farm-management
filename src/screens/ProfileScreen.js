@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, useColorScheme } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { getDb } from '../database/db';
 import useStore from '../store/useStore';
 
 const ProfileScreen = ({ navigation }) => {
+    const isDark = useColorScheme() === 'dark';
     const { t } = useTranslation();
     const setFarmProfile = useStore(state => state.setFarmProfile);
 
@@ -62,20 +63,20 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Enter your name" />
+        <View style={[styles.container, isDark && styles.containerDark]}>
+            <Text style={[styles.label, isDark && styles.textDark]}>Full Name</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={name} onChangeText={setName} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Enter your name" />
 
-            <Text style={styles.label}>Village Name</Text>
-            <TextInput style={styles.input} value={village} onChangeText={setVillage} placeholder="e.g. Shirpur" />
+            <Text style={[styles.label, isDark && styles.textDark]}>Village Name</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={village} onChangeText={setVillage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. Shirpur" />
 
-            <Text style={styles.label}>Total Acreage</Text>
-            <TextInput style={styles.input} value={acreage} onChangeText={setAcreage} placeholder="e.g. 5.5" keyboardType="numeric" />
+            <Text style={[styles.label, isDark && styles.textDark]}>Total Acreage</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={acreage} onChangeText={setAcreage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. 5.5" keyboardType="numeric" />
 
-            <Text style={styles.label}>Active Crops (Comma Separated)</Text>
-            <TextInput style={styles.input} value={crops} onChangeText={setCrops} placeholder="e.g. Sugarcane, Onion" />
+            <Text style={[styles.label, isDark && styles.textDark]}>Active Crops (Comma Separated)</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={crops} onChangeText={setCrops} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. Sugarcane, Onion" />
 
-            <TouchableOpacity style={styles.button} onPress={saveProfile}>
+            <TouchableOpacity style={[styles.button, isDark && styles.btnDark]} onPress={saveProfile}>
                 <Text style={styles.buttonText}>{t('save')}</Text>
             </TouchableOpacity>
         </View>
@@ -84,9 +85,13 @@ const ProfileScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#FFF' },
+    containerDark: { backgroundColor: '#121212' },
     label: { fontSize: 16, fontWeight: '600', marginBottom: 5, color: '#333' },
+    textDark: { color: '#E0E0E0' },
     input: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
+    inputDark: { borderColor: '#444', backgroundColor: '#1E1E1E', color: '#FFF' },
     button: { backgroundColor: '#2E7D32', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+    btnDark: { backgroundColor: '#388E3C' },
     buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
 });
 
