@@ -70,12 +70,12 @@ const SettingsScreen = ({ navigation }) => {
             <ScrollView style={[styles.container, isDark && styles.containerDark]}>
 
                 {/* User Profile Navigation */}
-                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Account</Text>
+                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('account')}</Text>
                 <TouchableOpacity
                     style={[styles.navButton, isDark && styles.navBtnDark]}
                     onPress={() => navigation.navigate('Profile')}
                 >
-                    <Text style={styles.navButtonText}>Manage User Profile</Text>
+                    <Text style={styles.navButtonText}>{t('manageUserProfile')}</Text>
                 </TouchableOpacity>
 
                 {/* Language Section */}
@@ -93,13 +93,13 @@ const SettingsScreen = ({ navigation }) => {
                 </View>
 
                 {/* Data Export & Privacy Section */}
-                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Data & Privacy</Text>
+                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('dataAndPrivacy')}</Text>
                 <View style={[styles.privacyCard, isDark && styles.privacyCardDark]}>
                     <Text style={[styles.privacyText, isDark && styles.privacyTextDark]}>
-                        🔒 Your data is 100% private. All your profile data, crop logs, and financial expenses are stored locally on this device. No data is sent to external servers.
+                        {t('dataPrivacyMsg')}
                     </Text>
                     <TouchableOpacity style={[styles.exportBtn, isDark && styles.exportBtnDark]} onPress={exportData}>
-                        <Text style={styles.exportBtnText}>📤 Export Crop Data as CSV</Text>
+                        <Text style={styles.exportBtnText}>{t('exportCropData')}</Text>
                     </TouchableOpacity>
                 </View>
 

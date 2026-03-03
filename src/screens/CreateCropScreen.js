@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker'; // We need to install this or use built in approach. For now we use standard Picker if installed, or build a simple mock.
 import { getDb } from '../database/db';
+import { useTranslation } from 'react-i18next';
 
 // Simple custom picker to avoid adding new dependencies right now
 const CustomPicker = ({ label, selectedValue, onValueChange, items, isDark }) => (
@@ -24,6 +25,7 @@ const CustomPicker = ({ label, selectedValue, onValueChange, items, isDark }) =>
 
 const CreateCropScreen = ({ route, navigation }) => {
     const isDark = useColorScheme() === 'dark';
+    const { t } = useTranslation();
     const existingCrop = route.params?.crop;
 
     // Primary
@@ -85,9 +87,9 @@ const CreateCropScreen = ({ route, navigation }) => {
 
     return (
         <ScrollView style={[styles.container, isDark && styles.containerDark]}>
-            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>Primary Details (Required)</Text>
+            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>{t('primaryDetails')}</Text>
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Land Nickname</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('landNickname')}</Text>
             <TextInput
                 style={[styles.input, isDark && styles.inputDark]}
                 placeholder="e.g., Gat No. 102"
@@ -96,7 +98,7 @@ const CreateCropScreen = ({ route, navigation }) => {
                 onChangeText={setLandId}
             />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Total Area</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('totalArea')}</Text>
             <TextInput
                 style={[styles.input, isDark && styles.inputDark]}
                 placeholder="e.g., 5.5"
@@ -107,14 +109,14 @@ const CreateCropScreen = ({ route, navigation }) => {
             />
 
             <CustomPicker
-                label="Area Unit"
+                label={t('areaUnit')}
                 selectedValue={unit}
                 onValueChange={setUnit}
                 items={['Acres', 'Guntha', 'Hectares', 'Bigha']}
                 isDark={isDark}
             />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Crop Name</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('cropName')}</Text>
             <TextInput
                 style={[styles.input, isDark && styles.inputDark]}
                 placeholder="e.g., Sugarcane"
@@ -123,7 +125,7 @@ const CreateCropScreen = ({ route, navigation }) => {
                 onChangeText={setCropName}
             />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Sowing / Planting Date</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('sowingDate')}</Text>
             <TouchableOpacity onPress={() => setShowSowDate(true)}>
                 <View style={[styles.input, isDark && styles.inputDark]}>
                     <Text style={{ fontSize: 16, color: isDark ? '#E0E0E0' : '#000' }}>{sowDate}</Text>
@@ -143,9 +145,9 @@ const CreateCropScreen = ({ route, navigation }) => {
                 />
             )}
 
-            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>Secondary Details (Optional)</Text>
+            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>{t('secondaryDetails')}</Text>
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Seed Variety</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('seedVariety')}</Text>
             <TextInput
                 style={[styles.input, isDark && styles.inputDark]}
                 placeholder="e.g., Co 86032"
@@ -155,14 +157,14 @@ const CreateCropScreen = ({ route, navigation }) => {
             />
 
             <CustomPicker
-                label="Soil Type"
+                label={t('soilType')}
                 selectedValue={soilType}
                 onValueChange={setSoilType}
                 items={['Black', 'Red', 'Sandy', 'Loamy']}
                 isDark={isDark}
             />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Expected Harvest Date</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('expectedHarvestDate')}</Text>
             <TouchableOpacity onPress={() => setShowExpectedHarvest(true)}>
                 <View style={[styles.input, isDark && styles.inputDark]}>
                     <Text style={{ fontSize: 16, color: expectedHarvest ? (isDark ? '#E0E0E0' : '#000') : (isDark ? '#888' : '#888') }}>
@@ -184,7 +186,7 @@ const CreateCropScreen = ({ route, navigation }) => {
                 />
             )}
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Previous Crop (Rotation Tracking)</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('previousCrop')}</Text>
             <TextInput
                 style={[styles.input, isDark && styles.inputDark]}
                 placeholder="e.g., Soyabean"
@@ -194,7 +196,7 @@ const CreateCropScreen = ({ route, navigation }) => {
             />
 
             <TouchableOpacity style={[styles.saveBtn, isDark && styles.saveBtnDark]} onPress={saveCrop}>
-                <Text style={styles.saveBtnText}>{existingCrop ? 'Update Crop Details' : 'Create Crop Workspace'}</Text>
+                <Text style={styles.saveBtnText}>{existingCrop ? t('updateCropDetails') : t('createCropWorkspace')}</Text>
             </TouchableOpacity>
 
             <View style={{ height: 40 }} />

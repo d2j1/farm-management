@@ -4,6 +4,10 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// import { createNativeStackNavigator } from '@react-navigation/native-stack';
+// import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -18,6 +22,7 @@ const Stack = createNativeStackNavigator();
 function HomeTabs() {
     const scheme = useColorScheme();
     const isDark = scheme === 'dark';
+    const { t } = useTranslation();
 
     return (
         <Tab.Navigator
@@ -51,9 +56,9 @@ function HomeTabs() {
                 },
             })}
         >
-            <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Learn" component={KnowledgeHubScreen} />
-            <Tab.Screen name="Settings" component={SettingsScreen} />
+            <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('home') }} />
+            <Tab.Screen name="Learn" component={KnowledgeHubScreen} options={{ tabBarLabel: t('learn') }} />
+            <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('settings') }} />
         </Tab.Navigator>
     );
 }
@@ -61,6 +66,7 @@ function HomeTabs() {
 export default function AppNavigator() {
     const scheme = useColorScheme();
     const isDark = scheme === 'dark';
+    const { t } = useTranslation();
 
     return (
         <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
@@ -73,9 +79,9 @@ export default function AppNavigator() {
                 }}
             >
                 <Stack.Screen name="MainTabs" component={HomeTabs} />
-                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true }} />
-                <Stack.Screen name="CreateCrop" component={CreateCropScreen} options={{ headerShown: true, title: 'New Crop Instance' }} />
-                <Stack.Screen name="CropWorkspace" component={CropWorkspaceScreen} options={{ headerShown: true, title: 'Workspace' }} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: t('profile') }} />
+                <Stack.Screen name="CreateCrop" component={CreateCropScreen} options={{ headerShown: true, title: t('createCropWorkspace') }} />
+                <Stack.Screen name="CropWorkspace" component={CropWorkspaceScreen} options={{ headerShown: true, title: t('activeCropInstances') }} />
             </Stack.Navigator>
 
         </NavigationContainer>

@@ -36,7 +36,7 @@ const KnowledgeHubScreen = () => {
             <Text style={[styles.cardTitle, isDark && styles.textDark]}>{item.title}</Text>
             <Text style={[styles.cardContent, isDark && styles.textMutedDark]} numberOfLines={3}>{item.content}</Text>
             <TouchableOpacity style={styles.readMoreBtn}>
-                <Text style={[styles.readMoreText, isDark && { color: '#64B5F6' }]}>Read Full Article</Text>
+                <Text style={[styles.readMoreText, isDark && { color: '#64B5F6' }]}>{t('readFullArticle')}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -50,7 +50,7 @@ const KnowledgeHubScreen = () => {
                     style={styles.playBtn}
                     onPress={() => Linking.openURL(item.url)}
                 >
-                    <Text style={styles.playText}>▶ Watch on YouTube</Text>
+                    <Text style={styles.playText}>{t('watchOnYoutube')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -69,13 +69,13 @@ const KnowledgeHubScreen = () => {
                         style={[styles.tab, isDark && styles.tabDark, tab === 'articles' && styles.tabActive, isDark && tab === 'articles' && styles.tabActiveDark]}
                         onPress={() => setTab('articles')}
                     >
-                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'articles' && styles.tabTextActive, isDark && tab === 'articles' && styles.tabTextActiveDark]}>Articles</Text>
+                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'articles' && styles.tabTextActive, isDark && tab === 'articles' && styles.tabTextActiveDark]}>{t('articles')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tab, isDark && styles.tabDark, tab === 'videos' && styles.tabActive, isDark && tab === 'videos' && styles.tabActiveDark]}
                         onPress={() => setTab('videos')}
                     >
-                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'videos' && styles.tabTextActive, isDark && tab === 'videos' && styles.tabTextActiveDark]}>Videos</Text>
+                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'videos' && styles.tabTextActive, isDark && tab === 'videos' && styles.tabTextActiveDark]}>{t('videos')}</Text>
                     </TouchableOpacity>
                 </View>
 

@@ -78,12 +78,12 @@ const HomeScreen = ({ navigation }) => {
                 {/* Financial Summary */}
                 <View style={[styles.financialRow, isDark && styles.financialRowDark]}>
                     <View style={styles.financialCol}>
-                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>Expenses</Text>
+                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>{t('expensesOnly')}</Text>
                         <Text style={[styles.financialValue, { color: isDark ? '#EF5350' : '#D32F2F' }]}>₹{item.totalExpense ? item.totalExpense.toFixed(2) : '0.00'}</Text>
                     </View>
                     <View style={[styles.financialDivider, isDark && styles.financialDividerDark]} />
                     <View style={styles.financialCol}>
-                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>Earnings</Text>
+                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>{t('earnings')}</Text>
                         <Text style={[styles.financialValue, { color: isDark ? '#81C784' : '#2E7D32' }]}>₹{item.totalEarning ? item.totalEarning.toFixed(2) : '0.00'}</Text>
                     </View>
                 </View>
@@ -91,7 +91,7 @@ const HomeScreen = ({ navigation }) => {
                 {/* Activity Summary */}
                 {item.lastActivity ? (
                     <View style={[styles.activityRow, isDark && styles.activityRowDark]}>
-                        <Text style={[styles.activityLabel, isDark && styles.textMutedDark]}>Latest Activity:</Text>
+                        <Text style={[styles.activityLabel, isDark && styles.textMutedDark]}>{t('latestActivity')}</Text>
                         <Text style={[styles.activityText, isDark && styles.textDark]} numberOfLines={1}>{item.lastActivity} ({item.lastActivityDate})</Text>
                     </View>
                 ) : null}
@@ -103,20 +103,20 @@ const HomeScreen = ({ navigation }) => {
         <>
             {farmProfile ? (
                 <View style={[styles.profileCard, isDark && styles.profileCardDark]}>
-                    <Text style={[styles.greeting, isDark && styles.textDark]}>Hello, {farmProfile.name} 👋</Text>
-                    <Text style={[styles.detail, isDark && styles.textMutedDark]}>📍 {farmProfile.village}  •  🌾 {farmProfile.acreage} Acres</Text>
+                    <Text style={[styles.greeting, isDark && styles.textDark]}>{t('hello')} {farmProfile.name} 👋</Text>
+                    <Text style={[styles.detail, isDark && styles.textMutedDark]}>📍 {farmProfile.village}  •  🌾 {farmProfile.acreage} {t('acres')}</Text>
                 </View>
             ) : (
                 <View style={styles.emptyState}>
-                    <Text style={[styles.emptyText, isDark && styles.textMutedDark]}>No profile found.</Text>
+                    <Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noProfileFound')}</Text>
                     <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={() => navigation.navigate('Profile')}>
-                        <Text style={styles.buttonText}>Create Profile</Text>
+                        <Text style={styles.buttonText}>{t('createProfile')}</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
             {/* Active Crops List */}
-            <Text style={[styles.sectionTitle, isDark && styles.textDark]}>Active Crop Instances</Text>
+            <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('activeCropInstances')}</Text>
         </>
     );
 
@@ -140,7 +140,7 @@ const HomeScreen = ({ navigation }) => {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 80 }}
                         ListEmptyComponent={() => (
-                            <Text style={[styles.emptyCropsText, isDark && styles.textMutedDark]}>No crops managed yet. Tap the + to start a new farming cycle.</Text>
+                            <Text style={[styles.emptyCropsText, isDark && styles.textMutedDark]}>{t('noCropsManaged')}</Text>
                         )}
                     />
                 )}

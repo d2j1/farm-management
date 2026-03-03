@@ -64,17 +64,17 @@ const ProfileScreen = ({ navigation }) => {
 
     return (
         <View style={[styles.container, isDark && styles.containerDark]}>
-            <Text style={[styles.label, isDark && styles.textDark]}>Full Name</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={name} onChangeText={setName} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Enter your name" />
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('fullName')}</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={name} onChangeText={setName} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterYourName')} />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Village Name</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={village} onChangeText={setVillage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. Shirpur" />
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('villageName')}</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={village} onChangeText={setVillage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterVillageName')} />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Total Acreage</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={acreage} onChangeText={setAcreage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. 5.5" keyboardType="numeric" />
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('totalAcreage')}</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={acreage} onChangeText={setAcreage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterAcreage')} keyboardType="numeric" />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>Active Crops (Comma Separated)</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={crops} onChangeText={setCrops} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="e.g. Sugarcane, Onion" />
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('activeCropsComma')}</Text>
+            <TextInput style={[styles.input, isDark && styles.inputDark]} value={crops} onChangeText={setCrops} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterCrops')} />
 
             <TouchableOpacity style={[styles.button, isDark && styles.btnDark]} onPress={saveProfile}>
                 <Text style={styles.buttonText}>{t('save')}</Text>

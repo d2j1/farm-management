@@ -7,6 +7,7 @@ import * as Notifications from 'expo-notifications';
 
 const { width: screenWidth } = Dimensions.get('window');
 import { getDb } from '../database/db';
+import { useTranslation } from 'react-i18next';
 
 const activityTypes = ['Ploughing', 'Sowing', 'Irrigation', 'Weeding', 'Fertilizing', 'Spraying', 'Harvesting', 'Other'];
 const expenseCategories = ['Seeds', 'Fertilizer', 'Pesticide', 'Labor', 'Fuel', 'Machinery Rent', 'Electricity', 'Other'];
@@ -46,9 +47,9 @@ const getTimeAgo = (dateString) => {
 
     return parts.length > 0 ? parts.join(' ') + ' ago' : 'Today';
 };
-
 const CropWorkspaceScreen = ({ route, navigation }) => {
     const isDark = useColorScheme() === 'dark';
+    const { t } = useTranslation();
     const { crop } = route.params; // Passed from HomeScreen
     const [tab, setTab] = useState('Activities'); // 'Activities' | 'Expenses'
     const scrollViewRef = useRef(null);
@@ -602,16 +603,15 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     return (
         <View style={[styles.container, isDark && styles.containerDark]}>
             {/* Tabs */}
-
             <View style={[styles.tabContainer, isDark && styles.tabContainerDark]}>
                 <TouchableOpacity style={[styles.tabBtn, tab === 'Activities' && styles.tabBtnActive, isDark && tab === 'Activities' && styles.tabBtnActiveDark]} onPress={() => switchTab('Activities')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Activities' && styles.tabTextActive, isDark && tab === 'Activities' && styles.tabTextActiveDark]}>Activity Logs</Text>
+                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Activities' && styles.tabTextActive, isDark && tab === 'Activities' && styles.tabTextActiveDark]}>{t('activityLogs')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.tabBtn, tab === 'Expenses' && styles.tabBtnActive, isDark && tab === 'Expenses' && styles.tabBtnActiveDark]} onPress={() => switchTab('Expenses')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Expenses' && styles.tabTextActive, isDark && tab === 'Expenses' && styles.tabTextActiveDark]}>Expenses</Text>
+                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Expenses' && styles.tabTextActive, isDark && tab === 'Expenses' && styles.tabTextActiveDark]}>{t('expenses')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.tabBtn, tab === 'Earnings' && styles.tabBtnActive, isDark && tab === 'Earnings' && styles.tabBtnActiveDark]} onPress={() => switchTab('Earnings')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Earnings' && styles.tabTextActive, isDark && tab === 'Earnings' && styles.tabTextActiveDark]}>Earnings</Text>
+                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Earnings' && styles.tabTextActive, isDark && tab === 'Earnings' && styles.tabTextActiveDark]}>{t('earnings')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -621,19 +621,19 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                     <View style={styles.cropMenuOverlay}>
                         <View style={[styles.cropMenuContainer, isDark && styles.menuContainerDark]}>
                             <TouchableOpacity style={styles.cropMenuItem} onPress={handleEditCrop}>
-                                <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>Edit crop details</Text>
+                                <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('editCropDetails')}</Text>
                             </TouchableOpacity>
                             {crop.status !== 'Inactive' ? (
                                 <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeactivateCrop}>
-                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>Deactivate crop</Text>
+                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('deactivateCrop')}</Text>
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity style={styles.cropMenuItem} onPress={handleActivateCrop}>
-                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>Activate crop</Text>
+                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('activateCrop')}</Text>
                                 </TouchableOpacity>
                             )}
                             <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeleteCrop}>
-                                <Text style={[styles.cropMenuItemText, { color: isDark ? '#EF5350' : '#D32F2F' }]}>Delete crop</Text>
+                                <Text style={[styles.cropMenuItemText, { color: isDark ? '#EF5350' : '#D32F2F' }]}>{t('deleteCrop')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -656,7 +656,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         keyExtractor={item => item.id.toString()}
                         renderItem={renderActivity}
                         contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>No activities logged yet.</Text>}
+                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noActivitiesLogged')}</Text>}
                     />
                 </View>
 
@@ -667,13 +667,13 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         keyExtractor={item => item.id.toString()}
                         ListHeaderComponent={() => (
                             <View style={[styles.summaryCard, isDark && styles.summaryCardExpenseDark]}>
-                                <Text style={[styles.summaryLabel, isDark && styles.summaryLabelExpenseDark]}>Total Investment in this Crop</Text>
+                                <Text style={[styles.summaryLabel, isDark && styles.summaryLabelExpenseDark]}>{t('totalInvestment')}</Text>
                                 <Text style={[styles.summaryAmount, isDark && styles.summaryAmountExpenseDark]}>₹{totalExpense.toFixed(2)}</Text>
                             </View>
                         )}
                         renderItem={renderExpense}
                         contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>No expenses logged yet.</Text>}
+                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noExpensesLogged')}</Text>}
                     />
                 </View>
 
@@ -684,13 +684,13 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         keyExtractor={item => item.id.toString()}
                         ListHeaderComponent={() => (
                             <View style={[styles.summaryCard, { backgroundColor: isDark ? '#15243B' : '#E3F2FD', borderColor: isDark ? '#213D6B' : '#BBDEFB' }]}>
-                                <Text style={[styles.summaryLabel, { color: isDark ? '#64B5F6' : '#1565C0' }]}>Total Earnings from this Crop</Text>
+                                <Text style={[styles.summaryLabel, { color: isDark ? '#64B5F6' : '#1565C0' }]}>{t('totalEarnings')}</Text>
                                 <Text style={[styles.summaryAmount, { color: isDark ? '#90CAF9' : '#1976D2' }]}>₹{totalEarning.toFixed(2)}</Text>
                             </View>
                         )}
                         renderItem={renderEarning}
                         contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>No earnings logged yet.</Text>}
+                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noEarningsLogged')}</Text>}
                     />
                 </View>
             </ScrollView>
@@ -699,17 +699,17 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             <View style={styles.fabContainer}>
                 {tab === 'Activities' && (
                     <TouchableOpacity style={[styles.fabButton, styles.fabActivity]} onPress={handleAddActivityPress}>
-                        <Text style={styles.fabButtonText}>+ Log Activity</Text>
+                        <Text style={styles.fabButtonText}>+ {t('logActivity')}</Text>
                     </TouchableOpacity>
                 )}
                 {tab === 'Expenses' && (
                     <TouchableOpacity style={[styles.fabButton, styles.fabExpense]} onPress={handleAddExpensePress}>
-                        <Text style={styles.fabButtonText}>+ Add Expense</Text>
+                        <Text style={styles.fabButtonText}>+ {t('addExpense')}</Text>
                     </TouchableOpacity>
                 )}
                 {tab === 'Earnings' && (
                     <TouchableOpacity style={[styles.fabButton, styles.fabEarning]} onPress={handleAddEarningPress}>
-                        <Text style={styles.fabButtonText}>+ Add Earning</Text>
+                        <Text style={styles.fabButtonText}>+ {t('addEarning')}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -721,7 +721,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
                                 <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editActivityId ? 'Edit Activity' : 'Log New Activity'}</Text>
+                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editActivityId ? t('editActivity') : t('logNewActivity')}</Text>
                                     <TouchableOpacity onPress={() => setActivityModalVisible(false)}>
                                         <Text style={styles.closeText}>✕</Text>
                                     </TouchableOpacity>
@@ -735,11 +735,11 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         ))}
                                     </View>
                                     {actType === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Activity Name" value={customActType} onChangeText={setCustomActType} />
+                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('activityName')} value={customActType} onChangeText={setCustomActType} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Observations / Notes" value={actNotes} onChangeText={setActNotes} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('observationsNotes')} value={actNotes} onChangeText={setActNotes} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>Date</Text>
+                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowActDate(true)}>
                                         <View style={[styles.input, isDark && styles.inputDark]}>
                                             <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{actDate}</Text>
@@ -759,7 +759,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addActivity(); }}><Text style={styles.submitBtnText}>Add Log</Text></TouchableOpacity>
+                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addActivity(); }}><Text style={styles.submitBtnText}>{t('addLog')}</Text></TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -774,13 +774,13 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
                                 <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editExpenseId ? 'Edit Expense' : 'Add Expense'}</Text>
+                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editExpenseId ? t('editExpense') : t('addExpense')}</Text>
                                     <TouchableOpacity onPress={() => setExpenseModalVisible(false)}>
                                         <Text style={styles.closeText}>✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Amount (₹)" keyboardType="numeric" value={expAmount} onChangeText={setExpAmount} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={expAmount} onChangeText={setExpAmount} onSubmitEditing={Keyboard.dismiss} />
                                     <View style={styles.pillContainer}>
                                         {expenseCategories.map(cat => (
                                             <TouchableOpacity key={cat} onPress={() => setExpCategory(cat)} style={[styles.pill, isDark && styles.pillDark, expCategory === cat && styles.pillActive]}>
@@ -789,11 +789,11 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         ))}
                                     </View>
                                     {expCategory === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Expense Name" value={customExpCategory} onChangeText={setCustomExpCategory} />
+                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('expenseName')} value={customExpCategory} onChangeText={setCustomExpCategory} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Remarks / Details" value={expRemarks} onChangeText={setExpRemarks} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={expRemarks} onChangeText={setExpRemarks} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>Date</Text>
+                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowExpDate(true)}>
                                         <View style={[styles.input, isDark && styles.inputDark]}>
                                             <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{expDate}</Text>
@@ -813,7 +813,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addExpense(); }}><Text style={styles.submitBtnText}>Add Expense</Text></TouchableOpacity>
+                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addExpense(); }}><Text style={styles.submitBtnText}>{t('addExpense')}</Text></TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -828,13 +828,13 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
                                 <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editEarningId ? 'Edit Earning' : 'Add Earning'}</Text>
+                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editEarningId ? t('editEarning') : t('addEarning')}</Text>
                                     <TouchableOpacity onPress={() => setEarningModalVisible(false)}>
                                         <Text style={styles.closeText}>✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Amount (₹)" keyboardType="numeric" value={earnAmount} onChangeText={setEarnAmount} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={earnAmount} onChangeText={setEarnAmount} onSubmitEditing={Keyboard.dismiss} />
                                     <View style={styles.pillContainer}>
                                         {earningCategories.map(cat => (
                                             <TouchableOpacity key={cat} onPress={() => setEarnCategory(cat)} style={[styles.pill, isDark && styles.pillDark, earnCategory === cat && styles.pillActive]}>
@@ -843,11 +843,11 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         ))}
                                     </View>
                                     {earnCategory === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Earning Name" value={customEarnCategory} onChangeText={setCustomEarnCategory} />
+                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('earningName')} value={customEarnCategory} onChangeText={setCustomEarnCategory} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Remarks / Details" value={earnRemarks} onChangeText={setEarnRemarks} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={earnRemarks} onChangeText={setEarnRemarks} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>Date</Text>
+                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowEarnDate(true)}>
                                         <View style={[styles.input, isDark && styles.inputDark]}>
                                             <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{earnDate}</Text>
@@ -867,7 +867,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#42A5F5' : '#1976D2' }]} onPress={() => { Keyboard.dismiss(); addEarning(); }}><Text style={styles.submitBtnText}>Add Earning</Text></TouchableOpacity>
+                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#42A5F5' : '#1976D2' }]} onPress={() => { Keyboard.dismiss(); addEarning(); }}><Text style={styles.submitBtnText}>{t('addEarning')}</Text></TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -882,24 +882,24 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                             <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
                                 <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>Set Reminder</Text>
+                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{t('setReminder')}</Text>
                                     <TouchableOpacity onPress={() => setReminderModalVisible(false)}>
                                         <Text style={styles.closeText}>✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder="Reminder Title / Subject" value={reminderTitle} onChangeText={setReminderTitle} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('reminderTitle')} value={reminderTitle} onChangeText={setReminderTitle} onSubmitEditing={Keyboard.dismiss} />
 
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, gap: 10 }}>
                                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowReminderDatePicker(true)}>
-                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>Date</Text>
+                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
                                             <View style={[styles.input, isDark && styles.inputDark, { marginBottom: 0 }]}>
                                                 <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{reminderDate.toLocaleDateString()}</Text>
                                             </View>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowReminderTimePicker(true)}>
-                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>Time</Text>
+                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('time')}</Text>
                                             <View style={[styles.input, isDark && styles.inputDark, { marginBottom: 0 }]}>
                                                 <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{reminderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                                             </View>
@@ -940,7 +940,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     )}
 
                                     <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10, flexWrap: 'wrap' }}>
-                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}>Set to </Text>
+                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}>{t('setTo')}</Text>
                                         <View style={[{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8, marginHorizontal: 8, backgroundColor: '#f9f9f9', overflow: 'hidden' }, isDark && { borderColor: '#444', backgroundColor: '#333' }]}>
                                             <Picker
                                                 selectedValue={selectedPresetDay || 0}
@@ -957,10 +957,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                                 ))}
                                             </Picker>
                                         </View>
-                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}> days from today</Text>
+                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}>{t('daysFromToday')}</Text>
                                     </View>
 
-                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#7E57C2' : '#673AB7' }]} onPress={() => { Keyboard.dismiss(); scheduleReminder(); }}><Text style={styles.submitBtnText}>Schedule Reminder</Text></TouchableOpacity>
+                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#7E57C2' : '#673AB7' }]} onPress={() => { Keyboard.dismiss(); scheduleReminder(); }}><Text style={styles.submitBtnText}>{t('scheduleReminder')}</Text></TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
