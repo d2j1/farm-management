@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform, useColorScheme, Modal, Pressable } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker'; // We need to install this or use built in approach. For now we use standard Picker if installed, or build a simple mock.
 import { getDb } from '../database/db';
@@ -44,6 +44,19 @@ const CreateCropScreen = ({ route, navigation }) => {
     const [showExpectedHarvest, setShowExpectedHarvest] = useState(false);
     const [prevCrop, setPrevCrop] = useState(existingCrop?.previous_crop || '');
 
+    // Custom Alert Modal State
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [onAlertOk, setOnAlertOk] = useState(null);
+
+    const showAlert = (title, message, onOk = null) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setOnAlertOk(() => onOk);
+        setAlertVisible(true);
+    };
+
     const saveCrop = async () => {
         const newErrors = {};
 
@@ -72,8 +85,7 @@ const CreateCropScreen = ({ route, navigation }) => {
                 );
 
                 if (result.changes > 0) {
-                    Alert.alert('Success', 'Crop details updated!');
-                    navigation.goBack(); // Return to dashboard
+                    showAlert(t('success') || 'Success', t('cropUpdatedMsg') || 'Crop details updated!', () => navigation.goBack());
                 }
             } else {
                 const result = await db.runAsync(
@@ -84,13 +96,12 @@ const CreateCropScreen = ({ route, navigation }) => {
                 );
 
                 if (result.changes > 0) {
-                    Alert.alert('Success', 'Crop cycle created!');
-                    navigation.goBack(); // Return to dashboard
+                    showAlert(t('success') || 'Success', t('cropCreatedMsg') || 'Crop cycle created!', () => navigation.goBack());
                 }
             }
         } catch (error) {
             console.error('Save Crop Error:', error);
-            Alert.alert('Error', 'Failed to save crop instance.');
+            showAlert(t('error') || 'Error', t('cropSaveErrorMsg') || 'Failed to save crop instance.');
         }
     };
 
@@ -209,6 +220,32 @@ const CreateCropScreen = ({ route, navigation }) => {
             </TouchableOpacity>
 
             <View style={{ height: 40 }} />
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={alertVisible}
+                onRequestClose={() => {
+                    setAlertVisible(false);
+                    if (onAlertOk) onAlertOk();
+                }}
+            >
+                <View style={styles.centeredView}>
+                    <View style={[styles.modalView, isDark && styles.modalViewDark]}>
+                        <Text style={[styles.modalTitle, isDark && styles.textDark]}>{alertTitle}</Text>
+                        <Text style={[styles.modalText, isDark && styles.textDark]}>{alertMessage}</Text>
+                        <Pressable
+                            style={[styles.modalButton]}
+                            onPress={() => {
+                                setAlertVisible(false);
+                                if (onAlertOk) onAlertOk();
+                            }}
+                        >
+                            <Text style={styles.modalButtonText}>{t('ok') || 'OK'}</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 };
@@ -235,7 +272,15 @@ const styles = StyleSheet.create({
 
     saveBtn: { backgroundColor: '#2E7D32', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
     saveBtnDark: { backgroundColor: '#388E3C' },
-    saveBtnText: { color: 'white', fontWeight: 'bold', fontSize: 18 }
+    saveBtnText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
+
+    centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+    modalView: { margin: 20, backgroundColor: 'white', borderRadius: 15, padding: 25, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, width: '80%' },
+    modalViewDark: { backgroundColor: '#2C2C2C' },
+    modalTitle: { marginBottom: 15, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#333' },
+    modalText: { marginBottom: 25, textAlign: 'center', fontSize: 16, color: '#666', lineHeight: 22 },
+    modalButton: { backgroundColor: '#1B5E20', borderRadius: 8, padding: 12, paddingHorizontal: 30, elevation: 2 },
+    modalButtonText: { color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 16 }
 });
 
 export default CreateCropScreen;

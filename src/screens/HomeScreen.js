@@ -92,7 +92,7 @@ const HomeScreen = ({ navigation }) => {
                 {item.lastActivity ? (
                     <View style={[styles.activityRow, isDark && styles.activityRowDark]}>
                         <Text style={[styles.activityLabel, isDark && styles.textMutedDark]}>{t('latestActivity')}</Text>
-                        <Text style={[styles.activityText, isDark && styles.textDark]} numberOfLines={1}>{item.lastActivity} ({item.lastActivityDate})</Text>
+                        <Text style={[styles.activityText, isDark && styles.textDark]} numberOfLines={1}>{t(item.lastActivity)} ({item.lastActivityDate})</Text>
                     </View>
                 ) : null}
             </TouchableOpacity>

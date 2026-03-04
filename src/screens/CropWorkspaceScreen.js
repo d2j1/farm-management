@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, Modal, KeyboardAvoidingView, ScrollView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, Modal, KeyboardAvoidingView, ScrollView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard, useColorScheme, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -58,6 +58,36 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     // Main Crop Menu State
     const [cropMenuVisible, setCropMenuVisible] = useState(false);
 
+    // Custom Confirmation Modal State (Double Button)
+    const [confirmAlertVisible, setConfirmAlertVisible] = useState(false);
+    const [confirmAlertTitle, setConfirmAlertTitle] = useState('');
+    const [confirmAlertMessage, setConfirmAlertMessage] = useState('');
+    const [confirmAlertConfirmText, setConfirmAlertConfirmText] = useState('');
+    const [confirmAlertCancelText, setConfirmAlertCancelText] = useState('');
+    const [confirmAlertAction, setConfirmAlertAction] = useState(null);
+    const [confirmAlertIsDestructive, setConfirmAlertIsDestructive] = useState(false);
+
+    const showConfirmAlert = (title, message, confirmText, cancelText, isDestructive, onConfirm) => {
+        setConfirmAlertTitle(title);
+        setConfirmAlertMessage(message);
+        setConfirmAlertConfirmText(confirmText);
+        setConfirmAlertCancelText(cancelText);
+        setConfirmAlertIsDestructive(isDestructive);
+        setConfirmAlertAction(() => onConfirm);
+        setConfirmAlertVisible(true);
+    };
+
+    // Custom Alert Modal State (Single Button)
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
+    const showAlert = (title, message) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
     // Activities State
     const [activities, setActivities] = useState([]);
     const [actType, setActType] = useState('Sowing');
@@ -79,6 +109,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const [isExpenseModalVisible, setExpenseModalVisible] = useState(false);
     const [editExpenseId, setEditExpenseId] = useState(null);
     const [customExpCategory, setCustomExpCategory] = useState('');
+    const [expAmountError, setExpAmountError] = useState(false);
 
     // Earnings State
     const [earnings, setEarnings] = useState([]);
@@ -91,6 +122,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const [isEarningModalVisible, setEarningModalVisible] = useState(false);
     const [editEarningId, setEditEarningId] = useState(null);
     const [customEarnCategory, setCustomEarnCategory] = useState('');
+    const [earnAmountError, setEarnAmountError] = useState(false);
 
     // Context Menu State
     const [menuVisibleId, setMenuVisibleId] = useState(null);
@@ -100,6 +132,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     // Reminder State
     const [isReminderModalVisible, setReminderModalVisible] = useState(false);
     const [reminderTitle, setReminderTitle] = useState('');
+    const [reminderTitleError, setReminderTitleError] = useState(false);
     const [reminderDate, setReminderDate] = useState(new Date());
     const [showReminderDatePicker, setShowReminderDatePicker] = useState(false);
     const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
@@ -140,67 +173,61 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
 
     const handleDeactivateCrop = () => {
         setCropMenuVisible(false);
-        Alert.alert(
-            "Deactivate Crop",
-            `Are you sure you want to deactivate ${crop.crop_name}?`,
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Deactivate", style: "destructive", onPress: async () => {
-                        try {
-                            const db = await getDb();
-                            await db.runAsync("UPDATE crops SET status = 'Inactive' WHERE id = ?", [crop.id]);
-                            navigation.goBack();
-                        } catch (error) {
-                            console.error('Error deactivating:', error);
-                        }
-                    }
+        showConfirmAlert(
+            t('deactivateCrop') || 'Deactivate Crop',
+            (t('deactivateCropConfirmText') || `Are you sure you want to deactivate {cropName}?`).replace('{cropName}', crop.crop_name),
+            t('deactivate') || "Deactivate",
+            t('cancel') || "Cancel",
+            true, // isDestructive
+            async () => {
+                try {
+                    const db = await getDb();
+                    await db.runAsync("UPDATE crops SET status = 'Inactive' WHERE id = ?", [crop.id]);
+                    navigation.goBack();
+                } catch (error) {
+                    console.error('Error deactivating:', error);
                 }
-            ]
+            }
         );
     };
 
     const handleActivateCrop = () => {
         setCropMenuVisible(false);
-        Alert.alert(
-            "Activate Crop",
-            `Are you sure you want to activate ${crop.crop_name}?`,
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Activate", style: "default", onPress: async () => {
-                        try {
-                            const db = await getDb();
-                            await db.runAsync("UPDATE crops SET status = 'Active' WHERE id = ?", [crop.id]);
-                            navigation.goBack();
-                        } catch (error) {
-                            console.error('Error activating:', error);
-                        }
-                    }
+        showConfirmAlert(
+            t('activateCrop') || 'Activate Crop',
+            (t('activateCropConfirmText') || `Are you sure you want to activate {cropName}?`).replace('{cropName}', crop.crop_name),
+            t('activate') || "Activate",
+            t('cancel') || "Cancel",
+            false, // isDestructive
+            async () => {
+                try {
+                    const db = await getDb();
+                    await db.runAsync("UPDATE crops SET status = 'Active' WHERE id = ?", [crop.id]);
+                    navigation.goBack();
+                } catch (error) {
+                    console.error('Error activating:', error);
                 }
-            ]
+            }
         );
     };
 
     const handleDeleteCrop = () => {
         setCropMenuVisible(false);
-        Alert.alert(
-            "Delete Crop",
-            `Are you sure you want to permanently delete ${crop.crop_name}? This cannot be undone.`,
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete", style: "destructive", onPress: async () => {
-                        try {
-                            const db = await getDb();
-                            await db.runAsync("DELETE FROM crops WHERE id = ?", [crop.id]);
-                            navigation.goBack();
-                        } catch (error) {
-                            console.error('Error deleting:', error);
-                        }
-                    }
+        showConfirmAlert(
+            t('deleteCrop') || 'Delete Crop',
+            (t('deleteCropConfirmText') || `Are you sure you want to permanently delete {cropName}? This cannot be undone.`).replace('{cropName}', crop.crop_name),
+            t('delete') || "Delete",
+            t('cancel') || "Cancel",
+            true, // isDestructive
+            async () => {
+                try {
+                    const db = await getDb();
+                    await db.runAsync("DELETE FROM crops WHERE id = ?", [crop.id]);
+                    navigation.goBack();
+                } catch (error) {
+                    console.error('Error deleting:', error);
                 }
-            ]
+            }
         );
     };
 
@@ -211,17 +238,17 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const scheduleReminder = async () => {
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Please allow notifications in settings to set a reminder.');
+            showAlert(t('error') || 'Permission Denied', 'Please allow notifications in settings to set a reminder.');
             return;
         }
 
         if (!reminderTitle.trim()) {
-            Alert.alert('Error', 'Please enter a reminder title');
+            setReminderTitleError(true);
             return;
         }
 
         if (reminderDate <= new Date()) {
-            Alert.alert('Error', 'Please choose a future date and time for the reminder.');
+            showAlert(t('error') || 'Error', 'Please choose a future date and time for the reminder.');
             return;
         }
 
@@ -235,14 +262,15 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 trigger: reminderDate,
             });
 
-            Alert.alert('Success', 'Reminder scheduled successfully!');
+            showAlert(t('success') || 'Success', 'Reminder scheduled successfully!');
             setReminderTitle('');
+            setReminderTitleError(false);
             setReminderDate(new Date());
             setSelectedPresetDay(null);
             setReminderModalVisible(false);
         } catch (error) {
             console.error('Failed to schedule reminder', error);
-            Alert.alert('Error', 'Could not schedule reminder.');
+            showAlert(t('error') || 'Error', 'Could not schedule reminder.');
         }
     };
 
@@ -349,7 +377,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
 
     const addExpense = async () => {
         if (!expAmount) {
-            Alert.alert('Error', 'Amount is required');
+            setExpAmountError(true);
             return;
         }
         const finalExpCategory = expCategory === 'Other' ? customExpCategory.trim() : expCategory;
@@ -417,6 +445,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
         setEditExpenseId(null);
         setExpCategory('Seeds');
         setCustomExpCategory('');
+        setExpAmountError(false);
         setExpAmount('');
         setExpRemarks('');
         setExpDate(new Date().toISOString().split('T')[0]);
@@ -425,7 +454,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
 
     const addEarning = async () => {
         if (!earnAmount) {
-            Alert.alert('Error', 'Amount is required');
+            setEarnAmountError(true);
             return;
         }
         const finalEarnCategory = earnCategory === 'Other' ? customEarnCategory.trim() : earnCategory;
@@ -493,6 +522,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
         setEditEarningId(null);
         setEarnCategory('Crop Sale');
         setCustomEarnCategory('');
+        setEarnAmountError(false);
         setEarnAmount('');
         setEarnRemarks('');
         setEarnDate(new Date().toISOString().split('T')[0]);
@@ -527,7 +557,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 <View style={[styles.timelineCard, isDark && styles.cardDark]}>
                     <View style={styles.cardHeaderRow}>
                         <View style={{ flex: 1 }}>
-                            <Text style={[styles.cardHeader, isDark && styles.textDark]}>{item.activity_type}</Text>
+                            <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.activity_type)}</Text>
                             <Text style={[styles.dateText, isDark && styles.dateTextDark]}>
                                 {item.date} <Text style={[styles.timeAgoText, isDark && styles.textMutedDark]}>({getTimeAgo(item.date)})</Text>
                             </Text>
@@ -549,7 +579,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             <View style={[styles.cardContainer, isDark && styles.cardContainerDark]}>
                 <View style={styles.cardRow}>
                     <View style={{ flex: 1 }}>
-                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{item.category} • {item.date}</Text>
+                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.category)} • {item.date}</Text>
                         {item.remarks ? <Text style={[styles.cardNotes, isDark && styles.textMutedDark]}>{item.remarks}</Text> : null}
                     </View>
                     <Text style={[styles.amountText, { color: isDark ? '#EF5350' : '#D32F2F' }]}>₹{item.amount.toFixed(2)}</Text>
@@ -566,7 +596,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             <View style={[styles.cardContainer, isDark && styles.cardContainerDark]}>
                 <View style={styles.cardRow}>
                     <View style={{ flex: 1 }}>
-                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{item.category} • {item.date}</Text>
+                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.category)} • {item.date}</Text>
                         {item.remarks ? <Text style={[styles.cardNotes, isDark && styles.textMutedDark]}>{item.remarks}</Text> : null}
                     </View>
                     <Text style={[styles.amountText, { color: isDark ? '#81C784' : '#2E7D32' }]}>₹{item.amount.toFixed(2)}</Text>
@@ -732,7 +762,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     <View style={styles.pillContainer}>
                                         {activityTypes.map(type => (
                                             <TouchableOpacity key={type} onPress={() => setActType(type)} style={[styles.pill, isDark && styles.pillDark, actType === type && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, actType === type && styles.pillTextActive]}>{type}</Text>
+                                                <Text style={[styles.pillText, isDark && styles.textDark, actType === type && styles.pillTextActive]}>{t(type)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -782,11 +812,12 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={expAmount} onChangeText={setExpAmount} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark, expAmountError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={expAmount} onChangeText={(text) => { setExpAmount(text); setExpAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {expAmountError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
                                     <View style={styles.pillContainer}>
                                         {expenseCategories.map(cat => (
                                             <TouchableOpacity key={cat} onPress={() => setExpCategory(cat)} style={[styles.pill, isDark && styles.pillDark, expCategory === cat && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, expCategory === cat && styles.pillTextActive]}>{cat}</Text>
+                                                <Text style={[styles.pillText, isDark && styles.textDark, expCategory === cat && styles.pillTextActive]}>{t(cat)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -836,11 +867,12 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={earnAmount} onChangeText={setEarnAmount} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark, earnAmountError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={earnAmount} onChangeText={(text) => { setEarnAmount(text); setEarnAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {earnAmountError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
                                     <View style={styles.pillContainer}>
                                         {earningCategories.map(cat => (
                                             <TouchableOpacity key={cat} onPress={() => setEarnCategory(cat)} style={[styles.pill, isDark && styles.pillDark, earnCategory === cat && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, earnCategory === cat && styles.pillTextActive]}>{cat}</Text>
+                                                <Text style={[styles.pillText, isDark && styles.textDark, earnCategory === cat && styles.pillTextActive]}>{t(cat)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -890,7 +922,8 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('reminderTitle')} value={reminderTitle} onChangeText={setReminderTitle} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput style={[styles.input, isDark && styles.inputDark, reminderTitleError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('reminderTitle')} value={reminderTitle} onChangeText={(text) => { setReminderTitle(text); setReminderTitleError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {reminderTitleError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
 
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, gap: 10 }}>
                                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowReminderDatePicker(true)}>
@@ -1005,6 +1038,59 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            {/* Custom Confirmation Alert Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={confirmAlertVisible}
+                onRequestClose={() => setConfirmAlertVisible(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={[styles.confirmModalView, isDark && styles.confirmModalViewDark]}>
+                        <Text style={[styles.confirmModalTitle, isDark && styles.textDark]}>{confirmAlertTitle}</Text>
+                        <Text style={[styles.confirmModalText, isDark && styles.textDark]}>{confirmAlertMessage}</Text>
+                        <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 10 }}>
+                            <Pressable
+                                style={styles.confirmModalButtonCancel}
+                                onPress={() => setConfirmAlertVisible(false)}
+                            >
+                                <Text style={styles.confirmModalButtonCancelText}>{confirmAlertCancelText}</Text>
+                            </Pressable>
+                            <Pressable
+                                style={[styles.confirmModalButtonConfirm, confirmAlertIsDestructive ? { backgroundColor: '#D32F2F' } : { backgroundColor: '#1976D2' }]}
+                                onPress={() => {
+                                    setConfirmAlertVisible(false);
+                                    if (confirmAlertAction) confirmAlertAction();
+                                }}
+                            >
+                                <Text style={styles.confirmModalButtonText}>{confirmAlertConfirmText}</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Custom Alert Modal (Single Button - OK) */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={alertVisible}
+                onRequestClose={() => setAlertVisible(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={[styles.confirmModalView, isDark && styles.confirmModalViewDark]}>
+                        <Text style={[styles.confirmModalTitle, isDark && styles.textDark]}>{alertTitle}</Text>
+                        <Text style={[styles.confirmModalText, isDark && styles.textDark]}>{alertMessage}</Text>
+                        <Pressable
+                            style={[styles.confirmModalButtonConfirm, { backgroundColor: '#1B5E20' }, { width: '100%', paddingHorizontal: 40 }]}
+                            onPress={() => setAlertVisible(false)}
+                        >
+                            <Text style={styles.confirmModalButtonText}>{t('ok') || 'OK'}</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -1082,6 +1168,8 @@ const styles = StyleSheet.create({
 
     input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
     inputDark: { borderColor: '#444', backgroundColor: '#333', color: '#FFF' },
+    inputError: { borderColor: '#D32F2F', marginBottom: 5 },
+    errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 15, marginTop: -2 },
 
     // FAB
     fabContainer: { position: 'absolute', bottom: 20, left: 15, right: 15, flexDirection: 'row', justifyContent: 'center', gap: 10 },
@@ -1099,6 +1187,17 @@ const styles = StyleSheet.create({
     modalHeaderDark: { borderBottomColor: '#333' },
     modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
     closeText: { fontSize: 20, color: '#888', fontWeight: 'bold', padding: 5 },
+
+    // Centered Confirm Modal
+    centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+    confirmModalView: { margin: 20, backgroundColor: 'white', borderRadius: 15, padding: 25, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, width: '80%' },
+    confirmModalViewDark: { backgroundColor: '#2C2C2C' },
+    confirmModalTitle: { marginBottom: 15, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#333' },
+    confirmModalText: { marginBottom: 25, textAlign: 'center', fontSize: 16, color: '#666', lineHeight: 22 },
+    confirmModalButtonConfirm: { flex: 1, borderRadius: 8, padding: 12, elevation: 2, alignItems: 'center' },
+    confirmModalButtonCancel: { flex: 1, backgroundColor: '#E0E0E0', borderRadius: 8, padding: 12, elevation: 2, alignItems: 'center' },
+    confirmModalButtonText: { color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
+    confirmModalButtonCancelText: { color: '#333', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
 
     // Global
     textDark: { color: '#E0E0E0' },
