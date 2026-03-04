@@ -7,7 +7,7 @@
     "knowledgeHub": "ज्ञान केंद्र",
     "settings": "सेटिंग्स और गोपनीयता",
     "language": "भाषा",
-    "english": "अंग्रेज़ी",
+    "english": "English",
     "hindi": "हिंदी",
     "marathi": "मराठी",
     "save": "सहेजें",
@@ -89,5 +89,16 @@
     "time": "समय",
     "setTo": "आज से ",
     "daysFromToday": " दिन बाद",
-    "scheduleReminder": "रिमाइंडर शेड्यूल करें"
+    "scheduleReminder": "रिमाइंडर शेड्यूल करें",
+    "fieldRequired": "यह फ़ील्ड आवश्यक है",
+    "error": "त्रुटि",
+    "exportSuccess": "निर्यात सफल",
+    "exportSuccessMsg": "आपके व्यापक फसल डेटा लॉग, खर्च और कमाई को सफलतापूर्वक निर्यात कर दिया गया है और आपके डिवाइस पर सहेज लिया गया है।",
+    "importCropData": "📥 फसल डेटा आयात करें",
+    "importSuccess": "आयात सफल",
+    "importSuccessMsg": "फसल डेटा सफलतापूर्वक आयात कर लिया गया है।",
+    "importError": "आयात त्रुटि",
+    "importErrorMsg": "फसल डेटा आयात करने में विफल। कृपया फ़ाइल प्रारूप की जाँच करें।",
+    "preparingExportData": "निर्यात डेटा तैयार किया जा रहा है...",
+    "importingDataWait": "डेटा आयात किया जा रहा है...\nकृपया ऐप को बंद न करें।"
 }

@@ -7,7 +7,7 @@
     "knowledgeHub": "ज्ञान केंद्र",
     "settings": "सेटिंग्ज आणि गोपनीयता",
     "language": "भाषा",
-    "english": "इंग्रजी",
+    "english": "English",
     "hindi": "हिंदी",
     "marathi": "मराठी",
     "save": "जतन करा",
@@ -89,5 +89,16 @@
     "time": "वेळ",
     "setTo": "आजपासून ",
     "daysFromToday": " दिवसांनंतर",
-    "scheduleReminder": "रिमाइंडर शेड्यूल करा"
+    "scheduleReminder": "रिमाइंडर शेड्यूल करा",
+    "fieldRequired": "हे फील्ड आवश्यक आहे",
+    "error": "त्रुटी",
+    "exportSuccess": "एक्सपोर्ट यशस्वी",
+    "exportSuccessMsg": "तुमचे सर्वसमावेशक पीक डेटा लॉग, खर्च आणि कमाई यशस्वीरित्या एक्सपोर्ट केले गेले आहेत आणि तुमच्या डिव्हाइसवर सेव्ह केले आहेत.",
+    "importCropData": "📥 पीक डेटा आयात करा",
+    "importSuccess": "आयात यशस्वी",
+    "importSuccessMsg": "पीक डेटा यशस्वीरित्या आयात केला गेला आहे.",
+    "importError": "आयात त्रुटी",
+    "importErrorMsg": "पीक डेटा आयात करण्यात अयशस्वी. कृपया फाईल फॉरमॅट तपासा.",
+    "preparingExportData": "एक्सपोर्ट डेटा तयार करत आहे...",
+    "importingDataWait": "डेटा आयात करत आहे...\nकृपया ॲप बंद करू नका."
 }

@@ -35,6 +35,7 @@ const CreateCropScreen = ({ route, navigation }) => {
     const [cropName, setCropName] = useState(existingCrop?.crop_name || '');
     const [sowDate, setSowDate] = useState(existingCrop?.sowing_date || new Date().toISOString().split('T')[0]);
     const [showSowDate, setShowSowDate] = useState(false);
+    const [errors, setErrors] = useState({});
 
     // Secondary
     const [variety, setVariety] = useState(existingCrop?.variety || '');
@@ -44,10 +45,18 @@ const CreateCropScreen = ({ route, navigation }) => {
     const [prevCrop, setPrevCrop] = useState(existingCrop?.previous_crop || '');
 
     const saveCrop = async () => {
-        if (!landId.trim() || !area.trim() || !cropName.trim()) {
-            Alert.alert('Error', 'Land Nickname, Area, and Crop Name are mandatory.');
+        const newErrors = {};
+
+        if (!landId.trim()) newErrors.landId = true;
+        if (!area.trim()) newErrors.area = true;
+        if (!cropName.trim()) newErrors.cropName = true;
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
+
+        setErrors({});
 
         try {
             const db = await getDb();
@@ -87,26 +96,26 @@ const CreateCropScreen = ({ route, navigation }) => {
 
     return (
         <ScrollView style={[styles.container, isDark && styles.containerDark]}>
-            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>{t('primaryDetails')}</Text>
-
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('landNickname')}</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('landNickname')} *</Text>
             <TextInput
-                style={[styles.input, isDark && styles.inputDark]}
+                style={[styles.input, isDark && styles.inputDark, errors.landId && styles.inputError]}
                 placeholder="e.g., Gat No. 102"
                 placeholderTextColor={isDark ? '#888' : '#999'}
                 value={landId}
-                onChangeText={setLandId}
+                onChangeText={(text) => { setLandId(text); setErrors({ ...errors, landId: false }); }}
             />
+            {errors.landId && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
 
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('totalArea')}</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('totalArea')} *</Text>
             <TextInput
-                style={[styles.input, isDark && styles.inputDark]}
+                style={[styles.input, isDark && styles.inputDark, errors.area && styles.inputError]}
                 placeholder="e.g., 5.5"
                 placeholderTextColor={isDark ? '#888' : '#999'}
                 keyboardType="numeric"
                 value={area}
-                onChangeText={setArea}
+                onChangeText={(text) => { setArea(text); setErrors({ ...errors, area: false }); }}
             />
+            {errors.area && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
 
             <CustomPicker
                 label={t('areaUnit')}
@@ -116,14 +125,15 @@ const CreateCropScreen = ({ route, navigation }) => {
                 isDark={isDark}
             />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('cropName')}</Text>
+            <Text style={[styles.label, isDark && styles.textDark]}>{t('cropName')} *</Text>
             <TextInput
-                style={[styles.input, isDark && styles.inputDark]}
+                style={[styles.input, isDark && styles.inputDark, errors.cropName && styles.inputError]}
                 placeholder="e.g., Sugarcane"
                 placeholderTextColor={isDark ? '#888' : '#999'}
                 value={cropName}
-                onChangeText={setCropName}
+                onChangeText={(text) => { setCropName(text); setErrors({ ...errors, cropName: false }); }}
             />
+            {errors.cropName && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
 
             <Text style={[styles.label, isDark && styles.textDark]}>{t('sowingDate')}</Text>
             <TouchableOpacity onPress={() => setShowSowDate(true)}>
@@ -144,8 +154,6 @@ const CreateCropScreen = ({ route, navigation }) => {
                     }}
                 />
             )}
-
-            <Text style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>{t('secondaryDetails')}</Text>
 
             <Text style={[styles.label, isDark && styles.textDark]}>{t('seedVariety')}</Text>
             <TextInput
@@ -177,6 +185,7 @@ const CreateCropScreen = ({ route, navigation }) => {
                     value={expectedHarvest ? new Date(expectedHarvest) : new Date()}
                     mode="date"
                     display="default"
+                    minimumDate={new Date()}
                     onChange={(event, selectedDate) => {
                         setShowExpectedHarvest(Platform.OS === 'ios');
                         if (selectedDate && event.type !== 'dismissed') {
@@ -213,6 +222,8 @@ const styles = StyleSheet.create({
     textDark: { color: '#E0E0E0' },
     input: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16, color: '#000' },
     inputDark: { borderColor: '#444', backgroundColor: '#2C2C2C', color: '#FFF' },
+    inputError: { borderColor: '#D32F2F', marginBottom: 5 },
+    errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 15, marginTop: -2 },
 
     pickerContainer: { marginBottom: 15 },
     pickerInner: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },

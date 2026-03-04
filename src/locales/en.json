@@ -8,8 +8,8 @@
     "settings": "Settings & Privacy",
     "language": "Language",
     "english": "English",
-    "hindi": "Hindi",
-    "marathi": "Marathi",
+    "hindi": "हिंदी",
+    "marathi": "मराठी",
     "save": "Save",
     "cancel": "Cancel",
     "activeCropInstances": "Active Crop Instances",
@@ -89,5 +89,16 @@
     "time": "Time",
     "setTo": "Set to ",
     "daysFromToday": " days from today",
-    "scheduleReminder": "Schedule Reminder"
+    "scheduleReminder": "Schedule Reminder",
+    "fieldRequired": "This field is required",
+    "error": "Error",
+    "exportSuccess": "Export Successful",
+    "exportSuccessMsg": "Your comprehensive crop data logs, expenses, and earnings have been successfully exported and saved to your device.",
+    "importCropData": "📥 Import Crop Data",
+    "importSuccess": "Import Successful",
+    "importSuccessMsg": "Crop data has been successfully imported.",
+    "importError": "Import Error",
+    "importErrorMsg": "Failed to import crop data. Please check the file format.",
+    "preparingExportData": "Preparing Export Data...",
+    "importingDataWait": "Importing Data...\nPlease do not close the app."
 }
