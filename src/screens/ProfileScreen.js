@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, useColorScheme } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, useColorScheme, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { getDb } from '../database/db';
 import useStore from '../store/useStore';
@@ -63,23 +63,25 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={[styles.container, isDark && styles.containerDark]}>
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('fullName')}</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={name} onChangeText={setName} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterYourName')} />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={[styles.container, isDark && styles.containerDark]}>
+                <Text style={[styles.label, isDark && styles.textDark]}>{t('fullName')}</Text>
+                <TextInput style={[styles.input, isDark && styles.inputDark]} value={name} onChangeText={setName} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterYourName')} />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('villageName')}</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={village} onChangeText={setVillage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterVillageName')} />
+                <Text style={[styles.label, isDark && styles.textDark]}>{t('villageName')}</Text>
+                <TextInput style={[styles.input, isDark && styles.inputDark]} value={village} onChangeText={setVillage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterVillageName')} />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('totalAcreage')}</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={acreage} onChangeText={setAcreage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterAcreage')} keyboardType="numeric" />
+                <Text style={[styles.label, isDark && styles.textDark]}>{t('totalAcreage')}</Text>
+                <TextInput style={[styles.input, isDark && styles.inputDark]} value={acreage} onChangeText={setAcreage} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterAcreage')} keyboardType="numeric" />
 
-            <Text style={[styles.label, isDark && styles.textDark]}>{t('activeCropsComma')}</Text>
-            <TextInput style={[styles.input, isDark && styles.inputDark]} value={crops} onChangeText={setCrops} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterCrops')} />
+                <Text style={[styles.label, isDark && styles.textDark]}>{t('activeCropsComma')}</Text>
+                <TextInput style={[styles.input, isDark && styles.inputDark]} value={crops} onChangeText={setCrops} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('enterCrops')} />
 
-            <TouchableOpacity style={[styles.button, isDark && styles.btnDark]} onPress={saveProfile}>
-                <Text style={styles.buttonText}>{t('save')}</Text>
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity style={[styles.button, isDark && styles.btnDark]} onPress={saveProfile}>
+                    <Text style={styles.buttonText}>{t('save')}</Text>
+                </TouchableOpacity>
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 

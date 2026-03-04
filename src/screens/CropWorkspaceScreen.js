@@ -593,11 +593,12 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
         }
     };
 
-    const handleMomentumScrollEnd = (e) => {
+    const handleScroll = (e) => {
         const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-        if (page === 0) setTab('Activities');
-        else if (page === 1) setTab('Expenses');
-        else setTab('Earnings');
+        const newTab = page === 0 ? 'Activities' : page === 1 ? 'Expenses' : 'Earnings';
+        if (tab !== newTab) {
+            setTab(newTab);
+        }
     };
 
     return (
@@ -646,7 +647,8 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={handleMomentumScrollEnd}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
                 style={{ flex: 1 }}
             >
                 {/* Activities Page */}
@@ -1082,8 +1084,8 @@ const styles = StyleSheet.create({
     inputDark: { borderColor: '#444', backgroundColor: '#333', color: '#FFF' },
 
     // FAB
-    fabContainer: { position: 'absolute', bottom: 20, left: 15, right: 15, flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-    fabButton: { flex: 1, paddingVertical: 14, borderRadius: 25, justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
+    fabContainer: { position: 'absolute', bottom: 20, left: 15, right: 15, flexDirection: 'row', justifyContent: 'center', gap: 10 },
+    fabButton: { paddingHorizontal: 30, paddingVertical: 14, borderRadius: 25, justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
     fabActivity: { backgroundColor: '#2E7D32' },
     fabExpense: { backgroundColor: '#D32F2F' },
     fabEarning: { backgroundColor: '#1976D2' },
