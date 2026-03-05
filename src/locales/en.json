@@ -127,5 +127,14 @@
     "deleteCropConfirmText": "Are you sure you want to permanently delete {cropName}? This cannot be undone.",
     "deactivate": "Deactivate",
     "activate": "Activate",
-    "delete": "Delete"
+    "delete": "Delete",
+    "year": "year",
+    "years": "years",
+    "month": "month",
+    "months": "months",
+    "day": "day",
+    "days": "days",
+    "ago": "ago",
+    "today": "Today",
+    "inTheFuture": "In the future"
 }

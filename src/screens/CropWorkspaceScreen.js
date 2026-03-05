@@ -14,7 +14,7 @@ const expenseCategories = ['Seeds', 'Fertilizer', 'Pesticide', 'Labor', 'Fuel', 
 const earningCategories = ['Crop Sale', 'Byproduct Sale', 'Subsidy', 'Other'];
 const presetDaysLists = [5, 10, 15, 20, 25, 30];
 
-const getTimeAgo = (dateString) => {
+const getTimeAgo = (dateString, t) => {
     if (!dateString) return '';
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -22,8 +22,8 @@ const getTimeAgo = (dateString) => {
     pastDate.setHours(0, 0, 0, 0);
 
     const diffTime = today - pastDate;
-    if (diffTime === 0) return 'Today';
-    if (diffTime < 0) return 'In the future';
+    if (diffTime === 0) return t('today') || 'Today';
+    if (diffTime < 0) return t('inTheFuture') || 'In the future';
 
     let years = today.getFullYear() - pastDate.getFullYear();
     let months = today.getMonth() - pastDate.getMonth();
@@ -41,11 +41,11 @@ const getTimeAgo = (dateString) => {
     }
 
     const parts = [];
-    if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
-    if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
-    if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    if (years > 0) parts.push(`${years} ${years > 1 ? (t('years') || 'years') : (t('year') || 'year')}`);
+    if (months > 0) parts.push(`${months} ${months > 1 ? (t('months') || 'months') : (t('month') || 'month')}`);
+    if (days > 0) parts.push(`${days} ${days > 1 ? (t('days') || 'days') : (t('day') || 'day')}`);
 
-    return parts.length > 0 ? parts.join(' ') + ' ago' : 'Today';
+    return parts.length > 0 ? `${parts.join(' ')} ${t('ago') || 'ago'}` : (t('today') || 'Today');
 };
 const CropWorkspaceScreen = ({ route, navigation }) => {
     const isDark = useColorScheme() === 'dark';
@@ -141,7 +141,14 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                    style={{ flexDirection: 'row', alignItems: 'center' }}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                        setCropMenuVisible(false);
+                        navigation.navigate('CreateCrop', { crop });
+                    }}
+                >
                     <Text style={{ fontSize: 24, marginRight: 8 }}>🌾</Text>
                     <View>
                         <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' }}>
@@ -151,7 +158,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                             {crop.land_identifier} ({crop.total_area} {crop.area_unit})
                         </Text>
                     </View>
-                </View>
+                </TouchableOpacity>
             ),
             headerRight: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -559,7 +566,7 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.activity_type)}</Text>
                             <Text style={[styles.dateText, isDark && styles.dateTextDark]}>
-                                {item.date} <Text style={[styles.timeAgoText, isDark && styles.textMutedDark]}>({getTimeAgo(item.date)})</Text>
+                                {item.date} <Text style={[styles.timeAgoText, isDark && styles.textMutedDark]}>({getTimeAgo(item.date, t)})</Text>
                             </Text>
                         </View>
                         <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'activity')} style={styles.menuDotsBtn}>
