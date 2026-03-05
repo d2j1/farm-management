@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Linking, ActivityIndicator, useColorScheme } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Linking, ActivityIndicator, useColorScheme, TextInput, ScrollView, Dimensions } from 'react-native';
+
+const { width: screenWidth } = Dimensions.get('window');
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fetchArticles, fetchVideos } from '../services/api';
@@ -11,6 +13,9 @@ const KnowledgeHubScreen = () => {
     const [articles, setArticles] = useState([]);
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedFilter, setSelectedFilter] = useState('All');
+    const scrollRef = useRef(null);
 
     useEffect(() => {
         loadData();
@@ -56,6 +61,23 @@ const KnowledgeHubScreen = () => {
         </View>
     );
 
+    const allCategories = ['All', ...new Set([
+        ...articles.map(a => a.category),
+        ...videos.map(v => v?.category)
+    ].filter(Boolean))];
+
+    const filterData = (data) => {
+        return data.filter(item => {
+            const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.content?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = selectedFilter === 'All' || item.category === selectedFilter;
+            return matchesSearch && matchesCategory;
+        });
+    };
+
+    const filteredArticles = filterData(articles);
+    const filteredVideos = filterData(videos);
+
     return (
         <SafeAreaView style={[styles.safeArea, isDark && styles.safeAreaDark]}>
             <View style={[styles.header, isDark && styles.headerDark]}>
@@ -67,16 +89,55 @@ const KnowledgeHubScreen = () => {
                 <View style={[styles.tabContainer, isDark && { borderBottomColor: '#333' }]}>
                     <TouchableOpacity
                         style={[styles.tab, isDark && styles.tabDark, tab === 'articles' && styles.tabActive, isDark && tab === 'articles' && styles.tabActiveDark]}
-                        onPress={() => setTab('articles')}
+                        onPress={() => {
+                            setTab('articles');
+                            scrollRef.current?.scrollTo({ x: 0, animated: true });
+                        }}
                     >
                         <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'articles' && styles.tabTextActive, isDark && tab === 'articles' && styles.tabTextActiveDark]}>{t('articles')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tab, isDark && styles.tabDark, tab === 'videos' && styles.tabActive, isDark && tab === 'videos' && styles.tabActiveDark]}
-                        onPress={() => setTab('videos')}
+                        onPress={() => {
+                            setTab('videos');
+                            scrollRef.current?.scrollTo({ x: screenWidth, animated: true });
+                        }}
                     >
                         <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'videos' && styles.tabTextActive, isDark && tab === 'videos' && styles.tabTextActiveDark]}>{t('videos')}</Text>
                     </TouchableOpacity>
+                </View>
+
+                {/* Search */}
+                <View style={styles.searchContainer}>
+                    <View style={[styles.searchInputWrapper, isDark && styles.searchInputWrapperDark]}>
+                        <TextInput
+                            style={[styles.searchInput, isDark && styles.searchInputDark]}
+                            placeholder={t('search') || 'Search...'}
+                            placeholderTextColor={isDark ? '#888' : '#aaa'}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearIconContainer}>
+                                <Text style={[styles.clearIconText, isDark && styles.clearIconTextDark]}>✕</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+
+                {/* Filters */}
+                <View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+                        {allCategories.map(cat => (
+                            <TouchableOpacity
+                                key={cat}
+                                style={[styles.filterChip, selectedFilter === cat && styles.filterChipSelected, isDark && styles.filterChipDark, isDark && selectedFilter === cat && styles.filterChipSelectedDark]}
+                                onPress={() => setSelectedFilter(cat)}
+                            >
+                                <Text style={[styles.filterText, selectedFilter === cat && styles.filterTextSelected, isDark && styles.filterTextDark]}>{cat}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                 </View>
 
                 {/* Content */}
@@ -84,20 +145,34 @@ const KnowledgeHubScreen = () => {
                     <View style={styles.center}>
                         <ActivityIndicator size="large" color="#2E7D32" />
                     </View>
-                ) : tab === 'articles' ? (
-                    <FlatList
-                        data={articles}
-                        keyExtractor={item => item.id}
-                        renderItem={renderArticle}
-                        contentContainerStyle={styles.listContainer}
-                    />
                 ) : (
-                    <FlatList
-                        data={videos}
-                        keyExtractor={item => item.id}
-                        renderItem={renderVideo}
-                        contentContainerStyle={styles.listContainer}
-                    />
+                    <ScrollView
+                        ref={scrollRef}
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                        onMomentumScrollEnd={(e) => {
+                            const pageIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+                            setTab(pageIndex === 0 ? 'articles' : 'videos');
+                        }}
+                    >
+                        <View style={{ width: screenWidth }}>
+                            <FlatList
+                                data={filteredArticles}
+                                keyExtractor={item => item.id}
+                                renderItem={renderArticle}
+                                contentContainerStyle={styles.listContainer}
+                            />
+                        </View>
+                        <View style={{ width: screenWidth }}>
+                            <FlatList
+                                data={filteredVideos}
+                                keyExtractor={item => item.id}
+                                renderItem={renderVideo}
+                                contentContainerStyle={styles.listContainer}
+                            />
+                        </View>
+                    </ScrollView>
                 )}
             </View>
         </SafeAreaView>
@@ -133,6 +208,22 @@ const styles = StyleSheet.create({
     videoInfo: { paddingHorizontal: 5 },
     playBtn: { backgroundColor: '#FF0000', paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 },
     playText: { color: 'white', fontWeight: 'bold' },
+    searchContainer: { paddingHorizontal: 20, marginBottom: 10 },
+    searchInputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
+    searchInputWrapperDark: { backgroundColor: '#1E1E1E' },
+    searchInput: { flex: 1, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, color: '#000' },
+    searchInputDark: { color: '#FFF' },
+    clearIconContainer: { padding: 10, justifyContent: 'center', alignItems: 'center' },
+    clearIconText: { fontSize: 16, color: '#888', fontWeight: 'bold' },
+    clearIconTextDark: { color: '#AAA' },
+    filterScroll: { paddingHorizontal: 20, paddingBottom: 15, gap: 8 },
+    filterChip: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 },
+    filterChipDark: { backgroundColor: '#1E1E1E' },
+    filterChipSelected: { backgroundColor: '#2E7D32' },
+    filterChipSelectedDark: { backgroundColor: '#81C784' },
+    filterText: { color: '#666', fontWeight: '500', fontSize: 16 },
+    filterTextDark: { color: '#AAAAAA' },
+    filterTextSelected: { color: '#FFF', fontWeight: 'bold' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     textDark: { color: '#E0E0E0' },
     textMutedDark: { color: '#AAAAAA' }

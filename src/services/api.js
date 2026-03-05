@@ -26,7 +26,7 @@ export const fetchArticles = async () => {
 export const fetchVideos = async () => {
     // Mocking the response for the UI
     return [
-        { id: '1', title: 'Modern Drip Irrigation Setup', url: 'https://youtube.com/watch?v=mock1', thumbnail: 'https://via.placeholder.com/300x150.png?text=Drip+Irrigation' },
-        { id: '2', title: 'Sugarcane Harvesting Tech', url: 'https://youtube.com/watch?v=mock2', thumbnail: 'https://via.placeholder.com/300x150.png?text=Sugarcane+Tech' },
+        { id: '1', title: 'Top 5 Most Profitable Crops for Indian Farmers 2024!', url: 'https://www.youtube.com/watch?v=_f7xDWZzn4c', thumbnail: 'https://img.youtube.com/vi/_f7xDWZzn4c/maxresdefault.jpg', category: 'Crops' },
+        { id: '2', title: 'Start Farming Step by Step for Beginners', url: 'https://www.youtube.com/watch?v=hzvT0vy5cjE', thumbnail: 'https://img.youtube.com/vi/hzvT0vy5cjE/maxresdefault.jpg', category: 'General' },
     ];
 };

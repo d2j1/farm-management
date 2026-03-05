@@ -344,10 +344,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     };
 
     const deleteActivity = (id) => {
-        Alert.alert('Delete Log', 'Are you sure you want to delete this activity?', [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('delete'), t('deleteCropConfirmText').replace('{cropName}', ''), [
+            { text: t('cancel') || 'Cancel', style: 'cancel' },
             {
-                text: 'Delete',
+                text: t('delete') || 'Delete',
                 style: 'destructive',
                 onPress: async () => {
                     const db = await getDb();
@@ -418,10 +418,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     };
 
     const deleteExpense = (id) => {
-        Alert.alert('Delete Expense', 'Are you sure you want to delete this expense?', [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('deleteExpense') || 'Delete Expense', t('deleteCropConfirmText').replace('{cropName}', ''), [
+            { text: t('cancel') || 'Cancel', style: 'cancel' },
             {
-                text: 'Delete',
+                text: t('delete') || 'Delete',
                 style: 'destructive',
                 onPress: async () => {
                     const db = await getDb();
@@ -495,10 +495,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     };
 
     const deleteEarning = (id) => {
-        Alert.alert('Delete Earning', 'Are you sure you want to delete this earning?', [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('deleteEarning') || 'Delete Earning', t('deleteCropConfirmText').replace('{cropName}', ''), [
+            { text: t('cancel') || 'Cancel', style: 'cancel' },
             {
-                text: 'Delete',
+                text: t('delete') || 'Delete',
                 style: 'destructive',
                 onPress: async () => {
                     const db = await getDb();
@@ -1016,31 +1016,31 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                     <View style={[styles.contextMenu, isDark && styles.contextMenuDark, { top: menuPos.top, right: menuPos.right }]}>
                         <TouchableOpacity style={styles.menuItem} onPress={() => {
                             const itemId = menuVisibleId;
-                            const t = menuType;
+                            const tString = menuType;
                             closeMenu();
-                            if (t === 'activity') {
+                            if (tString === 'activity') {
                                 const item = activities.find(a => a.id === itemId);
                                 if (item) openEditActivity(item);
-                            } else if (t === 'expense') {
+                            } else if (tString === 'expense') {
                                 const item = expenses.find(e => e.id === itemId);
                                 if (item) openEditExpense(item);
-                            } else if (t === 'earning') {
+                            } else if (tString === 'earning') {
                                 const item = earnings.find(e => e.id === itemId);
                                 if (item) openEditEarning(item);
                             }
                         }}>
-                            <Text style={[styles.menuItemTextEdit, isDark && { color: '#64B5F6' }]}>Edit</Text>
+                            <Text style={[styles.menuItemTextEdit, isDark && { color: '#64B5F6' }]}>{t('edit') || 'Edit'}</Text>
                         </TouchableOpacity>
                         <View style={[styles.menuDivider, isDark && { backgroundColor: '#444' }]} />
                         <TouchableOpacity style={styles.menuItem} onPress={() => {
                             const itemId = menuVisibleId;
-                            const t = menuType;
+                            const tString = menuType;
                             closeMenu();
-                            if (t === 'activity') deleteActivity(itemId);
-                            else if (t === 'expense') deleteExpense(itemId);
+                            if (tString === 'activity') deleteActivity(itemId);
+                            else if (tString === 'expense') deleteExpense(itemId);
                             else deleteEarning(itemId);
                         }}>
-                            <Text style={styles.menuItemTextDelete}>Delete</Text>
+                            <Text style={styles.menuItemTextDelete}>{t('delete') || 'Delete'}</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
