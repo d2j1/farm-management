@@ -18,15 +18,17 @@
     "buffer": "^6.0.3",
     "expo": "~51.0.35",
     "expo-device": "~6.0.2",
-    "expo-document-picker": "^55.0.8",
+    "expo-document-picker": "~12.0.2",
     "expo-file-system": "~17.0.1",
+    "expo-image-picker": "~15.1.0",
     "expo-localization": "~15.0.3",
-    "expo-media-library": "^55.0.9",
+    "expo-media-library": "~16.0.5",
     "expo-notifications": "~0.28.19",
     "expo-sharing": "~12.0.1",
     "expo-sqlite": "~14.0.6",
     "expo-status-bar": "~1.12.1",
     "i18next": "^23.11.5",
+    "nativewind": "^4.2.2",
     "react": "18.2.0",
     "react-i18next": "^14.1.2",
     "react-native": "0.74.5",
@@ -35,5 +37,8 @@
     "react-native-screens": "3.31.1",
     "zustand": "^4.5.2"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.3.2"
+  }
 }

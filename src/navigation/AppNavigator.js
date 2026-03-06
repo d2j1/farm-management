@@ -3,10 +3,11 @@ import { useColorScheme } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '../screens/HomeScreen';
+import CropsScreen from '../screens/CropsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import KnowledgeHubScreen from '../screens/KnowledgeHubScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -29,33 +30,41 @@ function HomeTabs() {
                     let iconName;
 
                     if (route.name === 'Home') {
-                        iconName = focused ? 'home' : 'home-outline';
+                        iconName = 'home';
+                    } else if (route.name === 'Crops') {
+                        iconName = 'eco';
                     } else if (route.name === 'Learn') {
-                        iconName = focused ? 'book' : 'book-outline';
+                        iconName = 'menu-book';
                     } else if (route.name === 'Settings') {
-                        iconName = focused ? 'settings' : 'settings-outline';
+                        iconName = 'person';
                     }
 
-                    return <Ionicons name={iconName} size={size} color={color} />;
+                    // Using MaterialIcons to match the HTML design
+                    return <MaterialIcons name={iconName} size={28} color={color} />;
                 },
-                tabBarActiveTintColor: isDark ? '#81C784' : '#2E7D32',
-                tabBarInactiveTintColor: isDark ? '#aaa' : 'gray',
+                tabBarActiveTintColor: '#3ce619',
+                tabBarInactiveTintColor: isDark ? '#94a3b8' : '#94a3b8',
                 tabBarStyle: {
-                    backgroundColor: isDark ? '#1E1E1E' : '#FFFFFF',
-                    borderTopColor: isDark ? '#333' : '#EEE',
-                    paddingBottom: 10,
-                    paddingTop: 10,
-                    height: 70,
+                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                    borderTopColor: isDark ? '#1e293b' : '#f1f5f9',
+                    borderTopWidth: 1,
+                    paddingBottom: 12,
+                    paddingTop: 12,
+                    height: 65,
+                    elevation: 0, // Remove android shadow to match flat design
+                    shadowOpacity: 0 // Remove ios shadow
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '500',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    marginTop: -5
                 },
             })}
         >
-            <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('home') }} />
-            <Tab.Screen name="Learn" component={KnowledgeHubScreen} options={{ tabBarLabel: t('learn') }} />
-            <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('settings') }} />
+            <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
+            <Tab.Screen name="Crops" component={CropsScreen} options={{ tabBarLabel: 'Crops' }} />
+            <Tab.Screen name="Learn" component={KnowledgeHubScreen} options={{ tabBarLabel: 'Information' }} />
+            <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Profile' }} />
         </Tab.Navigator>
     );
 }
@@ -76,9 +85,9 @@ export default function AppNavigator() {
                 }}
             >
                 <Stack.Screen name="MainTabs" component={HomeTabs} />
-                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: t('profile') }} />
-                <Stack.Screen name="CreateCrop" component={CreateCropScreen} options={{ headerShown: true, title: t('createCropWorkspace') }} />
-                <Stack.Screen name="CropWorkspace" component={CropWorkspaceScreen} options={{ headerShown: true, title: t('activeCropInstances') }} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="CreateCrop" component={CreateCropScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="CropWorkspace" component={CropWorkspaceScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
 
         </NavigationContainer>

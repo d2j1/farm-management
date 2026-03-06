@@ -1,23 +1,32 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme, Platform, Modal, Pressable, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    Modal,
+    Pressable,
+    ActivityIndicator,
+    Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { getDb } from '../database/db';
-import { Buffer } from 'buffer';
 
 const SettingsScreen = ({ navigation }) => {
-    const isDark = useColorScheme() === 'dark';
     const { t, i18n } = useTranslation();
 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertTitle, setAlertTitle] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
-
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
+
+    const currentLang = i18n.language;
 
     const showAlert = (title, message) => {
         setAlertTitle(title);
@@ -32,7 +41,6 @@ const SettingsScreen = ({ navigation }) => {
     const exportData = async () => {
         setLoadingMessage(t('preparingExportData') || 'Preparing Export Data...');
         setIsLoading(true);
-        // Small delay to allow UI to render loading state
         await new Promise(resolve => setTimeout(resolve, 100));
 
         try {
@@ -40,27 +48,16 @@ const SettingsScreen = ({ navigation }) => {
 
             const cropQuery = `
         SELECT id as crop_id, land_identifier, total_area, area_unit, crop_name, sowing_date, variety, soil_type, expected_harvest_date, previous_crop, status
-        FROM crops
-        ORDER BY id DESC
-      `;
+        FROM crops ORDER BY id DESC`;
             const actQuery = `
-        SELECT c.id as crop_id, c.crop_name, c.land_identifier, a.date, a.activity_type, a.notes 
-        FROM activities a 
-        JOIN crops c ON a.crop_id = c.id
-        ORDER BY a.id DESC
-      `;
+        SELECT c.id as crop_id, c.crop_name, c.land_identifier, a.date, a.activity_type, a.notes
+        FROM activities a JOIN crops c ON a.crop_id = c.id ORDER BY a.id DESC`;
             const expQuery = `
         SELECT c.id as crop_id, c.crop_name, c.land_identifier, e.date, e.category, e.amount, e.payment_mode, e.remarks
-        FROM expenses e 
-        JOIN crops c ON e.crop_id = c.id
-        ORDER BY e.id DESC
-      `;
+        FROM expenses e JOIN crops c ON e.crop_id = c.id ORDER BY e.id DESC`;
             const earnQuery = `
         SELECT c.id as crop_id, c.crop_name, c.land_identifier, r.date, r.category, r.amount, r.payment_mode, r.remarks
-        FROM earnings r 
-        JOIN crops c ON r.crop_id = c.id
-        ORDER BY r.id DESC
-      `;
+        FROM earnings r JOIN crops c ON r.crop_id = c.id ORDER BY r.id DESC`;
 
             const cropsRows = await db.getAllAsync(cropQuery);
             const diaryRows = await db.getAllAsync(actQuery);
@@ -93,39 +90,26 @@ const SettingsScreen = ({ navigation }) => {
 
             if (Platform.OS === 'android') {
                 const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
                 if (permissions.granted) {
                     try {
                         const newFileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-                            permissions.directoryUri,
-                            fileName,
-                            'text/csv'
+                            permissions.directoryUri, fileName, 'text/csv'
                         );
-
-                        await FileSystem.writeAsStringAsync(newFileUri, csvString, {
-                            encoding: FileSystem.EncodingType.UTF8,
-                        });
-
+                        await FileSystem.writeAsStringAsync(newFileUri, csvString, { encoding: FileSystem.EncodingType.UTF8 });
                         showAlert(t('exportSuccess') || 'Success', t('exportSuccessMsg') || 'File saved successfully to the selected folder');
                     } catch (e) {
-                        console.error('File creation error', e);
                         showAlert('Error', 'Failed to save file');
                     }
                 } else {
                     showAlert('Permission Denied', 'Storage permission must be granted to save the file');
                 }
             } else {
-                // iOS Flow
                 if (await Sharing.isAvailableAsync()) {
-                    await Sharing.shareAsync(tempFileUri, {
-                        mimeType: 'text/csv',
-                        dialogTitle: 'Export Farm Data'
-                    });
+                    await Sharing.shareAsync(tempFileUri, { mimeType: 'text/csv', dialogTitle: 'Export Farm Data' });
                 } else {
                     showAlert('Error', 'Sharing is not available on this device');
                 }
             }
-
         } catch (error) {
             console.error('Export Error:', error);
             showAlert('Error', 'Failed to export data');
@@ -141,9 +125,7 @@ const SettingsScreen = ({ navigation }) => {
                 copyToCacheDirectory: true,
             });
 
-            if (result.canceled || !result.assets || result.assets.length === 0) {
-                return;
-            }
+            if (result.canceled || !result.assets || result.assets.length === 0) return;
 
             setLoadingMessage(t('importingDataWait') || 'Importing Data...\nPlease do not close the app.');
             setIsLoading(true);
@@ -164,14 +146,10 @@ const SettingsScreen = ({ navigation }) => {
             let currentSection = null;
             let insertedCropsMap = {};
 
-            // Helper to get or create a crop based on name and land ID
             const getOrCreateCropId = async (originalCropId, cropName, landId, cropDetails = null) => {
                 const key = originalCropId ? `orig_${originalCropId}` : `${cropName}_${landId}`;
-                if (insertedCropsMap[key]) {
-                    return insertedCropsMap[key];
-                }
+                if (insertedCropsMap[key]) return insertedCropsMap[key];
 
-                // If explicit crop details were parsed, use them. Otherwise, provide defaults.
                 const totalArea = cropDetails ? cropDetails.totalArea : 0;
                 const areaUnit = cropDetails ? cropDetails.areaUnit : 'Acres';
                 const sowingDate = cropDetails ? cropDetails.sowingDate : new Date().toISOString().split('T')[0];
@@ -182,9 +160,7 @@ const SettingsScreen = ({ navigation }) => {
                 const status = cropDetails ? cropDetails.status : 'Active';
 
                 const insertResult = await db.runAsync(
-                    `INSERT INTO crops 
-                    (land_identifier, total_area, area_unit, crop_name, sowing_date, variety, soil_type, expected_harvest_date, previous_crop, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    `INSERT INTO crops (land_identifier, total_area, area_unit, crop_name, sowing_date, variety, soil_type, expected_harvest_date, previous_crop, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [landId, totalArea, areaUnit, cropName, sowingDate, variety, soilType, expectedHarvest, prevCrop, status]
                 );
                 insertedCropsMap[key] = insertResult.lastInsertRowId;
@@ -195,37 +171,20 @@ const SettingsScreen = ({ navigation }) => {
                 const row = rows[i].trim();
                 if (!row) continue;
 
-                if (row.includes('--- CROP DETAILS ---')) {
-                    currentSection = 'crops';
-                    continue;
-                }
-                if (row.includes('--- CROP ACTIVITY LOGS ---')) {
-                    currentSection = 'activities';
-                    continue;
-                }
-                if (row.includes('--- CROP EXPENSES ---')) {
-                    currentSection = 'expenses';
-                    continue;
-                }
-                if (row.includes('--- CROP EARNINGS ---')) {
-                    currentSection = 'earnings';
-                    continue;
-                }
+                if (row.includes('--- CROP DETAILS ---')) { currentSection = 'crops'; continue; }
+                if (row.includes('--- CROP ACTIVITY LOGS ---')) { currentSection = 'activities'; continue; }
+                if (row.includes('--- CROP EXPENSES ---')) { currentSection = 'expenses'; continue; }
+                if (row.includes('--- CROP EARNINGS ---')) { currentSection = 'earnings'; continue; }
 
-                // Skip headers
                 if (row.startsWith('Crop ID,Crop,Land,Date,') || row.startsWith('Crop,Land,Date,') || row.startsWith('Crop ID,Crop,Land,Area,')) continue;
-
                 if (!currentSection) continue;
 
-                // Parse columns (handles quotes)
-                const columnsMatch = row.match(/(?:(?:^|,)("([^"]*)"|[^,]*))/g);
+                const columnsMatch = row.match(/(?:(?:^|,)(\"([^\"]*)\"|[^,]*))/g);
                 if (!columnsMatch) continue;
 
                 const cols = columnsMatch.map(col => {
                     let val = col.startsWith(',') ? col.substring(1) : col;
-                    if (val.startsWith('"') && val.endsWith('"')) {
-                        val = val.substring(1, val.length - 1);
-                    }
+                    if (val.startsWith('"') && val.endsWith('"')) val = val.substring(1, val.length - 1);
                     return val.trim();
                 });
 
@@ -234,85 +193,47 @@ const SettingsScreen = ({ navigation }) => {
                 const originalCropId = hasCropId ? cols[0] : null;
 
                 if (currentSection === 'crops' && cols.length >= 11) {
-                    const originalCropId = cols[0];
-                    const cropName = cols[1];
-                    const landId = cols[2];
-                    const totalArea = parseFloat(cols[3]) || 0;
-                    const areaUnit = cols[4];
-                    const sowingDate = cols[5];
-                    const variety = cols[6];
-                    const soilType = cols[7];
-                    const expectedHarvest = cols[8];
-                    const prevCrop = cols[9];
-                    const status = cols[10];
-
-                    if (originalCropId && cropName && landId) {
-                        await getOrCreateCropId(originalCropId, cropName, landId, {
-                            totalArea, areaUnit, sowingDate, variety, soilType, expectedHarvest, prevCrop, status
+                    const origId = cols[0];
+                    if (origId && cols[1] && cols[2]) {
+                        await getOrCreateCropId(origId, cols[1], cols[2], {
+                            totalArea: parseFloat(cols[3]) || 0, areaUnit: cols[4], sowingDate: cols[5],
+                            variety: cols[6], soilType: cols[7], expectedHarvest: cols[8], prevCrop: cols[9], status: cols[10]
                         });
                         importedCount++;
                     }
-                }
-                else if (currentSection === 'activities' && cols.length >= (hasCropId ? 6 : 5)) {
-                    const cropName = cols[0 + offset];
-                    const landId = cols[1 + offset];
-                    const actDate = cols[2 + offset];
-                    const actType = cols[3 + offset];
-                    const notes = cols[4 + offset];
-
-                    if (cropName && landId && actType) {
+                } else if (currentSection === 'activities' && cols.length >= (hasCropId ? 6 : 5)) {
+                    const cropName = cols[0 + offset], landId = cols[1 + offset];
+                    if (cropName && landId && cols[3 + offset]) {
                         const cropId = await getOrCreateCropId(originalCropId, cropName, landId);
-                        await db.runAsync(
-                            'INSERT INTO activities (crop_id, activity_type, date, notes) VALUES (?, ?, ?, ?)',
-                            [cropId, actType, actDate, notes]
-                        );
+                        await db.runAsync('INSERT INTO activities (crop_id, activity_type, date, notes) VALUES (?, ?, ?, ?)',
+                            [cropId, cols[3 + offset], cols[2 + offset], cols[4 + offset]]);
                         importedCount++;
                     }
-                }
-                else if (currentSection === 'expenses' && cols.length >= (hasCropId ? 8 : 7)) {
-                    const cropName = cols[0 + offset];
-                    const landId = cols[1 + offset];
-                    const expDate = cols[2 + offset];
-                    const category = cols[3 + offset];
+                } else if (currentSection === 'expenses' && cols.length >= (hasCropId ? 8 : 7)) {
+                    const cropName = cols[0 + offset], landId = cols[1 + offset];
                     const amount = parseFloat(cols[4 + offset]);
-                    const payMode = cols[5 + offset];
-                    const remarks = cols[6 + offset];
-
-                    if (cropName && landId && category && !isNaN(amount)) {
+                    if (cropName && landId && cols[3 + offset] && !isNaN(amount)) {
                         const cropId = await getOrCreateCropId(originalCropId, cropName, landId);
-                        await db.runAsync(
-                            'INSERT INTO expenses (crop_id, category, amount, payment_mode, date, remarks) VALUES (?, ?, ?, ?, ?, ?)',
-                            [cropId, category, amount, payMode || 'Cash', expDate, remarks]
-                        );
+                        await db.runAsync('INSERT INTO expenses (crop_id, category, amount, payment_mode, date, remarks) VALUES (?, ?, ?, ?, ?, ?)',
+                            [cropId, cols[3 + offset], amount, cols[5 + offset] || 'Cash', cols[2 + offset], cols[6 + offset]]);
                         importedCount++;
                     }
-                }
-                else if (currentSection === 'earnings' && cols.length >= (hasCropId ? 8 : 7)) {
-                    const cropName = cols[0 + offset];
-                    const landId = cols[1 + offset];
-                    const earnDate = cols[2 + offset];
-                    const category = cols[3 + offset];
+                } else if (currentSection === 'earnings' && cols.length >= (hasCropId ? 8 : 7)) {
+                    const cropName = cols[0 + offset], landId = cols[1 + offset];
                     const amount = parseFloat(cols[4 + offset]);
-                    const payMode = cols[5 + offset];
-                    const remarks = cols[6 + offset];
-
-                    if (cropName && landId && category && !isNaN(amount)) {
+                    if (cropName && landId && cols[3 + offset] && !isNaN(amount)) {
                         const cropId = await getOrCreateCropId(originalCropId, cropName, landId);
-                        await db.runAsync(
-                            'INSERT INTO earnings (crop_id, category, amount, payment_mode, date, remarks) VALUES (?, ?, ?, ?, ?, ?)',
-                            [cropId, category, amount, payMode || 'Cash', earnDate, remarks]
-                        );
+                        await db.runAsync('INSERT INTO earnings (crop_id, category, amount, payment_mode, date, remarks) VALUES (?, ?, ?, ?, ?, ?)',
+                            [cropId, cols[3 + offset], amount, cols[5 + offset] || 'Cash', cols[2 + offset], cols[6 + offset]]);
                         importedCount++;
                     }
                 }
             }
 
-            if (importedCount > 0) {
-                showAlert(t('importSuccess') || 'Success', t('importSuccessMsg') || 'Data imported successfully');
-            } else {
-                showAlert(t('importError') || 'Import Error', t('importErrorMsg') || 'No valid data found to import');
-            }
-
+            showAlert(
+                importedCount > 0 ? (t('importSuccess') || 'Success') : (t('importError') || 'Import Error'),
+                importedCount > 0 ? (t('importSuccessMsg') || 'Data imported successfully') : (t('importErrorMsg') || 'No valid data found to import')
+            );
         } catch (error) {
             console.error('Import Error:', error);
             showAlert(t('importError') || 'Import Error', t('importErrorMsg') || 'An unexpected error occurred during import');
@@ -321,78 +242,155 @@ const SettingsScreen = ({ navigation }) => {
         }
     };
 
-    return (
-        <SafeAreaView style={[styles.safeArea, isDark && styles.safeAreaDark]}>
-            <View style={[styles.header, isDark && styles.headerDark]}>
-                <Text style={styles.headerTitle}>{t('settings')}</Text>
-            </View>
-            <ScrollView style={[styles.container, isDark && styles.containerDark]}>
+    const languages = [
+        { code: 'en', label: t('english') || 'English' },
+        { code: 'hi', label: t('hindi') || 'Hindi' },
+        { code: 'mr', label: t('marathi') || 'Marathi' },
+    ];
 
-                {/* User Profile Navigation */}
-                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('account')}</Text>
-                <TouchableOpacity
-                    style={[styles.navButton, isDark && styles.navBtnDark]}
-                    onPress={() => navigation.navigate('Profile')}
-                >
-                    <Text style={styles.navButtonText}>{t('manageUserProfile')}</Text>
-                </TouchableOpacity>
+    return (
+        <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
+
+            {/* Header */}
+            <View className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-4">
+                <Text className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center">
+                    {t('profile') || 'Profile'}
+                </Text>
+            </View>
+
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+
+                {/* Account Section */}
+                <View className="mt-6">
+                    <Text className="px-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                        {t('account') || 'Account'}
+                    </Text>
+                    <View className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mx-4 overflow-hidden shadow-sm">
+                        <TouchableOpacity
+                            className="w-full flex-row items-center justify-between px-4 py-4 active:bg-slate-50 dark:active:bg-slate-800"
+                            onPress={() => navigation.navigate('Profile')}
+                        >
+                            <View className="flex-row items-center gap-4">
+                                <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                                    <MaterialIcons name="person" size={22} color="#3ce619" />
+                                </View>
+                                <Text className="text-base font-medium text-slate-900 dark:text-slate-100">
+                                    {t('manageUserProfile') || 'Manage user profile'}
+                                </Text>
+                            </View>
+                            <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                 {/* Language Section */}
-                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('language')}</Text>
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={() => changeLanguage('en')}>
-                        <Text style={[styles.buttonText, isDark && styles.textDark]}>{t('english')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={() => changeLanguage('hi')}>
-                        <Text style={[styles.buttonText, isDark && styles.textDark]}>{t('hindi')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={() => changeLanguage('mr')}>
-                        <Text style={[styles.buttonText, isDark && styles.textDark]}>{t('marathi')}</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Data Export & Privacy Section */}
-                <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('dataAndPrivacy')}</Text>
-                <View style={[styles.privacyCard, isDark && styles.privacyCardDark]}>
-                    <Text style={[styles.privacyText, isDark && styles.privacyTextDark]}>
-                        {t('dataPrivacyMsg')}
+                <View className="mt-8">
+                    <Text className="px-4 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                        {t('language') || 'Language'}
                     </Text>
-                    <TouchableOpacity style={[styles.exportBtn, isDark && styles.exportBtnDark]} onPress={exportData}>
-                        <Text style={styles.exportBtnText}>{t('exportCropData')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.importBtn, isDark && styles.importBtnDark]} onPress={importData}>
-                        <Text style={styles.importBtnText}>{t('importCropData')}</Text>
-                    </TouchableOpacity>
+                    <View className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mx-4 overflow-hidden shadow-sm divide-y divide-slate-100 dark:divide-slate-800">
+                        {languages.map((lang) => {
+                            const isSelected = currentLang === lang.code;
+                            return (
+                                <TouchableOpacity
+                                    key={lang.code}
+                                    className="w-full flex-row items-center justify-between px-4 py-4 active:bg-slate-50 dark:active:bg-slate-800"
+                                    onPress={() => changeLanguage(lang.code)}
+                                >
+                                    <View className="flex-row items-center gap-4">
+                                        <View className="h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                                            <MaterialIcons name="language" size={22} color="#64748b" />
+                                        </View>
+                                        <Text className="text-base font-medium text-slate-900 dark:text-slate-100">
+                                            {lang.label}
+                                        </Text>
+                                    </View>
+                                    {/* Radio Button */}
+                                    <View className={`h-5 w-5 rounded-full border-2 items-center justify-center ${isSelected ? 'border-primary' : 'border-slate-300 dark:border-slate-600'}`}>
+                                        {isSelected && (
+                                            <View className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
                 </View>
 
-                <View style={{ height: 40 }} />
+                {/* Data & Privacy Section */}
+                <View className="mt-8 px-4">
+                    <Text className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                        {t('dataAndPrivacy') || 'Data & Privacy'}
+                    </Text>
+
+                    {/* Privacy Info Card */}
+                    <View className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4 flex-row gap-3">
+                        <MaterialIcons name="security" size={22} color="#3ce619" style={{ marginTop: 1 }} />
+                        <Text className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 flex-1">
+                            {t('dataPrivacyMsg') || 'Your data is 100% private. All your profile data, crop logs, and financial expenses are stored locally on this device. No data is sent to external servers.'}
+                        </Text>
+                    </View>
+
+                    {/* Export & Import Buttons */}
+                    <View className="gap-3">
+                        <TouchableOpacity
+                            className="w-full flex-row items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-3.5 rounded-xl shadow-sm active:bg-slate-50 dark:active:bg-slate-800"
+                            onPress={exportData}
+                        >
+                            <MaterialIcons name="file-download" size={22} color="#3ce619" />
+                            <Text className="font-semibold text-base text-slate-900 dark:text-slate-100">
+                                {t('exportCropData') || 'Export Crop data as CSV'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            className="w-full flex-row items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-3.5 rounded-xl shadow-sm active:bg-slate-50 dark:active:bg-slate-800"
+                            onPress={importData}
+                        >
+                            <MaterialIcons name="file-upload" size={22} color="#3ce619" />
+                            <Text className="font-semibold text-base text-slate-900 dark:text-slate-100">
+                                {t('importCropData') || 'Import crop data'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
             </ScrollView>
 
             {/* Loading Overlay */}
             {isLoading && (
-                <View style={styles.loadingOverlay}>
-                    <View style={[styles.loadingBox, isDark && styles.loadingBoxDark]}>
-                        <ActivityIndicator size="large" color="#FF8F00" />
-                        <Text style={[styles.loadingText, isDark && styles.textDark]}>{loadingMessage}</Text>
+                <View className="absolute inset-0 bg-black/60 justify-center items-center z-50">
+                    <View className="bg-white dark:bg-slate-800 p-6 rounded-2xl items-center w-72 shadow-xl">
+                        <ActivityIndicator size="large" color="#3ce619" />
+                        <Text className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100 text-center">
+                            {loadingMessage}
+                        </Text>
                     </View>
                 </View>
             )}
 
+            {/* Alert Modal */}
             <Modal
                 animationType="fade"
                 transparent={true}
                 visible={alertVisible}
                 onRequestClose={() => setAlertVisible(false)}
             >
-                <View style={styles.centeredView}>
-                    <View style={[styles.modalView, isDark && styles.modalViewDark]}>
-                        <Text style={[styles.modalTitle, isDark && styles.textDark]}>{alertTitle}</Text>
-                        <Text style={[styles.modalText, isDark && styles.textDark]}>{alertMessage}</Text>
+                <View className="flex-1 justify-center items-center bg-black/50">
+                    <View className="bg-white dark:bg-slate-800 rounded-2xl p-6 items-center shadow-xl w-4/5">
+                        <Text className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 text-center">
+                            {alertTitle}
+                        </Text>
+                        <Text className="text-base text-slate-600 dark:text-slate-400 mb-6 text-center leading-relaxed">
+                            {alertMessage}
+                        </Text>
                         <Pressable
-                            style={[styles.modalButton]}
+                            className="bg-primary rounded-xl py-3 px-8"
                             onPress={() => setAlertVisible(false)}
                         >
-                            <Text style={styles.modalButtonText}>{t('ok') || 'OK'}</Text>
+                            <Text className="text-slate-900 font-bold text-base">
+                                {t('ok') || 'OK'}
+                            </Text>
                         </Pressable>
                     </View>
                 </View>
@@ -400,50 +398,5 @@ const SettingsScreen = ({ navigation }) => {
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#1B5E20' },
-    safeAreaDark: { backgroundColor: '#121212' },
-    header: { paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#1B5E20', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2 },
-    headerDark: { backgroundColor: '#1F1F1F' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: 'white' },
-    container: { flex: 1, padding: 20, backgroundColor: '#FFF' },
-    containerDark: { backgroundColor: '#121212' },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 15, color: '#333' },
-    textDark: { color: '#E0E0E0' },
-
-    navButton: { backgroundColor: '#FF8F00', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 10 },
-    navBtnDark: { backgroundColor: '#F57C00' },
-    navButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-
-    buttonContainer: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-    button: { backgroundColor: '#E0E0E0', padding: 12, borderRadius: 8, flex: 1, alignItems: 'center' },
-    buttonDark: { backgroundColor: '#333' },
-    buttonText: { color: '#333', fontWeight: 'bold' },
-
-    privacyCard: { backgroundColor: '#F0F4F8', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#D9E2EC' },
-    privacyCardDark: { backgroundColor: '#1E1E1E', borderColor: '#333' },
-    privacyText: { fontSize: 14, color: '#486581', lineHeight: 22, marginVertical: 10 },
-    privacyTextDark: { color: '#B0BEC5' },
-    exportBtn: { backgroundColor: '#1976D2', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-    exportBtnDark: { backgroundColor: '#1565C0' },
-    exportBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-    importBtn: { backgroundColor: '#FF9800', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-    importBtnDark: { backgroundColor: '#F57C00' },
-    importBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-
-    centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-    modalView: { margin: 20, backgroundColor: 'white', borderRadius: 15, padding: 25, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, width: '80%' },
-    modalViewDark: { backgroundColor: '#2C2C2C' },
-    modalTitle: { marginBottom: 15, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#333' },
-    modalText: { marginBottom: 25, textAlign: 'center', fontSize: 16, color: '#666', lineHeight: 22 },
-    modalButton: { backgroundColor: '#1B5E20', borderRadius: 8, padding: 12, paddingHorizontal: 30, elevation: 2 },
-    modalButtonText: { color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
-
-    loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', zIndex: 999 },
-    loadingBox: { backgroundColor: 'white', padding: 25, borderRadius: 15, alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, width: '70%' },
-    loadingBoxDark: { backgroundColor: '#2C2C2C' },
-    loadingText: { marginTop: 15, fontSize: 16, fontWeight: 'bold', color: '#333', textAlign: 'center' }
-});
 
 export default SettingsScreen;

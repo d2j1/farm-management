@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, Modal, KeyboardAvoidingView, ScrollView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard, useColorScheme, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Alert, Modal, KeyboardAvoidingView, ScrollView, Platform, Dimensions, TouchableWithoutFeedback, Keyboard, useColorScheme, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
@@ -129,6 +130,12 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const [menuType, setMenuType] = useState(null); // 'activity' | 'expense'
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
 
+    // Success Modal State (for deactivate/activate feedback)
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [successModalTitle, setSuccessModalTitle] = useState('');
+    const [successModalMessage, setSuccessModalMessage] = useState('');
+    const [successModalButtonText, setSuccessModalButtonText] = useState('Got it');
+
     // Reminder State
     const [isReminderModalVisible, setReminderModalVisible] = useState(false);
     const [reminderTitle, setReminderTitle] = useState('');
@@ -139,39 +146,8 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     const [selectedPresetDay, setSelectedPresetDay] = useState(null);
 
     useLayoutEffect(() => {
-        navigation.setOptions({
-            headerTitle: () => (
-                <TouchableOpacity
-                    style={{ flexDirection: 'row', alignItems: 'center' }}
-                    activeOpacity={0.7}
-                    onPress={() => {
-                        setCropMenuVisible(false);
-                        navigation.navigate('CreateCrop', { crop });
-                    }}
-                >
-                    <Text style={{ fontSize: 24, marginRight: 8 }}>🌾</Text>
-                    <View>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' }}>
-                            {crop.crop_name}
-                        </Text>
-                        <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.8)' }}>
-                            {crop.land_identifier} ({crop.total_area} {crop.area_unit})
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-            ),
-            headerRight: () => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => setReminderModalVisible(true)} style={{ padding: 10 }}>
-                        <Ionicons name="timer-outline" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setCropMenuVisible(true)} style={{ padding: 10 }}>
-                        <Text style={{ fontSize: 24, fontWeight: 'bold', color: "#FFFFFF" }}>⋮</Text>
-                    </TouchableOpacity>
-                </View>
-            ),
-        });
-    }, [navigation, crop, isDark]);
+        navigation.setOptions({ headerShown: false });
+    }, [navigation]);
 
     const handleEditCrop = () => {
         setCropMenuVisible(false);
@@ -190,7 +166,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 try {
                     const db = await getDb();
                     await db.runAsync("UPDATE crops SET status = 'Inactive' WHERE id = ?", [crop.id]);
-                    navigation.goBack();
+                    setSuccessModalTitle('Crop Deactivated');
+                    setSuccessModalMessage('The crop has been successfully deactivated and moved to your archive.');
+                    setSuccessModalVisible(true);
                 } catch (error) {
                     console.error('Error deactivating:', error);
                 }
@@ -210,7 +188,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 try {
                     const db = await getDb();
                     await db.runAsync("UPDATE crops SET status = 'Active' WHERE id = ?", [crop.id]);
-                    navigation.goBack();
+                    setSuccessModalTitle('Crop Reactivated');
+                    setSuccessModalMessage('The crop has been successfully reactivated and is now visible in your active list.');
+                    setSuccessModalButtonText('Great');
+                    setSuccessModalVisible(true);
                 } catch (error) {
                     console.error('Error activating:', error);
                 }
@@ -230,7 +211,10 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 try {
                     const db = await getDb();
                     await db.runAsync("DELETE FROM crops WHERE id = ?", [crop.id]);
-                    navigation.goBack();
+                    setSuccessModalTitle('Crop Deleted');
+                    setSuccessModalMessage('The crop has been successfully deleted from your farm records and cannot be recovered.');
+                    setSuccessModalButtonText('Got it');
+                    setSuccessModalVisible(true);
                 } catch (error) {
                     console.error('Error deleting:', error);
                 }
@@ -551,30 +535,47 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
 
 
 
-    const renderActivity = ({ item, index }) => {
-        const isLast = index === activities.length - 1;
-        const isFirst = index === 0;
+    const getActivityIcon = (type) => {
+        const lower = type?.toLowerCase() || '';
+        if (lower.includes('plow') || lower.includes('plough')) return 'agriculture';
+        if (lower.includes('irrig') || lower.includes('water')) return 'water-drop';
+        if (lower.includes('sow') || lower.includes('seed')) return 'grass';
+        if (lower.includes('harvest')) return 'content-cut';
+        if (lower.includes('spray') || lower.includes('pest')) return 'pest-control';
+        if (lower.includes('fertil')) return 'science';
+        if (lower.includes('weed')) return 'yard';
+        if (lower.includes('soil') || lower.includes('test')) return 'science';
+        return 'eco';
+    };
 
+    const renderActivity = ({ item }) => {
         return (
-            <View style={styles.timelineContainer}>
-                <View style={styles.timelineLeft}>
-                    <View style={[styles.line, { top: isFirst ? '50%' : 0, bottom: isLast ? '50%' : -15 }]} />
-                    <View style={styles.dot} />
-                </View>
-                <View style={[styles.timelineCard, isDark && styles.cardDark]}>
-                    <View style={styles.cardHeaderRow}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.activity_type)}</Text>
-                            <Text style={[styles.dateText, isDark && styles.dateTextDark]}>
-                                {item.date} <Text style={[styles.timeAgoText, isDark && styles.textMutedDark]}>({getTimeAgo(item.date, t)})</Text>
-                            </Text>
-                        </View>
-                        <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'activity')} style={styles.menuDotsBtn}>
-                            <Text style={[styles.menuDotsText, isDark && styles.textDark]}>⋮</Text>
-                        </TouchableOpacity>
+            <View className="bg-white dark:bg-slate-900 border border-primary/10 p-4 relative shadow-sm rounded-2xl mb-3">
+                <TouchableOpacity
+                    className="absolute top-4 right-4 p-1 rounded-full z-10"
+                    onPress={(e) => handleMenuPress(e, item, 'activity')}
+                >
+                    <MaterialIcons name="more-vert" size={20} color={isDark ? '#94a3b8' : '#9ca3af'} />
+                </TouchableOpacity>
+                <View className="flex-row items-center gap-3">
+                    <View className="bg-primary/20 p-2 rounded-lg">
+                        <MaterialIcons name={getActivityIcon(item.activity_type)} size={24} color="#3ce619" />
                     </View>
-                    {item.notes ? <Text style={[styles.cardNotes, isDark && styles.textMutedDark]}>{item.notes}</Text> : null}
+                    <View className="flex-1">
+                        <Text className="font-bold text-slate-900 dark:text-white text-base">{t(item.activity_type)}</Text>
+                        <Text className="text-xs text-slate-500 dark:text-slate-400">
+                            {item.date} • {getTimeAgo(item.date, t)}
+                        </Text>
+                    </View>
                 </View>
+                {item.notes ? (
+                    <View className="mt-4 bg-background-light dark:bg-background-dark/50 p-3 rounded-lg border border-primary/5">
+                        <Text className="text-sm text-slate-600 dark:text-slate-300 italic">
+                            <Text className="font-semibold not-italic">Remarks: </Text>
+                            {item.notes}
+                        </Text>
+                    </View>
+                ) : null}
             </View>
         );
     };
@@ -583,34 +584,74 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
 
     const renderExpense = ({ item }) => {
         return (
-            <View style={[styles.cardContainer, isDark && styles.cardContainerDark]}>
-                <View style={styles.cardRow}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.category)} • {item.date}</Text>
-                        {item.remarks ? <Text style={[styles.cardNotes, isDark && styles.textMutedDark]}>{item.remarks}</Text> : null}
+            <View className="bg-white dark:bg-slate-900 border border-primary/10 p-4 relative shadow-sm rounded-2xl mb-3">
+                <TouchableOpacity
+                    className="absolute top-4 right-4 p-1 rounded-full z-10"
+                    onPress={(e) => handleMenuPress(e, item, 'expense')}
+                >
+                    <MaterialIcons name="more-vert" size={20} color={isDark ? '#94a3b8' : '#9ca3af'} />
+                </TouchableOpacity>
+                <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-3">
+                        <View className="bg-primary/20 p-2 rounded-lg">
+                            <MaterialIcons name="shopping-basket" size={24} color="#3ce619" />
+                        </View>
+                        <View>
+                            <Text className="font-bold text-slate-900 dark:text-white text-base">{t(item.category)}</Text>
+                            <Text className="text-xs text-slate-500 dark:text-slate-400">
+                                {item.date} • {getTimeAgo(item.date, t)}
+                            </Text>
+                        </View>
                     </View>
-                    <Text style={[styles.amountText, { color: isDark ? '#EF5350' : '#D32F2F' }]}>₹{item.amount.toFixed(2)}</Text>
-                    <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'expense')} style={styles.menuDotsBtn}>
-                        <Text style={[styles.menuDotsText, isDark && styles.textDark]}>⋮</Text>
-                    </TouchableOpacity>
+                    <View className="mr-8">
+                        <Text className="text-xl font-bold text-green-700 dark:text-green-400">₹{item.amount.toFixed(2)}</Text>
+                    </View>
                 </View>
+                {item.remarks ? (
+                    <View className="mt-4 bg-background-light dark:bg-background-dark/50 p-3 rounded-lg border border-primary/5">
+                        <Text className="text-sm text-slate-600 dark:text-slate-300 italic">
+                            <Text className="font-semibold not-italic">Remarks: </Text>
+                            {item.remarks}
+                        </Text>
+                    </View>
+                ) : null}
             </View>
         );
     };
 
     const renderEarning = ({ item }) => {
         return (
-            <View style={[styles.cardContainer, isDark && styles.cardContainerDark]}>
-                <View style={styles.cardRow}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.cardHeader, isDark && styles.textDark]}>{t(item.category)} • {item.date}</Text>
-                        {item.remarks ? <Text style={[styles.cardNotes, isDark && styles.textMutedDark]}>{item.remarks}</Text> : null}
+            <View className="bg-white dark:bg-slate-900 border border-primary/10 p-4 relative shadow-sm rounded-2xl mb-3">
+                <TouchableOpacity
+                    className="absolute top-4 right-4 p-1 rounded-full z-10"
+                    onPress={(e) => handleMenuPress(e, item, 'earning')}
+                >
+                    <MaterialIcons name="more-vert" size={20} color={isDark ? '#94a3b8' : '#9ca3af'} />
+                </TouchableOpacity>
+                <View className="flex-row justify-between items-center">
+                    <View className="flex-row items-center gap-3">
+                        <View className="bg-primary/20 p-2 rounded-lg">
+                            <MaterialIcons name="payment" size={24} color="#3ce619" />
+                        </View>
+                        <View>
+                            <Text className="font-bold text-slate-900 dark:text-white text-base">{t(item.category)}</Text>
+                            <Text className="text-xs text-slate-500 dark:text-slate-400">
+                                {item.date} • {getTimeAgo(item.date, t)}
+                            </Text>
+                        </View>
                     </View>
-                    <Text style={[styles.amountText, { color: isDark ? '#81C784' : '#2E7D32' }]}>₹{item.amount.toFixed(2)}</Text>
-                    <TouchableOpacity onPress={(e) => handleMenuPress(e, item, 'earning')} style={styles.menuDotsBtn}>
-                        <Text style={[styles.menuDotsText, isDark && styles.textDark]}>⋮</Text>
-                    </TouchableOpacity>
+                    <View className="mr-8">
+                        <Text className="text-xl font-bold text-green-700 dark:text-green-400">₹{item.amount.toFixed(2)}</Text>
+                    </View>
                 </View>
+                {item.remarks ? (
+                    <View className="mt-4 bg-background-light dark:bg-background-dark/50 p-3 rounded-lg border border-primary/5">
+                        <Text className="text-sm text-slate-600 dark:text-slate-300 italic">
+                            <Text className="font-semibold not-italic">Remarks: </Text>
+                            {item.remarks}
+                        </Text>
+                    </View>
+                ) : null}
             </View>
         );
     };
@@ -639,39 +680,78 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
     };
 
     return (
-        <View style={[styles.container, isDark && styles.containerDark]}>
-            {/* Tabs */}
-            <View style={[styles.tabContainer, isDark && styles.tabContainerDark]}>
-                <TouchableOpacity style={[styles.tabBtn, tab === 'Activities' && styles.tabBtnActive, isDark && tab === 'Activities' && styles.tabBtnActiveDark]} onPress={() => switchTab('Activities')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Activities' && styles.tabTextActive, isDark && tab === 'Activities' && styles.tabTextActiveDark]}>{t('activityLogs')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, tab === 'Expenses' && styles.tabBtnActive, isDark && tab === 'Expenses' && styles.tabBtnActiveDark]} onPress={() => switchTab('Expenses')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Expenses' && styles.tabTextActive, isDark && tab === 'Expenses' && styles.tabTextActiveDark]}>{t('expenses')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.tabBtn, tab === 'Earnings' && styles.tabBtnActive, isDark && tab === 'Earnings' && styles.tabBtnActiveDark]} onPress={() => switchTab('Earnings')}>
-                    <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'Earnings' && styles.tabTextActive, isDark && tab === 'Earnings' && styles.tabTextActiveDark]}>{t('earnings')}</Text>
-                </TouchableOpacity>
+        <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
+            {/* Custom Header */}
+            <View className="bg-background-light/80 dark:bg-background-dark/80 border-b border-primary/10">
+                <View className="flex-row items-center p-4 justify-between">
+                    <View className="flex-row items-center gap-3">
+                        <TouchableOpacity
+                            className="h-10 w-10 items-center justify-center rounded-full"
+                            onPress={() => navigation.goBack()}
+                        >
+                            <MaterialIcons name="arrow-back" size={24} color={isDark ? '#e2e8f0' : '#1e293b'} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate('CreateCrop', { crop })}>
+                            <Text className="text-lg font-bold tracking-tight leading-tight text-slate-900 dark:text-white">{crop.crop_name}</Text>
+                            <Text className="text-xs text-slate-500 dark:text-slate-400">{crop.land_identifier} • {crop.total_area} {crop.area_unit}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View className="flex-row items-center gap-1">
+                        <TouchableOpacity
+                            className="h-10 w-10 items-center justify-center rounded-full"
+                            onPress={() => setReminderModalVisible(true)}
+                        >
+                            <MaterialIcons name="event" size={24} color={isDark ? '#cbd5e1' : '#475569'} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className="h-10 w-10 items-center justify-center rounded-full"
+                            onPress={() => setCropMenuVisible(true)}
+                        >
+                            <MaterialIcons name="more-vert" size={24} color={isDark ? '#cbd5e1' : '#475569'} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Tabs */}
+                <View className="flex-row px-4 border-b border-primary/5">
+                    <TouchableOpacity className="flex-1 items-center py-3" onPress={() => switchTab('Activities')}>
+                        <Text className={`text-sm font-bold ${tab === 'Activities' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{t('activityLogs')}</Text>
+                        <View className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab === 'Activities' ? 'bg-primary' : 'bg-transparent'}`} />
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center py-3" onPress={() => switchTab('Expenses')}>
+                        <Text className={`text-sm font-bold ${tab === 'Expenses' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{t('expenses')}</Text>
+                        <View className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab === 'Expenses' ? 'bg-primary' : 'bg-transparent'}`} />
+                    </TouchableOpacity>
+                    <TouchableOpacity className="flex-1 items-center py-3" onPress={() => switchTab('Earnings')}>
+                        <Text className={`text-sm font-bold ${tab === 'Earnings' ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{t('earnings')}</Text>
+                        <View className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab === 'Earnings' ? 'bg-primary' : 'bg-transparent'}`} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Top Right Crop context Menu modal */}
             <Modal visible={cropMenuVisible} transparent={true} animationType="fade" onRequestClose={() => setCropMenuVisible(false)}>
                 <TouchableWithoutFeedback onPress={() => setCropMenuVisible(false)}>
-                    <View style={styles.cropMenuOverlay}>
-                        <View style={[styles.cropMenuContainer, isDark && styles.menuContainerDark]}>
-                            <TouchableOpacity style={styles.cropMenuItem} onPress={handleEditCrop}>
-                                <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('editCropDetails')}</Text>
+                    <View className="flex-1">
+                        <View className="absolute right-4 top-14 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-primary/10 z-50 overflow-hidden">
+                            <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-100 dark:border-slate-800" onPress={handleEditCrop}>
+                                <MaterialIcons name="edit" size={18} color={isDark ? '#e2e8f0' : '#475569'} style={{ marginRight: 12 }} />
+                                <Text className="text-sm text-slate-700 dark:text-slate-200">{t('editCropDetails')}</Text>
                             </TouchableOpacity>
                             {crop.status !== 'Inactive' ? (
-                                <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeactivateCrop}>
-                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('deactivateCrop')}</Text>
+                                <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-100 dark:border-slate-800" onPress={handleDeactivateCrop}>
+                                    <MaterialIcons name="pause-circle-outline" size={18} color={isDark ? '#e2e8f0' : '#475569'} style={{ marginRight: 12 }} />
+                                    <Text className="text-sm text-slate-700 dark:text-slate-200">{t('deactivateCrop')}</Text>
                                 </TouchableOpacity>
                             ) : (
-                                <TouchableOpacity style={styles.cropMenuItem} onPress={handleActivateCrop}>
-                                    <Text style={[styles.cropMenuItemText, isDark && styles.textDark]}>{t('activateCrop')}</Text>
+                                <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-100 dark:border-slate-800" onPress={handleActivateCrop}>
+                                    <MaterialIcons name="play-circle-outline" size={18} color={isDark ? '#e2e8f0' : '#475569'} style={{ marginRight: 12 }} />
+                                    <Text className="text-sm text-slate-700 dark:text-slate-200">{t('activateCrop')}</Text>
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity style={styles.cropMenuItem} onPress={handleDeleteCrop}>
-                                <Text style={[styles.cropMenuItemText, { color: isDark ? '#EF5350' : '#D32F2F' }]}>{t('deleteCrop')}</Text>
+                            <TouchableOpacity className="flex-row items-center px-4 py-3" onPress={handleDeleteCrop}>
+                                <MaterialIcons name="delete" size={18} color="#ef4444" style={{ marginRight: 12 }} />
+                                <Text className="text-sm text-red-500">{t('deleteCrop')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -694,8 +774,8 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         data={activities}
                         keyExtractor={item => item.id.toString()}
                         renderItem={renderActivity}
-                        contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noActivitiesLogged')}</Text>}
+                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100, paddingTop: 16 }}
+                        ListEmptyComponent={<Text className="text-center text-slate-400 italic mt-6 text-base">{t('noActivitiesLogged')}</Text>}
                     />
                 </View>
 
@@ -705,14 +785,14 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         data={expenses}
                         keyExtractor={item => item.id.toString()}
                         ListHeaderComponent={() => (
-                            <View style={[styles.summaryCard, isDark && styles.summaryCardExpenseDark]}>
-                                <Text style={[styles.summaryLabel, isDark && styles.summaryLabelExpenseDark]}>{t('totalInvestment')}</Text>
-                                <Text style={[styles.summaryAmount, isDark && styles.summaryAmountExpenseDark]}>₹{totalExpense.toFixed(2)}</Text>
+                            <View className="bg-primary/10 dark:bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-6">
+                                <Text className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('totalInvestment')}</Text>
+                                <Text className="text-3xl font-bold text-slate-900 dark:text-white">₹{totalExpense.toFixed(2)}</Text>
                             </View>
                         )}
                         renderItem={renderExpense}
-                        contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noExpensesLogged')}</Text>}
+                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100, paddingTop: 16 }}
+                        ListEmptyComponent={<Text className="text-center text-slate-400 italic mt-6 text-base">{t('noExpensesLogged')}</Text>}
                     />
                 </View>
 
@@ -722,66 +802,61 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                         data={earnings}
                         keyExtractor={item => item.id.toString()}
                         ListHeaderComponent={() => (
-                            <View style={[styles.summaryCard, { backgroundColor: isDark ? '#15243B' : '#E3F2FD', borderColor: isDark ? '#213D6B' : '#BBDEFB' }]}>
-                                <Text style={[styles.summaryLabel, { color: isDark ? '#64B5F6' : '#1565C0' }]}>{t('totalEarnings')}</Text>
-                                <Text style={[styles.summaryAmount, { color: isDark ? '#90CAF9' : '#1976D2' }]}>₹{totalEarning.toFixed(2)}</Text>
+                            <View className="bg-primary/10 dark:bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-6">
+                                <Text className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{t('totalEarnings')}</Text>
+                                <Text className="text-3xl font-bold text-slate-900 dark:text-white">₹{totalEarning.toFixed(2)}</Text>
                             </View>
                         )}
                         renderItem={renderEarning}
-                        contentContainerStyle={styles.listContainer}
-                        ListEmptyComponent={<Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noEarningsLogged')}</Text>}
+                        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100, paddingTop: 16 }}
+                        ListEmptyComponent={<Text className="text-center text-slate-400 italic mt-6 text-base">{t('noEarningsLogged')}</Text>}
                     />
                 </View>
             </ScrollView>
 
-            {/* Floating Action Buttons */}
-            <View style={styles.fabContainer}>
-                {tab === 'Activities' && (
-                    <TouchableOpacity style={[styles.fabButton, styles.fabActivity]} onPress={handleAddActivityPress}>
-                        <Text style={styles.fabButtonText}>+ {t('logActivity')}</Text>
-                    </TouchableOpacity>
-                )}
-                {tab === 'Expenses' && (
-                    <TouchableOpacity style={[styles.fabButton, styles.fabExpense]} onPress={handleAddExpensePress}>
-                        <Text style={styles.fabButtonText}>+ {t('addExpense')}</Text>
-                    </TouchableOpacity>
-                )}
-                {tab === 'Earnings' && (
-                    <TouchableOpacity style={[styles.fabButton, styles.fabEarning]} onPress={handleAddEarningPress}>
-                        <Text style={styles.fabButtonText}>+ {t('addEarning')}</Text>
-                    </TouchableOpacity>
-                )}
+            {/* Floating Action Button */}
+            <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center', zIndex: 20 }}>
+                <TouchableOpacity
+                    className="flex-row items-center gap-2 bg-primary py-4 px-10 rounded-full shadow-lg"
+                    style={{ shadowColor: '#3ce619', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }}
+                    onPress={tab === 'Activities' ? handleAddActivityPress : tab === 'Expenses' ? handleAddExpensePress : handleAddEarningPress}
+                >
+                    <MaterialIcons name="add" size={22} color="#0f172a" />
+                    <Text className="font-bold text-slate-900 text-base">
+                        {tab === 'Activities' ? t('logActivity') : tab === 'Expenses' ? t('addExpense') : t('addEarning')}
+                    </Text>
+                </TouchableOpacity>
             </View>
 
             {/* Activity Modal */}
             <Modal visible={isActivityModalVisible} animationType="slide" transparent={true} onRequestClose={() => { Keyboard.dismiss(); setActivityModalVisible(false); }}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
-                                <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editActivityId ? t('editActivity') : t('logNewActivity')}</Text>
+                            <View className="bg-white dark:bg-slate-900 p-5 rounded-t-2xl" style={{ maxHeight: '80%' }}>
+                                <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                    <Text className="text-lg font-bold text-slate-900 dark:text-white">{editActivityId ? t('editActivity') : t('logNewActivity')}</Text>
                                     <TouchableOpacity onPress={() => setActivityModalVisible(false)}>
-                                        <Text style={styles.closeText}>✕</Text>
+                                        <Text className="text-xl text-slate-400 font-bold p-1">✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <View style={styles.pillContainer}>
+                                    <View className="flex-row flex-wrap gap-1.5 mb-3">
                                         {activityTypes.map(type => (
-                                            <TouchableOpacity key={type} onPress={() => setActType(type)} style={[styles.pill, isDark && styles.pillDark, actType === type && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, actType === type && styles.pillTextActive]}>{t(type)}</Text>
+                                            <TouchableOpacity key={type} onPress={() => setActType(type)} className={`px-3 py-2 rounded-full ${actType === type ? 'bg-amber-500' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                                <Text className={`text-base ${actType === type ? 'text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>{t(type)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                     {actType === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('activityName')} value={customActType} onChangeText={setCustomActType} />
+                                        <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('activityName')} value={customActType} onChangeText={setCustomActType} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('observationsNotes')} value={actNotes} onChangeText={setActNotes} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('observationsNotes')} value={actNotes} onChangeText={setActNotes} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
+                                    <Text className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowActDate(true)}>
-                                        <View style={[styles.input, isDark && styles.inputDark]}>
-                                            <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{actDate}</Text>
+                                        <View className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 bg-white dark:bg-slate-800">
+                                            <Text className="text-base text-slate-900 dark:text-white">{actDate}</Text>
                                         </View>
                                     </TouchableOpacity>
                                     {showActDate && (
@@ -798,7 +873,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addActivity(); }}><Text style={styles.submitBtnText}>{t('addLog')}</Text></TouchableOpacity>
+                                    <TouchableOpacity className="bg-primary p-4 rounded-xl items-center mt-2" onPress={() => { Keyboard.dismiss(); addActivity(); }}>
+                                        <Text className="text-white font-bold text-lg">{t('addLog')}</Text>
+                                    </TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -809,34 +886,34 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             {/* Expense Modal */}
             <Modal visible={isExpenseModalVisible} animationType="slide" transparent={true} onRequestClose={() => { Keyboard.dismiss(); setExpenseModalVisible(false); }}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
-                                <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editExpenseId ? t('editExpense') : t('addExpense')}</Text>
+                            <View className="bg-white dark:bg-slate-900 p-5 rounded-t-2xl" style={{ maxHeight: '80%' }}>
+                                <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                    <Text className="text-lg font-bold text-slate-900 dark:text-white">{editExpenseId ? t('editExpense') : t('addExpense')}</Text>
                                     <TouchableOpacity onPress={() => setExpenseModalVisible(false)}>
-                                        <Text style={styles.closeText}>✕</Text>
+                                        <Text className="text-xl text-slate-400 font-bold p-1">✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark, expAmountError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={expAmount} onChangeText={(text) => { setExpAmount(text); setExpAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
-                                    {expAmountError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
-                                    <View style={styles.pillContainer}>
+                                    <TextInput className={`border rounded-lg p-3 mb-1 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 ${expAmountError ? 'border-red-500 mb-0' : 'border-slate-200 dark:border-slate-700 mb-4'}`} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={expAmount} onChangeText={(text) => { setExpAmount(text); setExpAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {expAmountError && <Text className="text-red-500 text-xs mb-4 mt-1">{t('fieldRequired')}</Text>}
+                                    <View className="flex-row flex-wrap gap-1.5 mb-3">
                                         {expenseCategories.map(cat => (
-                                            <TouchableOpacity key={cat} onPress={() => setExpCategory(cat)} style={[styles.pill, isDark && styles.pillDark, expCategory === cat && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, expCategory === cat && styles.pillTextActive]}>{t(cat)}</Text>
+                                            <TouchableOpacity key={cat} onPress={() => setExpCategory(cat)} className={`px-3 py-2 rounded-full ${expCategory === cat ? 'bg-amber-500' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                                <Text className={`text-base ${expCategory === cat ? 'text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>{t(cat)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                     {expCategory === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('expenseName')} value={customExpCategory} onChangeText={setCustomExpCategory} />
+                                        <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('expenseName')} value={customExpCategory} onChangeText={setCustomExpCategory} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={expRemarks} onChangeText={setExpRemarks} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={expRemarks} onChangeText={setExpRemarks} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
+                                    <Text className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowExpDate(true)}>
-                                        <View style={[styles.input, isDark && styles.inputDark]}>
-                                            <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{expDate}</Text>
+                                        <View className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 bg-white dark:bg-slate-800">
+                                            <Text className="text-base text-slate-900 dark:text-white">{expDate}</Text>
                                         </View>
                                     </TouchableOpacity>
                                     {showExpDate && (
@@ -853,7 +930,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, isDark && styles.submitBtnDark]} onPress={() => { Keyboard.dismiss(); addExpense(); }}><Text style={styles.submitBtnText}>{t('addExpense')}</Text></TouchableOpacity>
+                                    <TouchableOpacity className="bg-primary p-4 rounded-xl items-center mt-2" onPress={() => { Keyboard.dismiss(); addExpense(); }}>
+                                        <Text className="text-white font-bold text-lg">{t('addExpense')}</Text>
+                                    </TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -864,34 +943,34 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             {/* Earning Modal */}
             <Modal visible={isEarningModalVisible} animationType="slide" transparent={true} onRequestClose={() => { Keyboard.dismiss(); setEarningModalVisible(false); }}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
-                                <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{editEarningId ? t('editEarning') : t('addEarning')}</Text>
+                            <View className="bg-white dark:bg-slate-900 p-5 rounded-t-2xl" style={{ maxHeight: '80%' }}>
+                                <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                    <Text className="text-lg font-bold text-slate-900 dark:text-white">{editEarningId ? t('editEarning') : t('addEarning')}</Text>
                                     <TouchableOpacity onPress={() => setEarningModalVisible(false)}>
-                                        <Text style={styles.closeText}>✕</Text>
+                                        <Text className="text-xl text-slate-400 font-bold p-1">✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark, earnAmountError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={earnAmount} onChangeText={(text) => { setEarnAmount(text); setEarnAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
-                                    {earnAmountError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
-                                    <View style={styles.pillContainer}>
+                                    <TextInput className={`border rounded-lg p-3 mb-1 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 ${earnAmountError ? 'border-red-500 mb-0' : 'border-slate-200 dark:border-slate-700 mb-4'}`} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('amountRupee')} keyboardType="numeric" value={earnAmount} onChangeText={(text) => { setEarnAmount(text); setEarnAmountError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {earnAmountError && <Text className="text-red-500 text-xs mb-4 mt-1">{t('fieldRequired')}</Text>}
+                                    <View className="flex-row flex-wrap gap-1.5 mb-3">
                                         {earningCategories.map(cat => (
-                                            <TouchableOpacity key={cat} onPress={() => setEarnCategory(cat)} style={[styles.pill, isDark && styles.pillDark, earnCategory === cat && styles.pillActive]}>
-                                                <Text style={[styles.pillText, isDark && styles.textDark, earnCategory === cat && styles.pillTextActive]}>{t(cat)}</Text>
+                                            <TouchableOpacity key={cat} onPress={() => setEarnCategory(cat)} className={`px-3 py-2 rounded-full ${earnCategory === cat ? 'bg-amber-500' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                                <Text className={`text-base ${earnCategory === cat ? 'text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>{t(cat)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                     {earnCategory === 'Other' && (
-                                        <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('earningName')} value={customEarnCategory} onChangeText={setCustomEarnCategory} />
+                                        <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('earningName')} value={customEarnCategory} onChangeText={setCustomEarnCategory} />
                                     )}
-                                    <TextInput style={[styles.input, isDark && styles.inputDark]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={earnRemarks} onChangeText={setEarnRemarks} onSubmitEditing={Keyboard.dismiss} />
+                                    <TextInput className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800" placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('remarksDetails')} value={earnRemarks} onChangeText={setEarnRemarks} onSubmitEditing={Keyboard.dismiss} />
 
-                                    <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
+                                    <Text className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">{t('date')}</Text>
                                     <TouchableOpacity onPress={() => setShowEarnDate(true)}>
-                                        <View style={[styles.input, isDark && styles.inputDark]}>
-                                            <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{earnDate}</Text>
+                                        <View className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 mb-4 bg-white dark:bg-slate-800">
+                                            <Text className="text-base text-slate-900 dark:text-white">{earnDate}</Text>
                                         </View>
                                     </TouchableOpacity>
                                     {showEarnDate && (
@@ -908,7 +987,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                         />
                                     )}
 
-                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#42A5F5' : '#1976D2' }]} onPress={() => { Keyboard.dismiss(); addEarning(); }}><Text style={styles.submitBtnText}>{t('addEarning')}</Text></TouchableOpacity>
+                                    <TouchableOpacity className="bg-blue-600 dark:bg-blue-500 p-4 rounded-xl items-center mt-2" onPress={() => { Keyboard.dismiss(); addEarning(); }}>
+                                        <Text className="text-white font-bold text-lg">{t('addEarning')}</Text>
+                                    </TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -919,31 +1000,31 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             {/* Reminder Modal */}
             <Modal visible={isReminderModalVisible} animationType="slide" transparent={true} onRequestClose={() => { Keyboard.dismiss(); setReminderModalVisible(false); }}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+                    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
                         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
-                                <View style={[styles.modalHeader, isDark && styles.modalHeaderDark]}>
-                                    <Text style={[styles.modalTitle, isDark && styles.textDark]}>{t('setReminder')}</Text>
+                            <View className="bg-white dark:bg-slate-900 p-5 rounded-t-2xl" style={{ maxHeight: '80%' }}>
+                                <View className="flex-row justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                    <Text className="text-lg font-bold text-slate-900 dark:text-white">{t('setReminder')}</Text>
                                     <TouchableOpacity onPress={() => setReminderModalVisible(false)}>
-                                        <Text style={styles.closeText}>✕</Text>
+                                        <Text className="text-xl text-slate-400 font-bold p-1">✕</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                                    <TextInput style={[styles.input, isDark && styles.inputDark, reminderTitleError && styles.inputError]} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('reminderTitle')} value={reminderTitle} onChangeText={(text) => { setReminderTitle(text); setReminderTitleError(false); }} onSubmitEditing={Keyboard.dismiss} />
-                                    {reminderTitleError && <Text style={styles.errorText}>{t('fieldRequired')}</Text>}
+                                    <TextInput className={`border rounded-lg p-3 mb-1 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 ${reminderTitleError ? 'border-red-500 mb-0' : 'border-slate-200 dark:border-slate-700 mb-4'}`} placeholderTextColor={isDark ? '#888' : '#999'} placeholder={t('reminderTitle')} value={reminderTitle} onChangeText={(text) => { setReminderTitle(text); setReminderTitleError(false); }} onSubmitEditing={Keyboard.dismiss} />
+                                    {reminderTitleError && <Text className="text-red-500 text-xs mb-4 mt-1">{t('fieldRequired')}</Text>}
 
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, gap: 10 }}>
                                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowReminderDatePicker(true)}>
-                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('date')}</Text>
-                                            <View style={[styles.input, isDark && styles.inputDark, { marginBottom: 0 }]}>
-                                                <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{reminderDate.toLocaleDateString()}</Text>
+                                            <Text className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">{t('date')}</Text>
+                                            <View className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 bg-white dark:bg-slate-800">
+                                                <Text className="text-base text-slate-900 dark:text-white">{reminderDate.toLocaleDateString()}</Text>
                                             </View>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowReminderTimePicker(true)}>
-                                            <Text style={[styles.label, isDark && styles.textDark, { marginBottom: 5 }]}>{t('time')}</Text>
-                                            <View style={[styles.input, isDark && styles.inputDark, { marginBottom: 0 }]}>
-                                                <Text style={{ fontSize: 16, color: isDark ? '#FFF' : '#000' }}>{reminderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                                            <Text className="text-sm font-semibold text-slate-500 dark:text-slate-300 mb-1">{t('time')}</Text>
+                                            <View className="border border-slate-200 dark:border-slate-700 rounded-lg p-3 bg-white dark:bg-slate-800">
+                                                <Text className="text-base text-slate-900 dark:text-white">{reminderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     </View>
@@ -982,11 +1063,11 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                     )}
 
                                     <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10, flexWrap: 'wrap' }}>
-                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}>{t('setTo')}</Text>
-                                        <View style={[{ borderWidth: 1, borderColor: '#DDD', borderRadius: 8, marginHorizontal: 8, backgroundColor: '#f9f9f9', overflow: 'hidden' }, isDark && { borderColor: '#444', backgroundColor: '#333' }]}>
+                                        <Text className="text-base font-medium text-slate-500 dark:text-slate-300">{t('setTo')}</Text>
+                                        <View style={{ borderWidth: 1, borderColor: isDark ? '#444' : '#DDD', borderRadius: 8, marginHorizontal: 8, backgroundColor: isDark ? '#333' : '#f9f9f9', overflow: 'hidden' }}>
                                             <Picker
                                                 selectedValue={selectedPresetDay || 0}
-                                                style={[{ height: 40, width: 120, margin: -8 }, isDark && { color: '#FFF' }]}
+                                                style={{ height: 40, width: 120, margin: -8, color: isDark ? '#FFF' : '#000' }}
                                                 onValueChange={(itemValue) => {
                                                     if (itemValue !== 0) {
                                                         setReminderFromPresetDays(itemValue);
@@ -999,10 +1080,12 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                                 ))}
                                             </Picker>
                                         </View>
-                                        <Text style={[{ fontSize: 16, color: '#555', fontWeight: '500' }, isDark && styles.textDark]}>{t('daysFromToday')}</Text>
+                                        <Text className="text-base font-medium text-slate-500 dark:text-slate-300">{t('daysFromToday')}</Text>
                                     </View>
 
-                                    <TouchableOpacity style={[styles.submitBtn, { backgroundColor: isDark ? '#7E57C2' : '#673AB7' }]} onPress={() => { Keyboard.dismiss(); scheduleReminder(); }}><Text style={styles.submitBtnText}>{t('scheduleReminder')}</Text></TouchableOpacity>
+                                    <TouchableOpacity className="bg-purple-600 dark:bg-purple-500 p-4 rounded-xl items-center mt-2" onPress={() => { Keyboard.dismiss(); scheduleReminder(); }}>
+                                        <Text className="text-white font-bold text-lg">{t('scheduleReminder')}</Text>
+                                    </TouchableOpacity>
                                 </ScrollView>
                             </View>
                         </TouchableWithoutFeedback>
@@ -1010,11 +1093,11 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                 </TouchableWithoutFeedback>
             </Modal>
 
-            {/* Global Context Menu Modal positioned exactly where tapped */}
+            {/* Global Context Menu Modal */}
             <Modal visible={menuVisibleId !== null} transparent={true} animationType="none" onRequestClose={closeMenu}>
                 <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPressOut={closeMenu}>
-                    <View style={[styles.contextMenu, isDark && styles.contextMenuDark, { top: menuPos.top, right: menuPos.right }]}>
-                        <TouchableOpacity style={styles.menuItem} onPress={() => {
+                    <View className="absolute bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-primary/10 overflow-hidden" style={{ top: menuPos.top, right: menuPos.right, minWidth: 120, zIndex: 9999 }}>
+                        <TouchableOpacity className="px-4 py-3 border-b border-slate-100 dark:border-slate-800" onPress={() => {
                             const itemId = menuVisibleId;
                             const tString = menuType;
                             closeMenu();
@@ -1029,10 +1112,9 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                                 if (item) openEditEarning(item);
                             }
                         }}>
-                            <Text style={[styles.menuItemTextEdit, isDark && { color: '#64B5F6' }]}>{t('edit') || 'Edit'}</Text>
+                            <Text className="text-blue-500 text-base font-medium">{t('edit') || 'Edit'}</Text>
                         </TouchableOpacity>
-                        <View style={[styles.menuDivider, isDark && { backgroundColor: '#444' }]} />
-                        <TouchableOpacity style={styles.menuItem} onPress={() => {
+                        <TouchableOpacity className="px-4 py-3" onPress={() => {
                             const itemId = menuVisibleId;
                             const tString = menuType;
                             closeMenu();
@@ -1040,38 +1122,28 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
                             else if (tString === 'expense') deleteExpense(itemId);
                             else deleteEarning(itemId);
                         }}>
-                            <Text style={styles.menuItemTextDelete}>{t('delete') || 'Delete'}</Text>
+                            <Text className="text-red-500 text-base font-medium">{t('delete') || 'Delete'}</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
             </Modal>
 
             {/* Custom Confirmation Alert Modal */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={confirmAlertVisible}
-                onRequestClose={() => setConfirmAlertVisible(false)}
-            >
-                <View style={styles.centeredView}>
-                    <View style={[styles.confirmModalView, isDark && styles.confirmModalViewDark]}>
-                        <Text style={[styles.confirmModalTitle, isDark && styles.textDark]}>{confirmAlertTitle}</Text>
-                        <Text style={[styles.confirmModalText, isDark && styles.textDark]}>{confirmAlertMessage}</Text>
+            <Modal animationType="fade" transparent={true} visible={confirmAlertVisible} onRequestClose={() => setConfirmAlertVisible(false)}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                    <View className="bg-white dark:bg-slate-900 rounded-2xl p-6 items-center shadow-xl" style={{ width: '80%' }}>
+                        <Text className="text-xl font-bold text-slate-900 dark:text-white text-center mb-4">{confirmAlertTitle}</Text>
+                        <Text className="text-base text-slate-500 dark:text-slate-400 text-center mb-6 leading-6">{confirmAlertMessage}</Text>
                         <View style={{ flexDirection: 'row', gap: 10, width: '100%', marginTop: 10 }}>
-                            <Pressable
-                                style={styles.confirmModalButtonCancel}
-                                onPress={() => setConfirmAlertVisible(false)}
-                            >
-                                <Text style={styles.confirmModalButtonCancelText}>{confirmAlertCancelText}</Text>
+                            <Pressable className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-lg p-3 items-center" onPress={() => setConfirmAlertVisible(false)}>
+                                <Text className="font-bold text-slate-700 dark:text-slate-200 text-base">{confirmAlertCancelText}</Text>
                             </Pressable>
                             <Pressable
-                                style={[styles.confirmModalButtonConfirm, confirmAlertIsDestructive ? { backgroundColor: '#D32F2F' } : { backgroundColor: '#1976D2' }]}
-                                onPress={() => {
-                                    setConfirmAlertVisible(false);
-                                    if (confirmAlertAction) confirmAlertAction();
-                                }}
+                                className="flex-1 rounded-lg p-3 items-center"
+                                style={{ backgroundColor: confirmAlertIsDestructive ? '#ef4444' : '#3b82f6' }}
+                                onPress={() => { setConfirmAlertVisible(false); if (confirmAlertAction) confirmAlertAction(); }}
                             >
-                                <Text style={styles.confirmModalButtonText}>{confirmAlertConfirmText}</Text>
+                                <Text className="text-white font-bold text-base">{confirmAlertConfirmText}</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -1079,137 +1151,43 @@ const CropWorkspaceScreen = ({ route, navigation }) => {
             </Modal>
 
             {/* Custom Alert Modal (Single Button - OK) */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={alertVisible}
-                onRequestClose={() => setAlertVisible(false)}
-            >
-                <View style={styles.centeredView}>
-                    <View style={[styles.confirmModalView, isDark && styles.confirmModalViewDark]}>
-                        <Text style={[styles.confirmModalTitle, isDark && styles.textDark]}>{alertTitle}</Text>
-                        <Text style={[styles.confirmModalText, isDark && styles.textDark]}>{alertMessage}</Text>
-                        <Pressable
-                            style={[styles.confirmModalButtonConfirm, { backgroundColor: '#1B5E20' }, { width: '100%', paddingHorizontal: 40 }]}
-                            onPress={() => setAlertVisible(false)}
-                        >
-                            <Text style={styles.confirmModalButtonText}>{t('ok') || 'OK'}</Text>
+            <Modal animationType="fade" transparent={true} visible={alertVisible} onRequestClose={() => setAlertVisible(false)}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                    <View className="bg-white dark:bg-slate-900 rounded-2xl p-6 items-center shadow-xl" style={{ width: '80%' }}>
+                        <Text className="text-xl font-bold text-slate-900 dark:text-white text-center mb-4">{alertTitle}</Text>
+                        <Text className="text-base text-slate-500 dark:text-slate-400 text-center mb-6 leading-6">{alertMessage}</Text>
+                        <Pressable className="w-full bg-primary rounded-lg p-3 items-center" onPress={() => setAlertVisible(false)}>
+                            <Text className="text-white font-bold text-base">{t('ok') || 'OK'}</Text>
                         </Pressable>
                     </View>
                 </View>
             </Modal>
-        </View>
+
+            {/* Success Modal (Deactivate/Activate) */}
+            <Modal animationType="fade" transparent={true} visible={successModalVisible} onRequestClose={() => { setSuccessModalVisible(false); navigation.goBack(); }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(20, 33, 17, 0.6)' }}>
+                    <View className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden items-center p-8 border border-primary/10" style={{ width: '85%' }}>
+                        {/* Icon */}
+                        <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
+                            <MaterialIcons name="check-circle" size={48} color="#3ce619" />
+                        </View>
+                        {/* Content */}
+                        <Text className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">{successModalTitle}</Text>
+                        <Text className="text-base text-slate-500 dark:text-slate-400 text-center leading-6 mb-8">{successModalMessage}</Text>
+                        {/* Button */}
+                        <TouchableOpacity
+                            className="w-full bg-primary py-3.5 px-6 rounded-xl items-center shadow-lg"
+                            style={{ shadowColor: '#3ce619', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 }}
+                            onPress={() => { setSuccessModalVisible(false); navigation.goBack(); }}
+                        >
+                            <Text className="text-black font-bold text-base">{successModalButtonText}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </SafeAreaView>
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F0F2F5' },
-    containerDark: { backgroundColor: '#121212' },
-
-    tabContainer: { flexDirection: 'row', margin: 15, backgroundColor: 'white', borderRadius: 10, padding: 5, elevation: 2 },
-    tabContainerDark: { backgroundColor: '#1E1E1E' },
-    tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 8 },
-    tabBtnActive: { backgroundColor: '#E8F5E9' },
-    tabBtnActiveDark: { backgroundColor: '#1B5E20' },
-    tabText: { fontSize: 16, color: '#666', fontWeight: 'bold' },
-    tabTextActive: { color: '#2E7D32' },
-    tabTextActiveDark: { color: '#81C784' },
-
-
-
-    pillContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-    pill: { backgroundColor: '#F0F0F0', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20 },
-    pillDark: { backgroundColor: '#333' },
-    pillActive: { backgroundColor: '#FF8F00' },
-    pillText: { fontSize: 16, color: '#555' },
-    pillTextActive: { color: 'white', fontWeight: 'bold' },
-
-    submitBtn: { backgroundColor: '#2E7D32', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-    submitBtnDark: { backgroundColor: '#388E3C' },
-    submitBtnText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
-
-    summaryCard: { backgroundColor: '#E8F5E9', padding: 20, marginHorizontal: 15, marginBottom: 15, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#C8E6C9' },
-    summaryCardExpenseDark: { backgroundColor: '#3B2424', borderColor: '#6B2121' },
-    summaryLabel: { fontSize: 16, color: '#1B5E20', fontWeight: '600' },
-    summaryLabelExpenseDark: { color: '#EF5350' },
-    summaryAmount: { fontSize: 32, color: '#2E7D32', fontWeight: 'bold', marginTop: 8 },
-    summaryAmountExpenseDark: { color: '#E57373' },
-
-    listContainer: { paddingHorizontal: 15, paddingBottom: 90 },
-
-    // Timeline UI
-    timelineContainer: { flexDirection: 'row', marginBottom: 20, paddingHorizontal: 15 },
-    timelineLeft: { width: 30, alignItems: 'center', justifyContent: 'center' },
-    dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#2E7D32', zIndex: 2 },
-    line: { width: 2, backgroundColor: '#A5D6A7', position: 'absolute', zIndex: 1 },
-    timelineCard: { flex: 1, backgroundColor: 'white', padding: 18, borderRadius: 10, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, marginLeft: 5 },
-    cardDark: { backgroundColor: '#1E1E1E' },
-    cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-    dateText: { fontSize: 15, color: '#E65100', fontWeight: 'bold' }, // Darker orange for contrast
-    dateTextDark: { color: '#FFB74D' },
-    timeAgoText: { fontSize: 13, color: '#666', fontWeight: 'normal' },
-
-    cardContainer: { backgroundColor: 'white', marginHorizontal: 15, borderRadius: 10, marginBottom: 15, elevation: 1 },
-    cardContainerDark: { backgroundColor: '#1E1E1E' },
-    cardRow: { flexDirection: 'row', padding: 18, alignItems: 'center' },
-    cardHeader: { fontSize: 18, fontWeight: 'bold', color: '#222' },
-    cardNotes: { fontSize: 16, color: '#555', marginTop: 6 },
-    amountText: { fontSize: 22, fontWeight: 'bold', color: '#D32F2F', marginRight: 10 },
-    emptyText: { textAlign: 'center', color: '#666', fontStyle: 'italic', marginTop: 25, fontSize: 16 },
-
-    menuDotsBtn: { padding: 8, paddingHorizontal: 12 },
-    menuDotsText: { fontSize: 24, color: '#666', fontWeight: 'bold' },
-
-    contextMenu: { position: 'absolute', backgroundColor: 'white', borderRadius: 8, elevation: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, zIndex: 9999, minWidth: 120 },
-    contextMenuDark: { backgroundColor: '#2C2C2C' },
-    menuItem: { paddingVertical: 10, paddingHorizontal: 15 },
-    menuDivider: { height: 1, backgroundColor: '#EEE' },
-    menuItemTextEdit: { color: '#007BFF', fontSize: 16, fontWeight: '500' },
-    menuItemTextDelete: { color: '#D32F2F', fontSize: 16, fontWeight: '500' },
-
-    cropMenuOverlay: { flex: 1 },
-    cropMenuContainer: { position: 'absolute', top: 50, right: 10, backgroundColor: 'white', borderRadius: 8, paddingVertical: 5, minWidth: 160, elevation: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
-    menuContainerDark: { backgroundColor: '#2C2C2C' },
-    cropMenuItem: { paddingVertical: 12, paddingHorizontal: 16 },
-    cropMenuItemText: { fontSize: 16, color: '#333' },
-
-    input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
-    inputDark: { borderColor: '#444', backgroundColor: '#333', color: '#FFF' },
-    inputError: { borderColor: '#D32F2F', marginBottom: 5 },
-    errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 15, marginTop: -2 },
-
-    // FAB
-    fabContainer: { position: 'absolute', bottom: 20, left: 15, right: 15, flexDirection: 'row', justifyContent: 'center', gap: 10 },
-    fabButton: { paddingHorizontal: 30, paddingVertical: 14, borderRadius: 25, justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 4 },
-    fabActivity: { backgroundColor: '#2E7D32' },
-    fabExpense: { backgroundColor: '#D32F2F' },
-    fabEarning: { backgroundColor: '#1976D2' },
-    fabButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-
-    // Modals
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' },
-    modalContentDark: { backgroundColor: '#1E1E1E' },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, borderBottomWidth: 1, borderBottomColor: '#EEE', paddingBottom: 10 },
-    modalHeaderDark: { borderBottomColor: '#333' },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-    closeText: { fontSize: 20, color: '#888', fontWeight: 'bold', padding: 5 },
-
-    // Centered Confirm Modal
-    centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-    confirmModalView: { margin: 20, backgroundColor: 'white', borderRadius: 15, padding: 25, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5, width: '80%' },
-    confirmModalViewDark: { backgroundColor: '#2C2C2C' },
-    confirmModalTitle: { marginBottom: 15, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#333' },
-    confirmModalText: { marginBottom: 25, textAlign: 'center', fontSize: 16, color: '#666', lineHeight: 22 },
-    confirmModalButtonConfirm: { flex: 1, borderRadius: 8, padding: 12, elevation: 2, alignItems: 'center' },
-    confirmModalButtonCancel: { flex: 1, backgroundColor: '#E0E0E0', borderRadius: 8, padding: 12, elevation: 2, alignItems: 'center' },
-    confirmModalButtonText: { color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
-    confirmModalButtonCancelText: { color: '#333', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
-
-    // Global
-    textDark: { color: '#E0E0E0' },
-    textMutedDark: { color: '#AAAAAA' },
-    label: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 5 }
-});
-
 export default CropWorkspaceScreen;
+

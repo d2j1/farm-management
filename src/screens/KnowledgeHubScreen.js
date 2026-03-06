@@ -1,15 +1,116 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Linking, ActivityIndicator, useColorScheme, TextInput, ScrollView, Dimensions } from 'react-native';
-
-const { width: screenWidth } = Dimensions.get('window');
+import {
+    View,
+    Text,
+    Image,
+    FlatList,
+    TouchableOpacity,
+    TextInput,
+    ScrollView,
+    Dimensions,
+    Linking,
+    ActivityIndicator,
+    useColorScheme,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fetchArticles, fetchVideos } from '../services/api';
 
+const { width: screenWidth } = Dimensions.get('window');
+
+// Icon component using text characters as fallback (no extra deps needed)
+const Icon = ({ name, size = 20, className = '' }) => {
+    const icons = {
+        search: '🔍',
+        schedule: '🕐',
+        potted_plant: '🌱',
+        bug_report: '🐛',
+        trending_up: '📈',
+        recycling: '♻️',
+        play_circle: '▶️',
+        close: '✕',
+    };
+    return (
+        <Text style={{ fontSize: size }} className={className}>
+            {icons[name] || '•'}
+        </Text>
+    );
+};
+
+// Static fallback articles shown when API has no data yet
+const FALLBACK_ARTICLES = [
+    {
+        id: 'fa1',
+        category: 'Soil',
+        readTime: '5 min read',
+        title: 'Optimizing Soil pH for Leafy Greens',
+        content:
+            'Learn how to maintain the perfect balance for your spinach and kale crops using natural amendments.',
+        icon: 'potted_plant',
+    },
+    {
+        id: 'fa2',
+        category: 'Pests',
+        readTime: '8 min read',
+        title: 'Natural Pest Control Strategies',
+        content:
+            'Combat aphids and mites without harsh chemicals using these proven organic farming techniques.',
+        icon: 'bug_report',
+    },
+    {
+        id: 'fa3',
+        category: 'Economy',
+        readTime: '12 min read',
+        title: 'Market Trends for Organic Produce',
+        content:
+            'Analyzing the rising demand for organic heritage vegetables in urban local markets.',
+        icon: 'trending_up',
+    },
+    {
+        id: 'fa4',
+        category: 'Fertilizer',
+        readTime: '4 min read',
+        title: 'Composting for Small Gardens',
+        content:
+            'Turn kitchen waste into black gold with our step-by-step guide to backyard composting.',
+        icon: 'recycling',
+    },
+];
+
+const STATIC_FILTERS = ['All', 'Organic', 'Fertilizer', 'Economy'];
+
+// Static fallback videos shown when API has no data yet
+const FALLBACK_VIDEOS = [
+    {
+        id: 'fv1',
+        category: 'Crops',
+        duration: '12:45',
+        title: 'Maximizing Crop Yield: Seasonal Guide',
+        thumbnail: 'https://img.youtube.com/vi/_f7xDWZzn4c/maxresdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=_f7xDWZzn4c',
+    },
+    {
+        id: 'fv2',
+        category: 'Organic',
+        duration: '08:12',
+        title: 'Organic Pest Control Methods',
+        thumbnail: 'https://img.youtube.com/vi/hzvT0vy5cjE/maxresdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=hzvT0vy5cjE',
+    },
+    {
+        id: 'fv3',
+        category: 'Economy',
+        duration: '15:30',
+        title: 'Agricultural Economy: 2024 Market Trends',
+        thumbnail: 'https://img.youtube.com/vi/GhzVRVbpNXw/maxresdefault.jpg',
+        url: 'https://www.youtube.com/watch?v=GhzVRVbpNXw',
+    },
+];
+
 const KnowledgeHubScreen = () => {
     const isDark = useColorScheme() === 'dark';
     const { t } = useTranslation();
-    const [tab, setTab] = useState('articles'); // 'articles' | 'videos'
+    const [tab, setTab] = useState('articles');
     const [articles, setArticles] = useState([]);
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,207 +127,333 @@ const KnowledgeHubScreen = () => {
         try {
             const fetchedArticles = await fetchArticles();
             const fetchedVideos = await fetchVideos();
-            setArticles(fetchedArticles);
-            setVideos(fetchedVideos);
-        } catch (error) {
-            console.error('Failed to fetch knowledge base:', error);
+            setArticles(fetchedArticles?.length ? fetchedArticles : FALLBACK_ARTICLES);
+            setVideos(fetchedVideos?.length ? fetchedVideos : FALLBACK_VIDEOS);
+        } catch {
+            setArticles(FALLBACK_ARTICLES);
+            setVideos(FALLBACK_VIDEOS);
         } finally {
             setLoading(false);
         }
     };
 
-    const renderArticle = ({ item }) => (
-        <View style={[styles.card, isDark && styles.cardDark]}>
-            <Text style={[styles.categoryBadge, isDark && styles.categoryBadgeDark]}>{item.category}</Text>
-            <Text style={[styles.cardTitle, isDark && styles.textDark]}>{item.title}</Text>
-            <Text style={[styles.cardContent, isDark && styles.textMutedDark]} numberOfLines={3}>{item.content}</Text>
-            <TouchableOpacity style={styles.readMoreBtn}>
-                <Text style={[styles.readMoreText, isDark && { color: '#64B5F6' }]}>{t('readFullArticle')}</Text>
-            </TouchableOpacity>
-        </View>
-    );
-
-    const renderVideo = ({ item }) => (
-        <View style={[styles.card, isDark && styles.cardDark]}>
-            <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} resizeMode="cover" />
-            <View style={styles.videoInfo}>
-                <Text style={[styles.cardTitle, isDark && styles.textDark]}>{item.title}</Text>
-                <TouchableOpacity
-                    style={styles.playBtn}
-                    onPress={() => Linking.openURL(item.url)}
-                >
-                    <Text style={styles.playText}>{t('watchOnYoutube')}</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-
-    const allCategories = ['All', ...new Set([
-        ...articles.map(a => a.category),
-        ...videos.map(v => v?.category)
-    ].filter(Boolean))];
-
-    const filterData = (data) => {
-        return data.filter(item => {
-            const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const filterData = (data) =>
+        data.filter((item) => {
+            const matchesSearch =
+                item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.content?.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedFilter === 'All' || item.category === selectedFilter;
+            const matchesCategory =
+                selectedFilter === 'All' || item.category === selectedFilter;
             return matchesSearch && matchesCategory;
         });
-    };
 
     const filteredArticles = filterData(articles);
     const filteredVideos = filterData(videos);
 
-    return (
-        <SafeAreaView style={[styles.safeArea, isDark && styles.safeAreaDark]}>
-            <View style={[styles.header, isDark && styles.headerDark]}>
-                <Text style={styles.headerTitle}>{t('knowledgeHub')}</Text>
+    // Dynamic filter chips: merge static + api categories
+    const allCategories = [
+        'All',
+        ...new Set([
+            ...STATIC_FILTERS.slice(1),
+            ...articles.map((a) => a.category),
+            ...videos.map((v) => v?.category),
+        ].filter(Boolean)),
+    ];
+
+    const renderArticleCard = ({ item }) => (
+        <View
+            className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 mb-4"
+            style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}
+        >
+            {/* Badge + read time */}
+            <View className="flex-row items-center justify-between mb-3">
+                <View className="px-2 rounded bg-primary/10">
+                    <Text
+                        className="text-primary text-[10px] font-bold uppercase tracking-widest py-0.5"
+                    >
+                        {item.category}
+                    </Text>
+                </View>
+                <View className="flex-row items-center gap-1">
+                    <Icon name="schedule" size={13} />
+                    <Text className="text-slate-400 dark:text-slate-500 text-xs ml-1">
+                        {item.readTime || '5 min read'}
+                    </Text>
+                </View>
             </View>
-            <View style={[styles.container, isDark && styles.containerDark]}>
 
-                {/* Tabs */}
-                <View style={[styles.tabContainer, isDark && { borderBottomColor: '#333' }]}>
-                    <TouchableOpacity
-                        style={[styles.tab, isDark && styles.tabDark, tab === 'articles' && styles.tabActive, isDark && tab === 'articles' && styles.tabActiveDark]}
-                        onPress={() => {
-                            setTab('articles');
-                            scrollRef.current?.scrollTo({ x: 0, animated: true });
-                        }}
+            {/* Content row */}
+            <View className="flex-row gap-4">
+                <View className="flex-1">
+                    <Text
+                        className="text-slate-900 dark:text-slate-100 font-bold text-base mb-1"
+                        numberOfLines={2}
                     >
-                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'articles' && styles.tabTextActive, isDark && tab === 'articles' && styles.tabTextActiveDark]}>{t('articles')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.tab, isDark && styles.tabDark, tab === 'videos' && styles.tabActive, isDark && tab === 'videos' && styles.tabActiveDark]}
-                        onPress={() => {
-                            setTab('videos');
-                            scrollRef.current?.scrollTo({ x: screenWidth, animated: true });
-                        }}
+                        {item.title}
+                    </Text>
+                    <Text
+                        className="text-slate-500 dark:text-slate-400 text-sm leading-5"
+                        numberOfLines={2}
                     >
-                        <Text style={[styles.tabText, isDark && styles.textMutedDark, tab === 'videos' && styles.tabTextActive, isDark && tab === 'videos' && styles.tabTextActiveDark]}>{t('videos')}</Text>
-                    </TouchableOpacity>
+                        {item.content}
+                    </Text>
                 </View>
-
-                {/* Search */}
-                <View style={styles.searchContainer}>
-                    <View style={[styles.searchInputWrapper, isDark && styles.searchInputWrapperDark]}>
-                        <TextInput
-                            style={[styles.searchInput, isDark && styles.searchInputDark]}
-                            placeholder={t('search') || 'Search...'}
-                            placeholderTextColor={isDark ? '#888' : '#aaa'}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearIconContainer}>
-                                <Text style={[styles.clearIconText, isDark && styles.clearIconTextDark]}>✕</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                {/* Thumbnail placeholder */}
+                <View
+                    className="w-20 h-20 rounded-xl items-center justify-center shrink-0 border border-primary/10"
+                    style={{ backgroundColor: 'rgba(60,230,25,0.05)' }}
+                >
+                    <Icon name={item.icon || 'potted_plant'} size={30} />
                 </View>
+            </View>
+        </View>
+    );
 
-                {/* Filters */}
-                <View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-                        {allCategories.map(cat => (
-                            <TouchableOpacity
-                                key={cat}
-                                style={[styles.filterChip, selectedFilter === cat && styles.filterChipSelected, isDark && styles.filterChipDark, isDark && selectedFilter === cat && styles.filterChipSelectedDark]}
-                                onPress={() => setSelectedFilter(cat)}
-                            >
-                                <Text style={[styles.filterText, selectedFilter === cat && styles.filterTextSelected, isDark && styles.filterTextDark]}>{cat}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* Content */}
-                {loading ? (
-                    <View style={styles.center}>
-                        <ActivityIndicator size="large" color="#2E7D32" />
-                    </View>
+    const renderVideoCard = ({ item }) => (
+        <View
+            className="flex-col gap-3 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 p-3 mb-4"
+            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 }}
+        >
+            {/* Thumbnail with play overlay */}
+            <View
+                className="w-full rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-800"
+                style={{ aspectRatio: 16 / 9 }}
+            >
+                {item.thumbnail ? (
+                    <Image
+                        source={{ uri: item.thumbnail }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                    />
                 ) : (
-                    <ScrollView
-                        ref={scrollRef}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onMomentumScrollEnd={(e) => {
-                            const pageIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-                            setTab(pageIndex === 0 ? 'articles' : 'videos');
+                    <View className="flex-1 bg-slate-200 dark:bg-slate-700" />
+                )}
+
+                {/* Play button overlay */}
+                <View
+                    className="absolute inset-0 items-center justify-center"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
+                    pointerEvents="none"
+                >
+                    <View
+                        className="items-center justify-center rounded-full"
+                        style={{
+                            width: 52,
+                            height: 52,
+                            backgroundColor: 'rgba(255,255,255,0.92)',
+                            shadowColor: '#000',
+                            shadowOpacity: 0.25,
+                            shadowRadius: 8,
+                            elevation: 6,
                         }}
                     >
-                        <View style={{ width: screenWidth }}>
-                            <FlatList
-                                data={filteredArticles}
-                                keyExtractor={item => item.id}
-                                renderItem={renderArticle}
-                                contentContainerStyle={styles.listContainer}
-                            />
-                        </View>
-                        <View style={{ width: screenWidth }}>
-                            <FlatList
-                                data={filteredVideos}
-                                keyExtractor={item => item.id}
-                                renderItem={renderVideo}
-                                contentContainerStyle={styles.listContainer}
-                            />
-                        </View>
-                    </ScrollView>
+                        <Text style={{ fontSize: 26, lineHeight: 30, marginLeft: 3 }}>▶</Text>
+                    </View>
+                </View>
+
+                {/* Duration badge */}
+                {item.duration && (
+                    <View
+                        className="absolute bottom-2 right-2 rounded px-2 py-0.5"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+                        pointerEvents="none"
+                    >
+                        <Text className="text-white text-xs font-medium">{item.duration}</Text>
+                    </View>
                 )}
             </View>
+
+            {/* Title + Watch button row */}
+            <View className="flex-row items-start gap-4">
+                <Text
+                    className="flex-1 text-slate-900 dark:text-slate-100 font-bold text-base leading-snug"
+                    numberOfLines={2}
+                >
+                    {item.title}
+                </Text>
+                {item.url && (
+                    <TouchableOpacity
+                        className="bg-primary rounded-lg px-4 py-2 flex-row items-center gap-1 shrink-0"
+                        style={{ shadowColor: '#3ce619', shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 }}
+                        onPress={() => Linking.openURL(item.url)}
+                        activeOpacity={0.85}
+                    >
+                        <Text className="text-black font-bold text-sm">Watch</Text>
+                        <Text style={{ fontSize: 14 }}>↗</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+    );
+
+    return (
+        <SafeAreaView className="flex-1 bg-[#f6f8f6] dark:bg-[#142111]" edges={['top']}>
+
+            {/* ── HEADER ── */}
+            <View className="bg-[#f6f8f6] dark:bg-[#142111] border-b border-slate-200 dark:border-slate-800 px-4 py-4">
+                <Text className="text-lg font-bold text-slate-900 dark:text-slate-100 text-center leading-tight tracking-tight">
+                    Information
+                </Text>
+            </View>
+
+            {/* ── TABS ── */}
+            <View className="bg-[#f6f8f6] dark:bg-[#142111] flex-row border-b border-slate-200 dark:border-slate-800 px-4 gap-8 justify-center">
+                <TouchableOpacity
+                    className={`flex-col items-center justify-center pb-3 pt-4 border-b-2 ${tab === 'articles'
+                        ? 'border-primary'
+                        : 'border-transparent'
+                        }`}
+                    onPress={() => {
+                        setTab('articles');
+                        scrollRef.current?.scrollTo({ x: 0, animated: true });
+                    }}
+                >
+                    <Text
+                        className={`text-sm font-bold leading-normal tracking-wide ${tab === 'articles'
+                            ? 'text-primary'
+                            : 'text-slate-500 dark:text-slate-400'
+                            }`}
+                    >
+                        {t('articles') || 'Articles'}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    className={`flex-col items-center justify-center pb-3 pt-4 border-b-2 ${tab === 'videos'
+                        ? 'border-primary'
+                        : 'border-transparent'
+                        }`}
+                    onPress={() => {
+                        setTab('videos');
+                        scrollRef.current?.scrollTo({ x: screenWidth, animated: true });
+                    }}
+                >
+                    <Text
+                        className={`text-sm font-bold leading-normal tracking-wide ${tab === 'videos'
+                            ? 'text-primary'
+                            : 'text-slate-500 dark:text-slate-400'
+                            }`}
+                    >
+                        {t('videos') || 'Videos'}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* ── SEARCH BAR ── */}
+            <View className="bg-[#f6f8f6] dark:bg-[#142111] px-4 py-4">
+                <View className="flex-row items-center h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-200/50 dark:bg-slate-800/50">
+                    <View className="pl-4 justify-center">
+                        <Icon name="search" size={18} />
+                    </View>
+                    <TextInput
+                        className="flex-1 px-3 text-base text-slate-900 dark:text-slate-100"
+                        placeholder={t('search') || 'Search articles'}
+                        placeholderTextColor={isDark ? '#64748b' : '#94a3b8'}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity
+                            className="pr-4 justify-center"
+                            onPress={() => setSearchQuery('')}
+                        >
+                            <Text className="text-slate-400 font-bold text-base">✕</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+
+            {/* ── FILTER CHIPS ── */}
+            <View className="bg-[#f6f8f6] dark:bg-[#142111]">
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, gap: 12 }}
+                >
+                    {allCategories.map((cat) => {
+                        const isSelected = selectedFilter === cat;
+                        return (
+                            <TouchableOpacity
+                                key={cat}
+                                onPress={() => setSelectedFilter(cat)}
+                                className={`h-9 shrink-0 items-center justify-center rounded-full px-5 ${isSelected
+                                    ? 'bg-primary'
+                                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                                    }`}
+                                style={isSelected ? { shadowColor: '#3ce619', shadowOpacity: 0.3, shadowRadius: 4, elevation: 2 } : {}}
+                            >
+                                <Text
+                                    className={`text-sm font-semibold ${isSelected
+                                        ? 'text-black'
+                                        : 'text-slate-700 dark:text-slate-300'
+                                        }`}
+                                >
+                                    {cat}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+
+            {/* ── CONTENT ── */}
+            {loading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#3ce619" />
+                </View>
+            ) : (
+                <ScrollView
+                    ref={scrollRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    scrollEnabled={false}
+                    onMomentumScrollEnd={(e) => {
+                        const pageIndex = Math.round(
+                            e.nativeEvent.contentOffset.x / screenWidth
+                        );
+                        setTab(pageIndex === 0 ? 'articles' : 'videos');
+                    }}
+                >
+                    {/* Articles page */}
+                    <View style={{ width: screenWidth }}>
+                        <FlatList
+                            data={filteredArticles}
+                            keyExtractor={(item) => String(item.id)}
+                            renderItem={renderArticleCard}
+                            contentContainerStyle={{ padding: 16, paddingTop: 8 }}
+                            showsVerticalScrollIndicator={false}
+                            ListEmptyComponent={
+                                <View className="flex-1 items-center justify-center py-20">
+                                    <Text className="text-slate-400 text-base text-center">
+                                        No articles found.
+                                    </Text>
+                                </View>
+                            }
+                        />
+                    </View>
+
+                    {/* Videos page */}
+                    <View style={{ width: screenWidth }}>
+                        <FlatList
+                            data={filteredVideos}
+                            keyExtractor={(item) => String(item.id)}
+                            renderItem={renderVideoCard}
+                            contentContainerStyle={{ padding: 16, paddingTop: 8 }}
+                            showsVerticalScrollIndicator={false}
+                            ListEmptyComponent={
+                                <View className="flex-1 items-center justify-center py-20">
+                                    <Text className="text-slate-400 text-base text-center">
+                                        No videos found.
+                                    </Text>
+                                </View>
+                            }
+                        />
+                    </View>
+                </ScrollView>
+            )}
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#1B5E20' },
-    safeAreaDark: { backgroundColor: '#121212' },
-    header: { paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#1B5E20', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2 },
-    headerDark: { backgroundColor: '#1F1F1F' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: 'white' },
-    container: { flex: 1, backgroundColor: '#F9F9F9' },
-    containerDark: { backgroundColor: '#121212' },
-    tabContainer: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 10 },
-    tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: '#E0E0E0' },
-    tabDark: { borderBottomColor: '#444' },
-    tabActive: { borderBottomColor: '#2E7D32' },
-    tabActiveDark: { borderBottomColor: '#81C784' },
-    tabText: { fontSize: 16, color: '#666', fontWeight: '500' },
-    tabTextActive: { color: '#2E7D32', fontWeight: 'bold' },
-    tabTextActiveDark: { color: '#81C784' },
-    listContainer: { padding: 20 },
-    card: { backgroundColor: '#FFF', borderRadius: 10, padding: 15, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3 },
-    cardDark: { backgroundColor: '#1E1E1E' },
-    categoryBadge: { alignSelf: 'flex-start', backgroundColor: '#E8F5E9', color: '#1B5E20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 15, fontSize: 12, fontWeight: 'bold', marginBottom: 10 },
-    categoryBadgeDark: { backgroundColor: '#1B5E20', color: '#E8F5E9' },
-    cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-    cardContent: { fontSize: 14, color: '#666', lineHeight: 20, marginBottom: 15 },
-    readMoreBtn: { paddingVertical: 8 },
-    readMoreText: { color: '#1976D2', fontWeight: 'bold' },
-    thumbnail: { width: '100%', height: 180, borderRadius: 8, marginBottom: 12 },
-    videoInfo: { paddingHorizontal: 5 },
-    playBtn: { backgroundColor: '#FF0000', paddingVertical: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-    playText: { color: 'white', fontWeight: 'bold' },
-    searchContainer: { paddingHorizontal: 20, marginBottom: 10 },
-    searchInputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
-    searchInputWrapperDark: { backgroundColor: '#1E1E1E' },
-    searchInput: { flex: 1, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, color: '#000' },
-    searchInputDark: { color: '#FFF' },
-    clearIconContainer: { padding: 10, justifyContent: 'center', alignItems: 'center' },
-    clearIconText: { fontSize: 16, color: '#888', fontWeight: 'bold' },
-    clearIconTextDark: { color: '#AAA' },
-    filterScroll: { paddingHorizontal: 20, paddingBottom: 15, gap: 8 },
-    filterChip: { backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 1 },
-    filterChipDark: { backgroundColor: '#1E1E1E' },
-    filterChipSelected: { backgroundColor: '#2E7D32' },
-    filterChipSelectedDark: { backgroundColor: '#81C784' },
-    filterText: { color: '#666', fontWeight: '500', fontSize: 16 },
-    filterTextDark: { color: '#AAAAAA' },
-    filterTextSelected: { color: '#FFF', fontWeight: 'bold' },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    textDark: { color: '#E0E0E0' },
-    textMutedDark: { color: '#AAAAAA' }
-});
 
 export default KnowledgeHubScreen;

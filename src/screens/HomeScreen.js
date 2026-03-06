@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Modal, TouchableWithoutFeedback, Alert, useColorScheme } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 import useStore from '../store/useStore';
 import { getDb } from '../database/db';
 
@@ -11,7 +12,8 @@ const HomeScreen = ({ navigation }) => {
     const { farmProfile, setFarmProfile } = useStore();
     const [crops, setCrops] = useState([]);
     const [loading, setLoading] = useState(true);
-    const isFocused = useIsFocused(); // Refresh when tab is focused
+    const isFocused = useIsFocused();
+    const isDark = useColorScheme() === 'dark';
 
     useEffect(() => {
         if (isFocused) {
@@ -49,173 +51,184 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const isDark = useColorScheme() === 'dark';
+    const getCropIcon = (name) => {
+        const lower = name?.toLowerCase() || '';
+        if (lower.includes('wheat') || lower.includes('paddy') || lower.includes('rice')) return 'grass';
+        if (lower.includes('corn') || lower.includes('maize')) return 'agriculture';
+        if (lower.includes('tomato') || lower.includes('apple') || lower.includes('fruit')) return 'local-florist';
+        return 'eco';
+    };
 
-    const cropColors = ['#FF9800', '#4CAF50', '#2196F3', '#f44336', '#9C27B0', '#00BCD4', '#FFEB3B', '#795548'];
+    const getCropColorStyle = (index) => {
+        const styles = [
+            { bg: 'bg-amber-100 dark:bg-amber-900/30', hex: '#d97706' },
+            { bg: 'bg-yellow-100 dark:bg-yellow-900/30', hex: '#ca8a04' },
+            { bg: 'bg-emerald-100 dark:bg-emerald-900/30', hex: '#059669' },
+            { bg: 'bg-blue-100 dark:bg-blue-900/30', hex: '#2563eb' },
+            { bg: 'bg-purple-100 dark:bg-purple-900/30', hex: '#9333ea' },
+        ];
+        return styles[index % styles.length];
+    };
 
-    const renderCropCard = ({ item, index }) => {
-        const borderLeftColor = cropColors[index % cropColors.length];
-
+    if (loading) {
         return (
-            <TouchableOpacity
-                style={[styles.cropCard, isDark && styles.cropCardDark, { borderLeftColor }]}
-                onPress={() => navigation.navigate('CropWorkspace', { crop: item })}
-            >
-                <View style={styles.cropHeader}>
-                    <Text style={[styles.cropName, isDark && styles.textDark]}>🌾 {item.crop_name}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={[styles.statusBadge, isDark && styles.statusBadgeDark, item.status === 'Inactive' && (isDark ? styles.statusBadgeInactiveDark : styles.statusBadgeInactive)]}>
-                            <Text style={[styles.statusText, isDark && styles.statusTextDark, item.status === 'Inactive' && (isDark ? styles.statusTextInactiveDark : styles.statusTextInactive)]}>{item.status || 'Active'}</Text>
+            <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark justify-center items-center">
+                <ActivityIndicator size="large" color="#3ce619" />
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
+            {/* Header */}
+            <View className="flex-row items-center bg-white dark:bg-slate-900 p-4 justify-between shadow-sm z-10">
+                <View className="flex-row items-center gap-3">
+                    <View className="h-10 w-10 rounded-full border-2 border-primary/20 bg-primary/10 items-center justify-center overflow-hidden">
+                        <MaterialIcons name="person" size={24} color="#3ce619" />
+                    </View>
+                    <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+                        {t('hello')} {farmProfile?.name || 'Farmer'}!
+                    </Text>
+                </View>
+                <View className="flex-row items-center gap-2">
+                    <TouchableOpacity className="items-center justify-center rounded-full h-10 w-10 bg-primary/10">
+                        <MaterialIcons name="notifications" size={24} color="#3ce619" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                {/* Weather Section */}
+                <View className="p-4">
+                    <View className="flex-row items-center justify-between gap-4 rounded-xl bg-white dark:bg-slate-900 p-5 shadow-sm border border-primary/10">
+                        <View className="flex-col gap-1">
+                            <View className="flex-row items-center gap-2">
+                                <MaterialIcons name="light-mode" size={36} color="#eab308" />
+                                <Text className="text-3xl font-bold text-slate-900 dark:text-white">28°C</Text>
+                            </View>
+                            <Text className="text-primary font-semibold text-sm">Sunny</Text>
+                            <Text className="text-slate-500 dark:text-slate-400 text-sm">Perfect for irrigation today</Text>
+                        </View>
+                        <View className="h-16 w-16 bg-primary/5 rounded-full items-center justify-center">
+                            <MaterialIcons name="water-drop" size={32} color="#3ce619" />
                         </View>
                     </View>
                 </View>
 
-                <View style={styles.cropInfoRow}>
-                    <Text style={[styles.cropLand, isDark && styles.textMutedDark]}>📍 {item.land_identifier}</Text>
-                    <Text style={[styles.cropArea, isDark && styles.textMutedDark]}>📏 {item.total_area} {item.area_unit}</Text>
-                </View>
-
-                {/* Financial Summary */}
-                <View style={[styles.financialRow, isDark && styles.financialRowDark]}>
-                    <View style={styles.financialCol}>
-                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>{t('expensesOnly')}</Text>
-                        <Text style={[styles.financialValue, { color: isDark ? '#EF5350' : '#D32F2F' }]}>₹{item.totalExpense ? item.totalExpense.toFixed(2) : '0.00'}</Text>
-                    </View>
-                    <View style={[styles.financialDivider, isDark && styles.financialDividerDark]} />
-                    <View style={styles.financialCol}>
-                        <Text style={[styles.financialLabel, isDark && styles.textMutedDark]}>{t('earnings')}</Text>
-                        <Text style={[styles.financialValue, { color: isDark ? '#81C784' : '#2E7D32' }]}>₹{item.totalEarning ? item.totalEarning.toFixed(2) : '0.00'}</Text>
-                    </View>
-                </View>
-
-                {/* Activity Summary */}
-                {item.lastActivity ? (
-                    <View style={[styles.activityRow, isDark && styles.activityRowDark]}>
-                        <Text style={[styles.activityLabel, isDark && styles.textMutedDark]}>{t('latestActivity')}</Text>
-                        <Text style={[styles.activityText, isDark && styles.textDark]} numberOfLines={1}>{t(item.lastActivity)} ({item.lastActivityDate})</Text>
-                    </View>
-                ) : null}
-            </TouchableOpacity>
-        );
-    };
-
-    const ListHeader = () => (
-        <>
-            {farmProfile ? (
-                <View style={[styles.profileCard, isDark && styles.profileCardDark]}>
-                    <Text style={[styles.greeting, isDark && styles.textDark]}>{t('hello')} {farmProfile.name} 👋</Text>
-                    <Text style={[styles.detail, isDark && styles.textMutedDark]}>📍 {farmProfile.village}  •  🌾 {farmProfile.acreage} {t('acres')}</Text>
-                </View>
-            ) : (
-                <View style={styles.emptyState}>
-                    <Text style={[styles.emptyText, isDark && styles.textMutedDark]}>{t('noProfileFound')}</Text>
-                    <TouchableOpacity style={[styles.button, isDark && styles.buttonDark]} onPress={() => navigation.navigate('Profile')}>
-                        <Text style={styles.buttonText}>{t('createProfile')}</Text>
+                {/* Action Button */}
+                <View className="px-4 pb-2">
+                    <TouchableOpacity
+                        className="w-full bg-primary active:bg-primary/90 rounded-xl flex-row items-center justify-center gap-3 py-4 px-6 shadow-lg shadow-primary/20"
+                        onPress={() => navigation.navigate('CreateCrop')}
+                    >
+                        <MaterialIcons name="agriculture" size={24} color="#0f172a" />
+                        <Text className="text-slate-900 font-bold text-base">Add New Crops</Text>
                     </TouchableOpacity>
                 </View>
-            )}
 
-            {/* Active Crops List */}
-            <Text style={[styles.sectionTitle, isDark && styles.textDark]}>{t('activeCropInstances')}</Text>
-        </>
-    );
+                {/* Your Crops Section */}
+                <View className="py-4">
+                    <View className="flex-row items-center justify-between px-4 mb-3">
+                        <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Your Crops</Text>
+                        <TouchableOpacity>
+                            <Text className="text-primary text-sm font-semibold">View All</Text>
+                        </TouchableOpacity>
+                    </View>
 
-    return (
-        <SafeAreaView style={[styles.safeArea, isDark && styles.safeAreaDark]}>
-            <View style={[styles.header, isDark && styles.headerDark]}>
-                <Text style={styles.headerTitle}>{t('dashboard')}</Text>
-            </View>
-            <View style={[styles.container, isDark && styles.containerDark]}>
-                {loading ? (
-                    <>
-                        <ListHeader />
-                        <ActivityIndicator size="small" color={isDark ? '#81C784' : '#2E7D32'} style={{ marginTop: 20 }} />
-                    </>
-                ) : (
-                    <FlatList
-                        ListHeaderComponent={ListHeader}
-                        data={crops}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={renderCropCard}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 80 }}
-                        ListEmptyComponent={() => (
-                            <Text style={[styles.emptyCropsText, isDark && styles.textMutedDark]}>{t('noCropsManaged')}</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}>
+                        {crops.length > 0 ? crops.map((crop, index) => {
+                            const colorStyle = getCropColorStyle(index);
+                            return (
+                                <TouchableOpacity
+                                    key={crop.id}
+                                    className="w-48 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800"
+                                    onPress={() => navigation.navigate('CropWorkspace', { crop })}
+                                >
+                                    <View className={`h-32 w-full items-center justify-center relative ${colorStyle.bg}`}>
+                                        <MaterialIcons name={getCropIcon(crop.crop_name)} size={40} color={colorStyle.hex} />
+                                        {crop.status === 'Inactive' && (
+                                            <View className="absolute top-2 right-2 bg-slate-500 px-2 py-0.5 rounded-full">
+                                                <Text className="text-white text-[10px] font-bold">Inactive</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                    <View className="p-3">
+                                        <Text className="text-slate-900 dark:text-white text-base font-bold" numberOfLines={1}>{crop.crop_name}</Text>
+                                        <View className="flex-row items-center gap-1 mt-1">
+                                            <MaterialIcons name="calendar-today" size={12} color={isDark ? '#94a3b8' : '#64748b'} />
+                                            <Text className="text-slate-500 dark:text-slate-400 text-xs" numberOfLines={1}>
+                                                {crop.land_identifier} • {crop.total_area} {crop.area_unit}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                        }) : (
+                            <View className="w-72 bg-white dark:bg-slate-900 rounded-xl p-5 items-center justify-center border border-slate-100 dark:border-slate-800">
+                                <Text className="text-slate-500 dark:text-slate-400 italic mb-2">{t('noCropsManaged')}</Text>
+                                <TouchableOpacity onPress={() => navigation.navigate('CreateCrop')}>
+                                    <Text className="text-primary font-bold">Add First Crop</Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
-                    />
-                )}
+                    </ScrollView>
+                </View>
 
-                {/* Floating Action Button */}
-                <TouchableOpacity
-                    style={[styles.fab, isDark && styles.fabDark]}
-                    onPress={() => navigation.navigate('CreateCrop')}
-                >
-                    <Text style={styles.fabIcon}>+</Text>
-                </TouchableOpacity>
-            </View>
+                {/* Recent Blog Posts Section */}
+                <View className="py-4">
+                    <View className="flex-row items-center justify-between px-4 mb-3">
+                        <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Information</Text>
+                        <TouchableOpacity>
+                            <Text className="text-primary text-sm font-semibold">Read More</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}>
+                        {/* Blog Card 1 */}
+                        <View className="w-72 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+                            <View className="h-40 w-full bg-green-100 dark:bg-green-900/30 items-center justify-center">
+                                <MaterialIcons name="menu-book" size={48} color="#16a34a" />
+                            </View>
+                            <View className="p-4">
+                                <Text className="text-slate-900 dark:text-white text-base font-bold leading-snug" numberOfLines={2}>
+                                    5 Ways to improve soil health for next season
+                                </Text>
+                                <View className="flex-row items-center justify-between mt-3">
+                                    <View className="bg-primary/10 px-2 py-1 rounded">
+                                        <Text className="text-primary text-[10px] font-bold">AGRICULTURE</Text>
+                                    </View>
+                                    <View className="flex-row items-center gap-1">
+                                        <MaterialIcons name="schedule" size={12} color={isDark ? '#94a3b8' : '#64748b'} />
+                                        <Text className="text-slate-400 text-xs">6 min read</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Blog Card 2 */}
+                        <View className="w-72 bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
+                            <View className="h-40 w-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center">
+                                <MaterialIcons name="sensors" size={48} color="#2563eb" />
+                            </View>
+                            <View className="p-4">
+                                <Text className="text-slate-900 dark:text-white text-base font-bold leading-snug" numberOfLines={2}>
+                                    Smart Farming: Using IoT to monitor moisture
+                                </Text>
+                                <View className="flex-row items-center justify-between mt-3">
+                                    <View className="bg-primary/10 px-2 py-1 rounded">
+                                        <Text className="text-primary text-[10px] font-bold">TECH</Text>
+                                    </View>
+                                    <View className="flex-row items-center gap-1">
+                                        <MaterialIcons name="schedule" size={12} color={isDark ? '#94a3b8' : '#64748b'} />
+                                        <Text className="text-slate-400 text-xs">4 min read</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#1B5E20' },
-    safeAreaDark: { backgroundColor: '#121212' },
-    header: { paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#1B5E20', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 2 },
-    headerDark: { backgroundColor: '#121212' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: 'white' },
-    container: { flex: 1, padding: 20, backgroundColor: '#F5F5F5' },
-    containerDark: { backgroundColor: '#1E1E1E' },
-    profileCard: { backgroundColor: 'white', padding: 15, borderRadius: 12, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, marginBottom: 20 },
-    profileCardDark: { backgroundColor: '#2C2C2C' },
-    greeting: { fontSize: 20, fontWeight: 'bold', marginBottom: 5, color: '#333' },
-    detail: { fontSize: 14, color: '#666' },
-    emptyState: { alignItems: 'center', marginVertical: 20 },
-    emptyText: { fontSize: 16, color: '#777', marginBottom: 15 },
-    button: { backgroundColor: '#2E7D32', padding: 10, borderRadius: 8 },
-    buttonDark: { backgroundColor: '#388E3C' },
-    buttonText: { color: 'white', fontWeight: 'bold' },
-
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#444', marginBottom: 10 },
-    emptyCropsText: { color: '#888', fontStyle: 'italic', marginTop: 10 },
-
-    cropCard: { backgroundColor: '#FFF', padding: 16, borderRadius: 12, marginBottom: 16, borderLeftWidth: 5, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-    cropCardDark: { backgroundColor: '#2C2C2C' },
-    cropHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    cropName: { fontSize: 20, fontWeight: 'bold', color: '#222' },
-    statusBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-    statusBadgeDark: { backgroundColor: '#1B5E20' },
-    statusText: { fontSize: 12, color: '#2E7D32', fontWeight: 'bold' },
-    statusTextDark: { color: '#81C784' },
-    statusBadgeInactive: { backgroundColor: '#F0F0F0' },
-    statusBadgeInactiveDark: { backgroundColor: '#444' },
-    statusTextInactive: { color: '#777' },
-    statusTextInactiveDark: { color: '#AAA' },
-
-    cropInfoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 15 },
-    cropLand: { fontSize: 14, color: '#555', fontWeight: '500' },
-    cropArea: { fontSize: 14, color: '#555', fontWeight: '500' },
-
-    financialRow: { flexDirection: 'row', backgroundColor: '#F9FAFB', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#F0F0F0' },
-    financialRowDark: { backgroundColor: '#1E1E1E', borderColor: '#333' },
-    financialCol: { flex: 1, alignItems: 'center' },
-    financialDivider: { width: 1, backgroundColor: '#E0E0E0', marginHorizontal: 10 },
-    financialDividerDark: { backgroundColor: '#444' },
-    financialLabel: { fontSize: 12, color: '#666', textTransform: 'uppercase', marginBottom: 4, fontWeight: '600' },
-    financialValue: { fontSize: 18, fontWeight: 'bold' },
-
-    activityRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', padding: 10, borderRadius: 6 },
-    activityRowDark: { backgroundColor: '#1E1E1E' },
-    activityLabel: { fontSize: 13, color: '#555', fontWeight: '600', marginRight: 6 },
-    activityText: { fontSize: 13, color: '#333', flex: 1, fontWeight: '500' },
-    activityTextNone: { fontSize: 13, color: '#999', fontStyle: 'italic', flex: 1 },
-
-    fab: { position: 'absolute', bottom: 30, right: 30, backgroundColor: '#2E7D32', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
-    fabDark: { backgroundColor: '#388E3C' },
-    fabIcon: { fontSize: 32, color: 'white', fontWeight: 'bold', marginTop: -2 },
-
-    // Dark Mode Text Utility Styles
-    textDark: { color: '#E0E0E0' },
-    textMutedDark: { color: '#AAAAAA' }
-});
 
 export default HomeScreen;
