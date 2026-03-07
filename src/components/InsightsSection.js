@@ -1,29 +1,65 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+
+const INSIGHTS = [
+  {
+    title: 'Soil Health',
+    description: 'Boost nitrogen with clover.',
+    icon: 'eco',
+    iconColor: '#16a34a',
+    bgClass: 'bg-green-100',
+  },
+  {
+    title: 'Weather Alert',
+    description: 'High humidity Friday.',
+    icon: 'thunderstorm',
+    iconColor: '#2563eb',
+    bgClass: 'bg-blue-100',
+  },
+  {
+    title: 'Market Trend',
+    description: 'Wheat prices up 5%.',
+    icon: 'trending-up',
+    iconColor: '#d97706',
+    bgClass: 'bg-amber-100',
+  },
+];
 
 export default function InsightsSection() {
   return (
     <View className="py-4">
+      {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
         <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Quick Insights</Text>
-        <TouchableOpacity disabled>
-          <Text className="text-slate-400 text-sm font-semibold">See All</Text>
+        <TouchableOpacity>
+          <Text className="text-primary text-sm font-semibold">See All</Text>
         </TouchableOpacity>
       </View>
-      <View className="px-4">
-        <View className="w-full bg-white dark:bg-slate-900 rounded-2xl p-6 flex-col items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm">
-          <View className="h-12 w-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-3">
-            <MaterialIcons name="cloud-off" size={28} color="#94a3b8" />
+
+      {/* Insight Cards */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 16 }}
+      >
+        {INSIGHTS.map((insight) => (
+          <View
+            key={insight.title}
+            className="w-[220px] bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex-row gap-3"
+          >
+            <View className={`h-7 w-7 rounded-lg ${insight.bgClass} flex items-center justify-center`}>
+              <MaterialIcons name={insight.icon} size={16} color={insight.iconColor} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{insight.title}</Text>
+              <Text className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed" numberOfLines={1}>
+                {insight.description}
+              </Text>
+            </View>
           </View>
-          <Text className="text-slate-900 dark:text-white font-bold text-sm">No Internet Connection</Text>
-          <Text className="text-slate-500 dark:text-slate-400 text-xs mt-1 text-center">Unable to fetch insights. Check your connection.</Text>
-          <TouchableOpacity className="mt-4 flex-row items-center gap-1">
-            <MaterialIcons name="refresh" size={14} color="#3ce619" />
-            <Text className="text-primary text-xs font-bold">Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }

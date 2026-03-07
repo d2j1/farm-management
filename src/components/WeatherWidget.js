@@ -12,7 +12,7 @@ export default function WeatherWidget() {
             <Text className="text-2xl font-bold text-slate-900 dark:text-white leading-none">28°C</Text>
             <View className="mt-1">
               <Text className="text-primary font-black text-base uppercase tracking-tight">Sunny</Text>
-              <Text className="text-slate-500 dark:text-slate-400 text-[10px] leading-tight mt-0.5">Perfect day to start planting</Text>
+              <Text className="text-slate-500 dark:text-slate-400 text-[10px] leading-tight mt-0.5">Ideal for irrigation</Text>
             </View>
           </View>
         </View>

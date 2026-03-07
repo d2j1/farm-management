@@ -6,21 +6,61 @@ export default function TaskSection() {
   return (
     <View className="p-4">
       <View className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 overflow-hidden">
+        {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-slate-50 dark:border-slate-800">
           <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Upcoming Tasks</Text>
-          <View className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-            <Text className="text-slate-500 text-[10px] font-bold uppercase">0 Pending</Text>
+          <View className="bg-primary/20 px-2 py-0.5 rounded-full">
+            <Text className="text-primary text-[10px] font-bold uppercase">Next 24h</Text>
           </View>
         </View>
-        <View className="p-8 flex-col items-center text-center">
-          <View className="h-16 w-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-4">
-            <MaterialIcons name="assignment-late" size={36} color="#cbd5e1" />
+
+        {/* Task List */}
+        <View className="p-4 gap-4">
+          {/* Task 1 — Water Corn Section B */}
+          <View className="flex-row items-center gap-4 border-l-4 border-primary pl-3">
+            <View className="flex-1">
+              <Text className="text-[10px] font-bold text-primary uppercase">Today • 2:00 PM</Text>
+              <Text className="text-sm font-bold text-slate-900 dark:text-white">Water Corn Section B</Text>
+              <Text className="text-xs text-slate-500">Based on soil moisture sensor #04</Text>
+            </View>
+            <TouchableOpacity className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
+              <MaterialIcons name="radio-button-unchecked" size={18} color="#94a3b8" />
+            </TouchableOpacity>
           </View>
-          <Text className="text-base font-bold text-slate-900 dark:text-white mb-2 text-center">No tasks scheduled yet</Text>
-          <Text className="text-xs text-slate-500 dark:text-slate-400 mb-6 max-w-[200px] text-center">Stay organized by creating your first farm maintenance task.</Text>
-          <TouchableOpacity className="w-full max-w-xs bg-primary py-3 rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-primary/20">
-            <MaterialIcons name="add-circle" size={20} color="#0f172a" />
-            <Text className="text-slate-900 font-bold">Create Your First Task</Text>
+
+          {/* Task 2 — Fertilizing Wheat Field (Ongoing) */}
+          <View className="flex-row items-center gap-4 border-l-4 border-amber-500 pl-3">
+            <View className="flex-1">
+              <Text className="text-[10px] font-bold text-amber-500 uppercase">Ongoing</Text>
+              <Text className="text-sm font-bold text-slate-900 dark:text-white">Fertilizing Wheat Field</Text>
+              <Text className="text-xs text-slate-500">65% complete • Estimated 1hr left</Text>
+            </View>
+            <View className="h-8 w-8 rounded-full border-2 border-amber-500 flex items-center justify-center">
+              <Text className="text-[9px] font-bold text-slate-900 dark:text-white">65%</Text>
+            </View>
+          </View>
+
+          {/* Task 3 — Pest Inspection */}
+          <View className="flex-row items-center gap-4 border-l-4 border-slate-300 pl-3">
+            <View className="flex-1">
+              <Text className="text-[10px] font-bold text-slate-400 uppercase">Tomorrow • 8:00 AM</Text>
+              <Text className="text-sm font-bold text-slate-700 dark:text-slate-300">Pest Inspection</Text>
+              <Text className="text-xs text-slate-400">Regular weekly maintenance</Text>
+            </View>
+            <TouchableOpacity className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
+              <MaterialIcons name="calendar-today" size={16} color="#cbd5e1" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View className="flex-row items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+          <TouchableOpacity className="flex-row items-center gap-1.5">
+            <MaterialIcons name="add-circle" size={18} color="#3ce619" />
+            <Text className="text-primary text-sm font-bold">Create Task</Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text className="text-primary text-sm font-bold">View All Tasks</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -13,7 +13,7 @@ export default function Header() {
         </View>
         <View>
           <Text className="text-slate-900 dark:text-white text-lg font-bold leading-tight">Hello, Farmer!</Text>
-          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Getting Started</Text>
+          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Proactive Mode</Text>
         </View>
       </View>
       <View className="flex-row items-center gap-2">
