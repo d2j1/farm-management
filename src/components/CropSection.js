@@ -80,24 +80,26 @@ function CropCard({ crop, upcomingTask, lastTask, onPress }) {
       </Text>
 
       {/* Upcoming / last task strip — hidden when neither exists */}
-      {(upcomingTask || lastTask) ? (
-        <View style={styles.upcomingRow}>
-          <MaterialIcons
-            name={upcomingTask ? 'event' : 'history'}
-            size={10}
-            color={upcomingTask ? '#3b82f6' : '#94a3b8'}
-          />
-          <Text
-            style={[
-              styles.upcomingText,
-              { color: upcomingTask ? '#3b82f6' : '#94a3b8' },
-            ]}
-            numberOfLines={1}
-          >
-            {upcomingTask ? upcomingTask.taskName : lastTask.taskName}
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.upcomingRow}>
+        <MaterialIcons
+          name={upcomingTask ? 'event' : lastTask ? 'history' : 'check-circle'}
+          size={10}
+          color={upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a'}
+        />
+        <Text
+          style={[
+            styles.upcomingText,
+            { color: upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a' },
+          ]}
+          numberOfLines={1}
+        >
+          {upcomingTask
+            ? upcomingTask.taskName
+            : lastTask
+            ? lastTask.taskName
+            : 'All caught up!'}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
