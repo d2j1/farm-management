@@ -104,7 +104,7 @@ export default function CropSection({ navigation }) {
         <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Your Crops</Text>
         <TouchableOpacity
           activeOpacity={0.75}
-          onPress={() => navigation?.navigate('Crops')}
+          onPress={() => navigation?.navigate('Crops', { screen: 'CropsMain' })}
         >
           <Text className="text-primary text-sm font-semibold">View All</Text>
         </TouchableOpacity>

@@ -70,8 +70,15 @@ export default function BottomNav({ state, navigation }) {
             className="flex-col items-center gap-1"
             activeOpacity={0.7}
             onPress={() => {
-              if (navigation && !isActive) {
-                navigation.navigate(tab.name);
+                if (!navigation) return;
+
+                if (tab.name === 'Crops') {
+                  navigation.navigate('Crops', { screen: 'CropsMain' });
+                  return;
+                }
+
+                if (!isActive) {
+                  navigation.navigate(tab.name);
               }
             }}
           >
