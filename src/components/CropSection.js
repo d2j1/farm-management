@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 const CROPS_ROW_1 = [
   {
     name: 'Wheat',
+    location: 'North Field • 2 Acres',
     icon: 'grass',
     iconColor: '#d97706',
     bgClass: 'bg-amber-100',
@@ -13,6 +14,7 @@ const CROPS_ROW_1 = [
   },
   {
     name: 'Corn',
+    location: 'West Field • 5 Acres',
     icon: 'agriculture',
     iconColor: '#ca8a04',
     bgClass: 'bg-yellow-100',
@@ -22,6 +24,7 @@ const CROPS_ROW_1 = [
   },
   {
     name: 'Lettuce',
+    location: 'South Plot • 1 Acre',
     icon: 'eco',
     iconColor: '#059669',
     bgClass: 'bg-emerald-100',
@@ -33,6 +36,7 @@ const CROPS_ROW_1 = [
 const CROPS_ROW_2 = [
   {
     name: 'Soybean',
+    location: 'East Block • 3 Acres',
     icon: 'spa',
     iconColor: '#2563eb',
     bgClass: 'bg-blue-100',
@@ -41,6 +45,7 @@ const CROPS_ROW_2 = [
   },
   {
     name: 'Carrot',
+    location: 'Garden Strip • 1.2 Acres',
     icon: 'restaurant',
     iconColor: '#ea580c',
     bgClass: 'bg-orange-100',
@@ -49,6 +54,7 @@ const CROPS_ROW_2 = [
   },
   {
     name: 'Poultry',
+    location: 'Shed Zone • 0.5 Acre',
     icon: 'egg',
     iconColor: '#9333ea',
     bgClass: 'bg-purple-100',
@@ -57,9 +63,13 @@ const CROPS_ROW_2 = [
   },
 ];
 
-function CropCard({ crop }) {
+function CropCard({ crop, onPress }) {
   return (
-    <View className="w-[140px] bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex-col items-center">
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      className="w-[140px] bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex-col items-center"
+    >
       <View className="relative">
         <View className={`h-16 w-16 rounded-full ${crop.bgClass} flex items-center justify-center mb-3`}>
           <MaterialIcons name={crop.icon} size={30} color={crop.iconColor} />
@@ -70,17 +80,32 @@ function CropCard({ crop }) {
       </View>
       <Text className="text-slate-900 dark:text-white font-bold text-base text-center">{crop.name}</Text>
       <Text className={`text-[11px] mt-1 leading-tight text-center ${crop.statusClass}`}>{crop.status}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-export default function CropSection() {
+export default function CropSection({ navigation }) {
+  const openCropDetails = (crop) => {
+    navigation?.navigate('Crops', {
+      screen: 'CropDetails',
+      params: {
+        crop: {
+          name: crop.name,
+          location: crop.location,
+        },
+      },
+    });
+  };
+
   return (
     <View className="py-2">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-4">
         <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Your Crops</Text>
-        <TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.75}
+          onPress={() => navigation?.navigate('Crops', { screen: 'CropsMain' })}
+        >
           <Text className="text-primary text-sm font-semibold">View All</Text>
         </TouchableOpacity>
       </View>
@@ -92,7 +117,11 @@ export default function CropSection() {
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 16 }}
       >
         {CROPS_ROW_1.map((crop) => (
-          <CropCard key={crop.name} crop={crop} />
+          <CropCard
+            key={crop.name}
+            crop={crop}
+            onPress={() => openCropDetails(crop)}
+          />
         ))}
       </ScrollView>
 
@@ -103,7 +132,11 @@ export default function CropSection() {
         contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 16 }}
       >
         {CROPS_ROW_2.map((crop) => (
-          <CropCard key={crop.name} crop={crop} />
+          <CropCard
+            key={crop.name}
+            crop={crop}
+            onPress={() => openCropDetails(crop)}
+          />
         ))}
       </ScrollView>
 

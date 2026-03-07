@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-export default function TaskSection() {
+export default function TaskSection({ navigation }) {
   return (
     <View className="p-4">
       <View className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 overflow-hidden">
@@ -55,11 +55,11 @@ export default function TaskSection() {
 
         {/* Footer */}
         <View className="flex-row items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="flex-row items-center gap-1.5">
+          <TouchableOpacity onPress={() => navigation.navigate('Tasks', { openCreateTask: true })} className="flex-row items-center gap-1.5">
             <MaterialIcons name="add-circle" size={18} color="#3ce619" />
             <Text className="text-primary text-sm font-bold">Create Task</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
             <Text className="text-primary text-sm font-bold">View All Tasks</Text>
           </TouchableOpacity>
         </View>
