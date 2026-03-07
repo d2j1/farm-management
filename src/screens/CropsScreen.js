@@ -77,7 +77,7 @@ const CROPS_DATA = [
   },
 ];
 
-export default function CropsScreen() {
+export default function CropsScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState('All');
 
   const filteredCrops = CROPS_DATA.filter((crop) => {
@@ -107,7 +107,11 @@ export default function CropsScreen() {
       >
         <View className="px-4 gap-5">
           {filteredCrops.map((crop) => (
-            <CropDetailCard key={crop.id} crop={crop} />
+            <CropDetailCard
+              key={crop.id}
+              crop={crop}
+              onPress={() => navigation.navigate('CropDetails', { crop })}
+            />
           ))}
         </View>
       </ScrollView>

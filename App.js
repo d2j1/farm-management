@@ -3,10 +3,10 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import CropsScreen from './src/screens/CropsScreen';
+import CropDetailsActionsScreen from './src/screens/CropDetailsActionsScreen';
 import InsightsScreen from './src/screens/InsightsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
@@ -16,6 +16,7 @@ import './global.css';
 const Tab = createBottomTabNavigator();
 const ProfileStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
+const CropsStack = createNativeStackNavigator();
 
 /**
  * Stack navigator for the Profile tab.
@@ -43,6 +44,19 @@ function HomeStackScreen() {
   );
 }
 
+/**
+ * Stack navigator for the Crops tab.
+ * Crop details is pushed on top and hides the bottom tab bar.
+ */
+function CropsStackScreen() {
+  return (
+    <CropsStack.Navigator screenOptions={{ headerShown: false }}>
+      <CropsStack.Screen name="CropsMain" component={CropsScreen} />
+      <CropsStack.Screen name="CropDetails" component={CropDetailsActionsScreen} />
+    </CropsStack.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -53,7 +67,7 @@ export default function App() {
           screenOptions={{ headerShown: false }}
         >
           <Tab.Screen name="Home" component={HomeStackScreen} />
-          <Tab.Screen name="Crops" component={CropsScreen} />
+          <Tab.Screen name="Crops" component={CropsStackScreen} />
           <Tab.Screen name="Insights" component={InsightsScreen} />
           <Tab.Screen
             name="Profile"

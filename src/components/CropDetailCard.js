@@ -19,9 +19,13 @@ import { MaterialIcons } from '@expo/vector-icons';
  * @param {string} props.crop.expenses
  * @param {string} props.crop.earnings
  */
-export default function CropDetailCard({ crop }) {
+export default function CropDetailCard({ crop, onPress }) {
   return (
-    <View className="relative overflow-hidden rounded-2xl bg-white shadow-md border border-slate-100">
+    <TouchableOpacity
+      activeOpacity={0.88}
+      onPress={onPress}
+      className="relative overflow-hidden rounded-2xl bg-white shadow-md border border-slate-100"
+    >
       <View className="p-4">
         {/* Top row — icon + info */}
         <View className="flex-row gap-4 items-center mb-5">
@@ -96,6 +100,6 @@ export default function CropDetailCard({ crop }) {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }

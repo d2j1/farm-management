@@ -136,20 +136,21 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
   if (!visible) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} className="justify-end bg-black/50">
+    <View style={[StyleSheet.absoluteFill, styles.overlay]} className="justify-end bg-black/50">
       <TouchableOpacity
         activeOpacity={1}
         onPress={handleCancel}
         style={StyleSheet.absoluteFill}
       />
 
-      <View className="bg-white dark:bg-slate-900 rounded-t-[32px] overflow-hidden max-h-[92%]">
+      <View className="bg-white dark:bg-slate-900 rounded-t-[32px] overflow-hidden max-h-[88%]">
         <View className="items-center py-4">
           <View className="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
         </View>
 
         <ScrollView
           className="px-6"
+          contentContainerStyle={styles.scrollContent}
           bounces={false}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -209,7 +210,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
             </Text>
           </View>
 
-          <View className="gap-3 pb-10">
+          <View className="gap-3 pb-4">
             <TouchableOpacity
               onPress={handleSave}
               activeOpacity={0.85}
@@ -252,6 +253,13 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    zIndex: 120,
+    elevation: 120,
+  },
+  scrollContent: {
+    paddingBottom: 8,
+  },
   quickRemindRow: {
     gap: 8,
     paddingBottom: 4,

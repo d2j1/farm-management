@@ -118,10 +118,10 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
   if (!visible) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} className="justify-end bg-black/50" pointerEvents="box-none">
+    <View style={[StyleSheet.absoluteFill, styles.overlay]} className="justify-end bg-black/50" pointerEvents="box-none">
       {/* Backdrop tap to cancel */}
       <Pressable onPress={handleCancel} style={StyleSheet.absoluteFill} />
-      <View className="bg-white dark:bg-slate-900 rounded-t-[32px] overflow-hidden max-h-[92%]">
+      <View className="bg-white dark:bg-slate-900 rounded-t-[32px] overflow-hidden max-h-[88%]">
           {/* Handle bar */}
           <View className="items-center py-4">
             <View className="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
@@ -129,6 +129,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
 
           <ScrollView
             className="px-6"
+            contentContainerStyle={styles.scrollContent}
             bounces={false}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -228,7 +229,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
             )}
 
             {/* Buttons */}
-            <View className="gap-3 pb-10">
+            <View className="gap-3 pb-4">
               <Pressable
                 onPress={handleSave}
                 className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
@@ -249,3 +250,13 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
       </View>
   );
 }
+
+const styles = StyleSheet.create({
+  overlay: {
+    zIndex: 120,
+    elevation: 120,
+  },
+  scrollContent: {
+    paddingBottom: 8,
+  },
+});

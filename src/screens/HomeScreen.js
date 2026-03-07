@@ -14,7 +14,7 @@ export default function HomeScreen({ navigation }) {
       <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <WeatherWidget />
         <TaskSection navigation={navigation} />
-        <CropSection />
+        <CropSection navigation={navigation} />
         <InsightsSection />
       </ScrollView>
     </SafeAreaView>
