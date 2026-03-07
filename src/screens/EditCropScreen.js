@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -16,7 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useDatabase } from '../database/DatabaseProvider';
-import { insertCrop } from '../database/cropService';
+import { getCropById, updateCrop } from '../database/cropService';
 import CropResultModal from '../components/CropResultModal';
 
 function formatDate(date) {
@@ -46,7 +46,7 @@ const SOIL_TYPE_OPTIONS = [
 function SectionLabel({ children, required = false }) {
   return (
     <View className="flex-row items-center justify-between mb-3 px-1">
-      <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
         {children}
       </Text>
       {required ? (
@@ -58,7 +58,7 @@ function SectionLabel({ children, required = false }) {
 
 function FieldLabel({ children, htmlRequired = false }) {
   return (
-    <Text className="mb-1.5 ml-0.5 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
+    <Text className="mb-1.5 ml-0.5 text-xs font-semibold uppercase text-slate-500">
       {children}
       {htmlRequired ? ' *' : ''}
     </Text>
@@ -96,7 +96,7 @@ function DateInput({
         className={`h-14 flex-row items-center rounded-lg border py-3 pl-4 pr-4 ${inputClassName}`}
       >
         <Text
-          className={`flex-1 text-base ${value ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`flex-1 text-base ${value ? 'text-slate-900' : 'text-slate-400'}`}
         >
           {displayText}
         </Text>
@@ -146,10 +146,10 @@ function SelectInput({
       {label ? <FieldLabel>{label}</FieldLabel> : null}
       <Pressable
         onPress={() => setIsOpen(true)}
-        className={`relative h-14 flex-row items-center rounded-lg border border-slate-200 bg-slate-50 pl-4 pr-10 dark:border-slate-700 dark:bg-slate-800 ${wrapperClassName || ''}`}
+        className={`relative h-14 flex-row items-center rounded-lg border border-slate-200 bg-slate-50 pl-4 pr-10 ${wrapperClassName || ''}`}
       >
         <Text
-          className={`text-base ${isPlaceholder ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}
+          className={`text-base ${isPlaceholder ? 'text-slate-400' : 'text-slate-900'}`}
           numberOfLines={1}
         >
           {displayText}
@@ -169,10 +169,10 @@ function SelectInput({
         <View className="flex-1 justify-end bg-black/40">
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setIsOpen(false)} />
 
-          <View className="rounded-t-3xl border border-slate-200 bg-background-light px-4 pb-8 pt-4 dark:border-slate-800 dark:bg-slate-900">
+          <View className="rounded-t-3xl border border-slate-200 bg-background-light px-4 pb-8 pt-4">
             <View className="mb-4 items-center">
-              <View className="h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700" />
-              <Text className="mt-3 text-base font-bold text-slate-900 dark:text-slate-100">
+              <View className="h-1.5 w-12 rounded-full bg-slate-300" />
+              <Text className="mt-3 text-base font-bold text-slate-900">
                 {modalTitle || label || 'Select option'}
               </Text>
             </View>
@@ -188,11 +188,11 @@ function SelectInput({
                     className={`h-14 flex-row items-center justify-between rounded-xl border px-4 ${
                       isActive
                         ? 'border-primary/30 bg-primary/10'
-                        : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800'
+                        : 'border-slate-200 bg-white'
                     }`}
                   >
                     <Text
-                      className={`text-base ${isActive ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-700 dark:text-slate-200'}`}
+                      className={`text-base ${isActive ? 'font-semibold text-slate-900' : 'text-slate-700'}`}
                     >
                       {option.label}
                     </Text>
@@ -206,11 +206,11 @@ function SelectInput({
             </ScrollView>
 
             <TouchableOpacity
-              className="mt-4 h-12 items-center justify-center rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+              className="mt-4 h-12 items-center justify-center rounded-xl border border-slate-200 bg-white"
               activeOpacity={0.8}
               onPress={() => setIsOpen(false)}
             >
-              <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</Text>
+              <Text className="text-sm font-semibold text-slate-600">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -219,10 +219,21 @@ function SelectInput({
   );
 }
 
-export default function CreateCropScreen({ navigation, route }) {
-  const db = useDatabase();
+/**
+ * Parse a date string (ISO or locale) into a Date object.
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  if (dateStr instanceof Date) return dateStr;
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
-  // Result modal state: { visible, type: 'success' | 'error' }
+export default function EditCropScreen({ navigation, route }) {
+  const db = useDatabase();
+  const cropDbId = route?.params?.cropDbId;
+
+  const [loading, setLoading] = useState(true);
   const [resultModal, setResultModal] = useState({ visible: false, type: 'success' });
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -237,19 +248,36 @@ export default function CreateCropScreen({ navigation, route }) {
   const [harvestDate, setHarvestDate] = useState(null);
   const [previousCrop, setPreviousCrop] = useState('');
 
+  // Load existing crop data
+  useEffect(() => {
+    (async () => {
+      if (!cropDbId) return;
+      try {
+        const row = await getCropById(db, cropDbId);
+        if (row) {
+          setLandNickname(row.landNickname || '');
+          setTotalArea(String(row.totalArea || ''));
+          setAreaUnit(row.areaUnit || 'Acre');
+          setCropName(row.cropName || '');
+          setPlantingDate(parseDate(row.plantationDate));
+          setSeedVariety(row.seedVariety || '');
+          setSoilType(row.soilType || '');
+          setHarvestDate(parseDate(row.expectedHarvestDate));
+          setPreviousCrop(row.previousCrop || '');
+        }
+      } catch (err) {
+        console.error('Failed to load crop for editing:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [db, cropDbId]);
+
   const textInputClassName = useMemo(
     () =>
-      'h-14 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100',
+      'h-14 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900',
     [],
   );
-
-  const optionalInputClassName = useMemo(
-    () =>
-      'h-14 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100',
-    [],
-  );
-
-
 
   const clearError = (field) => {
     setFieldErrors((prev) => {
@@ -260,7 +288,7 @@ export default function CreateCropScreen({ navigation, route }) {
     });
   };
 
-  const handleCreateCrop = async () => {
+  const handleUpdateCrop = async () => {
     const areaValue = Number(totalArea);
     const errors = {};
 
@@ -293,21 +321,29 @@ export default function CreateCropScreen({ navigation, route }) {
     };
 
     try {
-      await insertCrop(db, cropPayload);
+      await updateCrop(db, cropDbId, cropPayload);
       setResultModal({ visible: true, type: 'success' });
     } catch (err) {
-      console.error('Failed to insert crop:', err);
+      console.error('Failed to update crop:', err);
       setResultModal({ visible: true, type: 'error' });
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background-light items-center justify-center" edges={['top']}>
+        <Text className="text-slate-400">Loading…</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View className="border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+        <View className="border-b border-slate-200 bg-white px-4 py-4">
           <View className="relative flex-row items-center justify-between">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
@@ -316,8 +352,8 @@ export default function CreateCropScreen({ navigation, route }) {
             >
               <MaterialIcons name="arrow-back" size={22} color="#64748b" />
             </TouchableOpacity>
-            <Text className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Create Crop
+            <Text className="text-xl font-bold tracking-tight text-slate-900">
+              Edit Crop
             </Text>
             <View className="w-8" />
           </View>
@@ -329,11 +365,9 @@ export default function CreateCropScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-
-
           <View className="mt-8 px-4">
             <SectionLabel required>Essential Crop Data</SectionLabel>
-            <View className="gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <View className="gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <View>
                 <FieldLabel htmlRequired>Land Nickname</FieldLabel>
                 <TextInput
@@ -389,7 +423,7 @@ export default function CreateCropScreen({ navigation, route }) {
                   placeholder="Select date"
                   iconName="calendar-month"
                   maximumDate={new Date()}
-                  inputClassName={`border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 ${fieldErrors.plantingDate ? 'border-red-400' : ''}`}
+                  inputClassName={`border-slate-200 bg-slate-50 ${fieldErrors.plantingDate ? 'border-red-400' : ''}`}
                 />
                 {fieldErrors.plantingDate ? <Text className="mt-1 ml-1 text-xs text-red-500">{fieldErrors.plantingDate}</Text> : null}
               </View>
@@ -398,7 +432,7 @@ export default function CreateCropScreen({ navigation, route }) {
 
           <View className="mt-8 px-4">
             <SectionLabel>Optional Details</SectionLabel>
-            <View className="gap-5 rounded-xl border border-slate-200 bg-white/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+            <View className="gap-5 rounded-xl border border-slate-200 bg-white/70 p-5 shadow-sm">
               <View>
                 <FieldLabel>Seed Variety</FieldLabel>
                 <TextInput
@@ -406,7 +440,7 @@ export default function CreateCropScreen({ navigation, route }) {
                   onChangeText={setSeedVariety}
                   placeholder="e.g. Durum, Hybrid 702"
                   placeholderTextColor="#94a3b8"
-                  className={optionalInputClassName}
+                  className={textInputClassName}
                 />
               </View>
 
@@ -426,7 +460,7 @@ export default function CreateCropScreen({ navigation, route }) {
                 placeholder="Select date"
                 iconName="event-available"
                 minimumDate={plantingDate || undefined}
-                inputClassName="border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
+                inputClassName="border-slate-200 bg-slate-50"
               />
 
               <View>
@@ -436,7 +470,7 @@ export default function CreateCropScreen({ navigation, route }) {
                   onChangeText={setPreviousCrop}
                   placeholder="What was planted here before?"
                   placeholderTextColor="#94a3b8"
-                  className={optionalInputClassName}
+                  className={textInputClassName}
                 />
               </View>
             </View>
@@ -444,13 +478,13 @@ export default function CreateCropScreen({ navigation, route }) {
 
           <View className="mt-8 px-4 pb-12">
             <TouchableOpacity
-              onPress={handleCreateCrop}
+              onPress={handleUpdateCrop}
               activeOpacity={0.9}
               className="h-14 w-full flex-row items-center justify-center gap-2 rounded-xl bg-primary shadow-lg"
-              style={styles.createButton}
+              style={styles.saveButton}
             >
-              <MaterialIcons name="task-alt" size={22} color="#0f172a" />
-              <Text className="text-base font-bold text-slate-900">Create Crop Record</Text>
+              <MaterialIcons name="save" size={22} color="#0f172a" />
+              <Text className="text-base font-bold text-slate-900">Save Changes</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -459,6 +493,10 @@ export default function CreateCropScreen({ navigation, route }) {
       <CropResultModal
         visible={resultModal.visible}
         type={resultModal.type}
+        title={resultModal.type === 'success' ? 'Crop Updated' : 'Update Failed'}
+        message={resultModal.type === 'success'
+          ? 'Your crop details have been updated successfully.'
+          : 'We encountered an issue while updating your crop. Please try again.'}
         onDismiss={() => {
           setResultModal({ visible: false, type: resultModal.type });
           if (resultModal.type === 'success') {
@@ -474,7 +512,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 8,
   },
-
   selectOptionsList: {
     gap: 10,
   },
@@ -484,7 +521,7 @@ const styles = StyleSheet.create({
     top: '50%',
     marginTop: -10,
   },
-  createButton: {
+  saveButton: {
     shadowColor: '#3ce619',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.28,
