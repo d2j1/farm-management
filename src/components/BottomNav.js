@@ -16,8 +16,29 @@ const TABS = [
  * @param {Object} props.state       - Navigation state from Tab.Navigator
  * @param {Object} props.navigation  - Navigation object from Tab.Navigator
  */
+// Screen names where the bottom tab bar should be hidden.
+const HIDDEN_SCREENS = ['UpdateProfile'];
+
+/**
+ * Check if the focused screen inside a nested stack navigator should hide the tab bar.
+ */
+function shouldHideTabBar(tabState) {
+  const activeRoute = tabState?.routes?.[tabState.index];
+  const nestedState = activeRoute?.state;
+  if (nestedState) {
+    const nestedRoute = nestedState.routes?.[nestedState.index];
+    if (nestedRoute && HIDDEN_SCREENS.includes(nestedRoute.name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export default function BottomNav({ state, navigation }) {
   const currentRoute = state?.routes?.[state.index]?.name;
+
+  // Hide tab bar on specific nested screens (e.g. UpdateProfile)
+  if (shouldHideTabBar(state)) return null;
 
   return (
     <View className="flex-row justify-between items-center bg-white/95 border-t border-slate-100 px-6 py-3 pb-6">
