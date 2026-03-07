@@ -13,7 +13,7 @@ export default function HomeScreen({ navigation }) {
       <Header />
       <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <WeatherWidget />
-        <TaskSection />
+        <TaskSection navigation={navigation} />
         <CropSection />
         <InsightsSection />
       </ScrollView>

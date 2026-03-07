@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import ActionCenter from '../components/ActionCenter';
 import FilterTabs from '../components/FilterTabs';
 import TaskCard from '../components/TaskCard';
+import CreateTaskModal from '../components/CreateTaskModal';
 
 // ─── Filter pill labels ──────────────────────────────────────
 const FILTER_TABS = [
@@ -53,8 +54,16 @@ const TASKS = [
   },
 ];
 
-export default function TasksScreen({ navigation }) {
+export default function TasksScreen({ navigation, route }) {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [showCreateTask, setShowCreateTask] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.openCreateTask) {
+      setShowCreateTask(true);
+      navigation.setParams({ openCreateTask: false });
+    }
+  }, [route.params?.openCreateTask]);
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
@@ -121,6 +130,7 @@ export default function TasksScreen({ navigation }) {
           className="flex-row items-center gap-2 bg-white border border-primary/20 py-2.5 px-5 rounded-full shadow-lg"
           activeOpacity={0.85}
           style={styles.fabShadow}
+          onPress={() => setShowCreateTask(true)}
         >
           <MaterialIcons name="add-task" size={20} color="#3ce619" />
           <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
@@ -139,6 +149,16 @@ export default function TasksScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* ─── Create Task Overlay ─────────────────────── */}
+      <CreateTaskModal
+        visible={showCreateTask}
+        onClose={() => setShowCreateTask(false)}
+        onSave={(task) => {
+          setShowCreateTask(false);
+          // TODO: persist the task
+        }}
+      />
     </SafeAreaView>
   );
 }
