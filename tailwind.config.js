@@ -6,8 +6,12 @@ module.exports = {
     extend: {
       colors: {
         primary: "#3ce619",
+        destructive: "#ef4444",
         "background-light": "#f6f8f6",
         "background-dark": "#142111"
+      },
+      fontFamily: {
+        display: ["Inter", "sans-serif"],
       }
     },
   },

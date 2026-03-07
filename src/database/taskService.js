@@ -96,3 +96,53 @@ export async function getUpcomingTaskByCrop(db, cropId) {
     [cropId, today],
   );
 }
+
+/**
+ * Returns an object mapping cropId → most recent past task for ALL crops.
+ * Crops with no past task won't have an entry in the map.
+ */
+export async function getLastTaskPerCrop(db) {
+  const today = new Date().toISOString().split('T')[0];
+  const rows = await db.getAllAsync(
+    `SELECT t.cropId, t.taskName, t.startDate
+     FROM tasks t
+     WHERE t.cropId IS NOT NULL
+       AND t.startDate < ?
+       AND t.startDate = (
+         SELECT MAX(t2.startDate)
+         FROM tasks t2
+         WHERE t2.cropId = t.cropId AND t2.startDate < ?
+       )`,
+    [today, today],
+  );
+  const map = {};
+  for (const row of rows) {
+    if (!map[row.cropId]) map[row.cropId] = row;
+  }
+  return map;
+}
+
+/**
+ * Returns an object mapping cropId → nearest upcoming task for ALL crops.
+ * Crops with no upcoming task won't have an entry in the map.
+ */
+export async function getNextUpcomingTaskPerCrop(db) {
+  const today = new Date().toISOString().split('T')[0];
+  const rows = await db.getAllAsync(
+    `SELECT t.cropId, t.taskName, t.startDate
+     FROM tasks t
+     WHERE t.cropId IS NOT NULL
+       AND t.startDate >= ?
+       AND t.startDate = (
+         SELECT MIN(t2.startDate)
+         FROM tasks t2
+         WHERE t2.cropId = t.cropId AND t2.startDate >= ?
+       )`,
+    [today, today],
+  );
+  const map = {};
+  for (const row of rows) {
+    if (!map[row.cropId]) map[row.cropId] = row;
+  }
+  return map;
+}

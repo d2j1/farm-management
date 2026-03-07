@@ -52,10 +52,41 @@ export async function getCropById(db, id) {
 }
 
 /**
- * Delete a crop (cascading deletes all linked activities, expenses, etc.).
+ * Delete a crop and all related records in one transaction.
+ *
+ * NOTE:
+ * The schema already uses ON DELETE CASCADE, but we explicitly
+ * remove linked rows as a defensive fallback for older databases.
  */
 export async function deleteCrop(db, id) {
-  return db.runAsync('DELETE FROM crops WHERE id = ?', [id]);
+  if (id == null) {
+    throw new Error('Crop id is required for deletion.');
+  }
+
+  await db.execAsync('BEGIN IMMEDIATE TRANSACTION;');
+
+  try {
+    await db.runAsync(
+      `DELETE FROM reminders
+       WHERE cropId = ?
+          OR taskId IN (SELECT id FROM tasks WHERE cropId = ?)`,
+      [id, id],
+    );
+    await db.runAsync('DELETE FROM activities WHERE cropId = ?', [id]);
+    await db.runAsync('DELETE FROM expenses WHERE cropId = ?', [id]);
+    await db.runAsync('DELETE FROM earnings WHERE cropId = ?', [id]);
+    await db.runAsync('DELETE FROM tasks WHERE cropId = ?', [id]);
+
+    const result = await db.runAsync('DELETE FROM crops WHERE id = ?', [id]);
+    if (!result?.changes) {
+      throw new Error(`Crop ${id} does not exist.`);
+    }
+    await db.execAsync('COMMIT;');
+    return result;
+  } catch (error) {
+    await db.execAsync('ROLLBACK;');
+    throw error;
+  }
 }
 
 /**

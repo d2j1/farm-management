@@ -1,7 +1,10 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
   Animated,
+  ActivityIndicator,
+  Modal,
   PanResponder,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,7 +21,7 @@ import CreateActivityModal from '../components/CreateActivityModal';
 import CreateExpenseModal from '../components/CreateExpenseModal';
 import CreateEarningsModal from '../components/CreateEarningsModal';
 import { useDatabase } from '../database/DatabaseProvider';
-import { updateCropStatus } from '../database/cropService';
+import { deleteCrop, updateCropStatus } from '../database/cropService';
 import { insertTask, getTasksByCrop, deleteTask } from '../database/taskService';
 import { insertReminder, getRemindersByCrop, deleteReminder } from '../database/reminderService';
 import { insertActivity, getActivitiesByCrop, deleteActivity } from '../database/activityService';
@@ -473,6 +476,9 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
   const [showCreateActivity, setShowCreateActivity] = useState(false);
   const [showCreateExpense, setShowCreateExpense] = useState(false);
   const [showCreateEarnings, setShowCreateEarnings] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [isDeletingCrop, setIsDeletingCrop] = useState(false);
   const undoDeleteTimerRef = useRef(null);
 
   const toastY = useRef(new Animated.Value(24)).current;
@@ -775,6 +781,48 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     setDeletedEarning(null);
   };
 
+  const handleDeleteCropConfirm = async () => {
+    if (!cropId || isDeletingCrop) {
+      if (!cropId) {
+        setShowDeleteConfirm(false);
+        showToast('Unable to delete this crop.');
+      }
+      return;
+    }
+
+    setIsDeletingCrop(true);
+
+    try {
+      await deleteCrop(db, cropId);
+
+      clearUndoDeleteTimer();
+      setDeletedEarning(null);
+      setTimelineItems([]);
+      setActivityLogs([]);
+      setExpenses([]);
+      setEarnings([]);
+
+      setShowDeleteConfirm(false);
+      setShowDeleteSuccess(true);
+    } catch (err) {
+      console.error('Failed to delete crop:', err);
+      setShowDeleteConfirm(false);
+      showToast('Failed to delete crop. Please try again.');
+    } finally {
+      setIsDeletingCrop(false);
+    }
+  };
+
+  const handleDeleteSuccessDismiss = () => {
+    setShowDeleteSuccess(false);
+    if (typeof navigation.popToTop === 'function') {
+      navigation.popToTop();
+      return;
+    }
+
+    navigation.navigate('Crops', { screen: 'CropsMain' });
+  };
+
   const closeMenus = () => {
     setShowHeaderMenu(false);
     setOpenTaskMenuId(null);
@@ -787,7 +835,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     setShowHeaderMenu(false);
 
     if (action === 'delete') {
-      showToast('Delete crop flow coming soon.');
+      setShowDeleteConfirm(true);
       return;
     }
 
@@ -1346,6 +1394,105 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         }}
       />
 
+      <Modal visible={showDeleteConfirm} transparent animationType="fade" statusBarTranslucent>
+        <View
+          className="flex-1 items-center justify-center p-4"
+          style={styles.deleteOverlay}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => {
+              if (!isDeletingCrop) setShowDeleteConfirm(false);
+            }}
+          />
+
+          <View
+            className="w-full items-center border border-slate-100 bg-white p-8"
+            style={styles.deleteConfirmCard}
+          >
+            {/* Trash icon */}
+            <View
+              className="mb-6 h-20 w-20 items-center justify-center rounded-full"
+              style={{ backgroundColor: 'rgba(239,68,68,0.1)' }}
+            >
+              <MaterialIcons name="delete-forever" size={48} color="#ef4444" />
+            </View>
+
+            {/* Title */}
+            <Text className="mb-2 text-center text-2xl font-bold text-slate-900">
+              Delete Crop?
+            </Text>
+
+            {/* Body */}
+            <Text
+              className="mb-8 px-2 text-center text-base text-slate-600"
+              style={{ lineHeight: 26 }}
+            >
+              Are you sure you want to permanently delete this crop? This action cannot be undone.
+            </Text>
+
+            {/* Buttons — stacked full-width */}
+            <View className="w-full">
+              <TouchableOpacity
+                className="mb-3 w-full items-center justify-center px-6 py-4"
+                activeOpacity={0.88}
+                disabled={isDeletingCrop}
+                onPress={handleDeleteCropConfirm}
+                style={styles.destructiveButtonShadow}
+              >
+                {isDeletingCrop ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text className="text-base font-bold text-white">Delete</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="w-full items-center justify-center bg-slate-100 px-6 py-4"
+                activeOpacity={0.8}
+                disabled={isDeletingCrop}
+                onPress={() => setShowDeleteConfirm(false)}
+                style={styles.cancelButton}
+              >
+                <Text className="text-base font-semibold text-slate-600">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showDeleteSuccess} transparent animationType="fade" statusBarTranslucent>
+        <View className="flex-1 items-center justify-center bg-background-dark/60 px-4">
+          <View className="w-full max-w-sm items-center overflow-hidden rounded-2xl border border-primary/10 bg-white p-8 shadow-2xl">
+            <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
+              <MaterialIcons name="check-circle" size={52} color="#3ce619" />
+            </View>
+
+            <Text className="mb-2 text-center text-2xl font-bold text-slate-900">
+              Crop Deleted
+            </Text>
+            <Text className="mb-8 px-2 text-center text-base leading-relaxed text-slate-600">
+              The crop has been successfully deleted from your farm records and cannot be recovered.
+            </Text>
+
+            <TouchableOpacity
+              className="w-full items-center justify-center rounded-xl bg-primary px-6 py-4"
+              activeOpacity={0.9}
+              onPress={handleDeleteSuccessDismiss}
+              style={{
+                shadowColor: '#3ce619',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.2,
+                shadowRadius: 14,
+                elevation: 8,
+              }}
+            >
+              <Text className="text-base font-bold text-black">Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <CropResultModal
         visible={statusModal.visible}
         type="success"
@@ -1461,5 +1608,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 9,
     elevation: 8,
+  },
+  destructiveButtonShadow: {
+    backgroundColor: '#ef4444',
+    borderRadius: 16,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 7,
+  },
+  cancelButton: {
+    borderRadius: 16,
+  },
+  deleteOverlay: {
+    backgroundColor: 'rgba(20, 33, 17, 0.6)',
+  },
+  deleteConfirmCard: {
+    maxWidth: 384,
+    borderRadius: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.25,
+    shadowRadius: 25,
+    elevation: 20,
   },
 });
