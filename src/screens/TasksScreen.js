@@ -6,6 +6,7 @@ import ActionCenter from '../components/ActionCenter';
 import FilterTabs from '../components/FilterTabs';
 import TaskCard from '../components/TaskCard';
 import CreateTaskModal from '../components/CreateTaskModal';
+import CreateReminderModal from '../components/CreateReminderModal';
 
 // ─── Filter pill labels ──────────────────────────────────────
 const FILTER_TABS = [
@@ -57,6 +58,7 @@ const TASKS = [
 export default function TasksScreen({ navigation, route }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [showCreateTask, setShowCreateTask] = useState(false);
+  const [showCreateReminder, setShowCreateReminder] = useState(false);
 
   useEffect(() => {
     if (route.params?.openCreateTask) {
@@ -142,6 +144,7 @@ export default function TasksScreen({ navigation, route }) {
           className="flex-row items-center gap-2 bg-primary py-3 px-5 rounded-full shadow-xl"
           activeOpacity={0.85}
           style={styles.primaryFabShadow}
+          onPress={() => setShowCreateReminder(true)}
         >
           <MaterialIcons name="notification-add" size={20} color="#1a2e05" />
           <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
@@ -157,6 +160,16 @@ export default function TasksScreen({ navigation, route }) {
         onSave={(task) => {
           setShowCreateTask(false);
           // TODO: persist the task
+        }}
+      />
+
+      {/* ─── Create Reminder Overlay ─────────────────── */}
+      <CreateReminderModal
+        visible={showCreateReminder}
+        onClose={() => setShowCreateReminder(false)}
+        onSave={(reminder) => {
+          setShowCreateReminder(false);
+          // TODO: persist the reminder
         }}
       />
     </SafeAreaView>
