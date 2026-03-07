@@ -15,7 +15,7 @@ export default function HomeScreen({ navigation }) {
         <WeatherWidget />
         <TaskSection navigation={navigation} />
         <CropSection navigation={navigation} />
-        <InsightsSection />
+        <InsightsSection navigation={navigation} />
       </ScrollView>
     </SafeAreaView>
   );

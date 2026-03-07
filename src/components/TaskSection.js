@@ -54,14 +54,30 @@ export default function TaskSection({ navigation }) {
         </View>
 
         {/* Footer */}
-        <View className="flex-row items-center justify-between px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-          <TouchableOpacity onPress={() => navigation.navigate('Tasks', { openCreateTask: true })} className="flex-row items-center gap-1.5">
-            <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-            <Text className="text-primary text-sm font-bold">Create Task</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
-            <Text className="text-primary text-sm font-bold">View All Tasks</Text>
-          </TouchableOpacity>
+        <View className="px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 gap-2">
+          <View className="flex-row items-center justify-between">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Tasks', { openCreateTask: true })}
+              className="flex-row items-center gap-1.5"
+            >
+              <MaterialIcons name="add-circle" size={18} color="#3ce619" />
+              <Text className="text-primary text-sm font-bold">Create Task</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
+              <Text className="text-primary text-sm font-bold">View All Tasks</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="items-center">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Tasks', { openCreateReminder: true })}
+              className="flex-row items-center gap-1.5"
+            >
+              <MaterialIcons name="notifications-active" size={17} color="#3ce619" />
+              <Text className="text-primary text-sm font-bold">Create Reminder</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { BackHandler, ScrollView, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import CropsScreenHeader from '../components/CropsScreenHeader';
 import FilterTabs from '../components/FilterTabs';
 import CropDetailCard from '../components/CropDetailCard';
@@ -80,6 +81,22 @@ const CROPS_DATA = [
 export default function CropsScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState('All');
 
+  const handleGoHome = useCallback(() => {
+    navigation.navigate('Home', { screen: 'HomeMain' });
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onHardwareBackPress = () => {
+        handleGoHome();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+      return () => subscription.remove();
+    }, [handleGoHome]),
+  );
+
   const filteredCrops = CROPS_DATA.filter((crop) => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Active') return crop.status === 'active';
@@ -90,7 +107,7 @@ export default function CropsScreen({ navigation }) {
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       <CropsScreenHeader
-        onMenuPress={() => {}}
+        onBackPress={handleGoHome}
         onNotificationPress={() => {}}
       />
 
@@ -116,7 +133,7 @@ export default function CropsScreen({ navigation }) {
         </View>
       </ScrollView>
 
-      <FloatingActionButton onPress={() => {}} />
+      <FloatingActionButton onPress={() => navigation.navigate('CreateCrop')} />
     </SafeAreaView>
   );
 }

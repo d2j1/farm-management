@@ -26,13 +26,16 @@ const INSIGHTS = [
   },
 ];
 
-export default function InsightsSection() {
+export default function InsightsSection({ navigation }) {
   return (
     <View className="py-4">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
         <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Quick Insights</Text>
-        <TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.75}
+          onPress={() => navigation?.navigate('Insights')}
+        >
           <Text className="text-primary text-sm font-semibold">See All</Text>
         </TouchableOpacity>
       </View>

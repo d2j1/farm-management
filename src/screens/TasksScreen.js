@@ -61,11 +61,19 @@ export default function TasksScreen({ navigation, route }) {
   const [showCreateReminder, setShowCreateReminder] = useState(false);
 
   useEffect(() => {
-    if (route.params?.openCreateTask) {
-      setShowCreateTask(true);
-      navigation.setParams({ openCreateTask: false });
-    }
-  }, [route.params?.openCreateTask]);
+    const shouldOpenTask = Boolean(route.params?.openCreateTask);
+    const shouldOpenReminder = Boolean(route.params?.openCreateReminder);
+
+    if (!shouldOpenTask && !shouldOpenReminder) return;
+
+    if (shouldOpenTask) setShowCreateTask(true);
+    if (shouldOpenReminder) setShowCreateReminder(true);
+
+    navigation.setParams({
+      openCreateTask: false,
+      openCreateReminder: false,
+    });
+  }, [navigation, route.params?.openCreateTask, route.params?.openCreateReminder]);
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
