@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import CropsScreen from './src/screens/CropsScreen';
+import InsightsScreen from './src/screens/InsightsScreen';
 import BottomNav from './src/components/BottomNav';
 import './global.css';
 
@@ -28,7 +29,7 @@ export default function App() {
         >
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Crops" component={CropsScreen} />
-          <Tab.Screen name="Insights" component={PlaceholderScreen} />
+          <Tab.Screen name="Insights" component={InsightsScreen} />
           <Tab.Screen name="Profile" component={PlaceholderScreen} />
         </Tab.Navigator>
       </NavigationContainer>
