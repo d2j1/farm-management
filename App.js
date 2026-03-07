@@ -12,6 +12,7 @@ import InsightsScreen from './src/screens/InsightsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
 import BottomNav from './src/components/BottomNav';
+import { DatabaseProvider } from './src/database/DatabaseProvider';
 import './global.css';
 
 const Tab = createBottomTabNavigator();
@@ -62,25 +63,27 @@ function CropsStackScreen() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <NavigationContainer>
-        <Tab.Navigator
-          tabBar={(props) => <BottomNav {...props} />}
-          screenOptions={{ headerShown: false }}
-        >
-          <Tab.Screen name="Home" component={HomeStackScreen} />
-          <Tab.Screen name="Crops" component={CropsStackScreen} />
-          <Tab.Screen name="Insights" component={InsightsScreen} />
-          <Tab.Screen
-            name="Profile"
-            component={ProfileStackScreen}
-            options={{
-              // Hide tab bar when navigated to UpdateProfile
-              tabBarStyle: { display: 'none' },
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
+      <DatabaseProvider>
+        <StatusBar style="auto" />
+        <NavigationContainer>
+          <Tab.Navigator
+            tabBar={(props) => <BottomNav {...props} />}
+            screenOptions={{ headerShown: false }}
+          >
+            <Tab.Screen name="Home" component={HomeStackScreen} />
+            <Tab.Screen name="Crops" component={CropsStackScreen} />
+            <Tab.Screen name="Insights" component={InsightsScreen} />
+            <Tab.Screen
+              name="Profile"
+              component={ProfileStackScreen}
+              options={{
+                // Hide tab bar when navigated to UpdateProfile
+                tabBarStyle: { display: 'none' },
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </DatabaseProvider>
     </SafeAreaProvider>
   );
 }

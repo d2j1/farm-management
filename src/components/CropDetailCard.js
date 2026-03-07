@@ -57,18 +57,20 @@ export default function CropDetailCard({ crop, onPress }) {
 
             {/* Activity statuses */}
             <View className="mt-2 gap-1">
+              {crop.lastActivity ? (
+                <View className="flex-row items-center gap-1">
+                  <View className={`w-2 h-2 rounded-full ${crop.lastActivity.dotClass}`} />
+                  <Text
+                    className={`text-[10px] font-bold uppercase tracking-widest ${crop.lastActivity.colorClass}`}
+                  >
+                    LAST ACTIVITY: {crop.lastActivity.label}
+                  </Text>
+                </View>
+              ) : null}
               <View className="flex-row items-center gap-1">
-                <View className={`w-2 h-2 rounded-full ${crop.lastActivity.dotClass}`} />
-                <Text
-                  className={`text-[10px] font-bold uppercase tracking-widest ${crop.lastActivity.colorClass}`}
-                >
-                  LAST ACTIVITY: {crop.lastActivity.label}
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-1">
-                <View className="w-2 h-2 rounded-full bg-blue-400" />
-                <Text className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                  UPCOMING: {crop.upcoming.label}
+                <View className={`w-2 h-2 rounded-full ${crop.upcoming ? 'bg-blue-400' : 'bg-slate-300'}`} />
+                <Text className={`text-[10px] font-bold uppercase tracking-widest ${crop.upcoming ? 'text-blue-400' : 'text-slate-400'}`}>
+                  UPCOMING: {crop.upcoming ? crop.upcoming.label : 'NO UPCOMING TASKS'}
                 </Text>
               </View>
             </View>

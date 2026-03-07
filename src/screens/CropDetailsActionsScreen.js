@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
   Animated,
   PanResponder,
@@ -11,136 +11,25 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import CreateTaskModal from '../components/CreateTaskModal';
 import CreateReminderModal from '../components/CreateReminderModal';
 import CreateActivityModal from '../components/CreateActivityModal';
 import CreateExpenseModal from '../components/CreateExpenseModal';
 import CreateEarningsModal from '../components/CreateEarningsModal';
+import { useDatabase } from '../database/DatabaseProvider';
+import { updateCropStatus } from '../database/cropService';
+import { insertTask, getTasksByCrop, deleteTask } from '../database/taskService';
+import { insertReminder, getRemindersByCrop, deleteReminder } from '../database/reminderService';
+import { insertActivity, getActivitiesByCrop, deleteActivity } from '../database/activityService';
+import { insertExpense, getExpensesByCrop, deleteExpense } from '../database/expenseService';
+import { insertEarning, getEarningsByCrop, deleteEarning } from '../database/earningService';
 
 const DETAIL_TABS = ['Actions', 'Activity Logs', 'Expenses', 'Earnings'];
 const SWIPE_DISTANCE_THRESHOLD = 56;
 const SWIPE_VELOCITY_THRESHOLD = 0.42;
 
-const INITIAL_TIMELINE_ITEMS = [
-  {
-    id: 'r-1',
-    kind: 'reminder',
-    title: 'Check Grain Moisture',
-    statusText: 'Tomorrow • 08:30 AM',
-    icon: 'notifications',
-    iconBgClass: 'bg-orange-100',
-    iconColor: '#ea580c',
-  },
-  {
-    id: 't-1',
-    kind: 'task',
-    taskState: 'dueToday',
-    title: 'Apply Urea Fertilizer',
-    statusText: 'Due Today • 05:00 PM',
-  },
-  {
-    id: 'r-2',
-    kind: 'reminder',
-    title: 'Equipment Maintenance',
-    statusText: 'Nov 25 • 02:00 PM',
-    icon: 'alarm',
-    iconBgClass: 'bg-blue-100',
-    iconColor: '#2563eb',
-  },
-  {
-    id: 't-2',
-    kind: 'task',
-    taskState: 'inProgress',
-    title: 'Watering West Block',
-    statusText: 'In Progress • Started 20m ago',
-  },
-  {
-    id: 't-3',
-    kind: 'task',
-    taskState: 'snoozed',
-    title: 'Soil pH Testing',
-    statusText: 'Snoozed until Nov 22, 09:00 AM',
-  },
-];
-
-const INITIAL_ACTIVITY_LOGS = [
-  {
-    id: 'a-1',
-    title: 'Field Plowing',
-    icon: 'agriculture',
-    dateText: 'Oct 20, 2022 • 1 year 2 months and 4 days ago',
-    remarks: 'Tractor service completed for the entire north field.',
-  },
-  {
-    id: 'a-2',
-    title: 'Second Irrigation',
-    icon: 'water-drop',
-    dateText: 'Jul 22, 2024 • 3 months and 2 days ago',
-    remarks: 'Waiting for water schedule from local canal.',
-  },
-  {
-    id: 'a-3',
-    title: 'Soil Testing',
-    icon: 'science',
-    dateText: 'Oct 21, 2024 • 3 days ago',
-    remarks: 'PH levels are stable, nutrient report received.',
-  },
-];
-
-const INITIAL_EXPENSES = [
-  {
-    id: 'e-1',
-    title: 'Fertilizer',
-    icon: 'shopping-basket',
-    dateText: 'Oct 20, 2024',
-    amount: 5000,
-    remarks: 'Urea bought from local store',
-  },
-  {
-    id: 'e-2',
-    title: 'Irrigation Service',
-    icon: 'water-drop',
-    dateText: 'Oct 15, 2024',
-    amount: 2500,
-    remarks: 'Monthly pump maintenance and diesel',
-  },
-  {
-    id: 'e-3',
-    title: 'Labor Wages',
-    icon: 'group',
-    dateText: 'Oct 10, 2024',
-    amount: 7500,
-    remarks: 'Sowing labor (5 people x 3 days)',
-    isMuted: true,
-  },
-];
-
-const INITIAL_EARNINGS = [
-  {
-    id: 'n-1',
-    title: 'Wheat Sale',
-    icon: 'payments',
-    dateText: 'Nov 12, 2024',
-    amount: 18500,
-    remarks: 'Sold 10 quintals to local mandi',
-  },
-  {
-    id: 'n-2',
-    title: 'Government Subsidy',
-    icon: 'paid',
-    dateText: 'Nov 05, 2024',
-    amount: 4000,
-    remarks: 'Fertilizer subsidy credited to bank',
-  },
-  {
-    id: 'n-3',
-    title: 'Straw Sale',
-    icon: 'local-shipping',
-    dateText: 'Oct 28, 2024',
-    amount: 2500,
-    remarks: 'Sold crop residue for fodder',
-  },
-];
+// No more hardcoded data — everything is loaded from the database
 
 function formatCount(value) {
   return String(value).padStart(2, '0');
@@ -561,11 +450,14 @@ function EarningCard({
 }
 
 export default function CropDetailsActionsScreen({ navigation, route }) {
+  const db = useDatabase();
+  const cropId = route?.params?.crop?.dbId || null;
+
   const [activeTab, setActiveTab] = useState('Actions');
-  const [timelineItems, setTimelineItems] = useState(INITIAL_TIMELINE_ITEMS);
-  const [activityLogs, setActivityLogs] = useState(INITIAL_ACTIVITY_LOGS);
-  const [expenses, setExpenses] = useState(INITIAL_EXPENSES);
-  const [earnings, setEarnings] = useState(INITIAL_EARNINGS);
+  const [timelineItems, setTimelineItems] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [earnings, setEarnings] = useState([]);
   const [openTaskMenuId, setOpenTaskMenuId] = useState(null);
   const [openLogMenuId, setOpenLogMenuId] = useState(null);
   const [openExpenseMenuId, setOpenExpenseMenuId] = useState(null);
@@ -586,6 +478,89 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
 
   const cropName = route?.params?.crop?.name || 'Wheat';
   const cropLocation = route?.params?.crop?.location || 'North Field • 2 Acres';
+
+  // ── Load all data for this crop from the database ───────────
+  const loadAllData = useCallback(async () => {
+    if (!cropId) return;
+
+    try {
+      // Load tasks → timeline items
+      const taskRows = await getTasksByCrop(db, cropId);
+      const taskItems = taskRows.map((t) => ({
+        id: `t-${t.id}`,
+        dbId: t.id,
+        kind: 'task',
+        taskState: 'dueToday',
+        title: t.taskName,
+        statusText: t.startDate || 'No date set',
+      }));
+
+      // Load reminders → timeline items
+      const reminderRows = await getRemindersByCrop(db, cropId);
+      const reminderItems = reminderRows.map((r) => ({
+        id: `r-${r.id}`,
+        dbId: r.id,
+        kind: 'reminder',
+        title: r.details,
+        statusText: `${r.reminderDate}${r.reminderTime ? ' • ' + r.reminderTime : ''}`,
+        icon: 'notifications',
+        iconBgClass: 'bg-orange-100',
+        iconColor: '#ea580c',
+      }));
+
+      setTimelineItems([...reminderItems, ...taskItems]);
+
+      // Load activity logs
+      const activityRows = await getActivitiesByCrop(db, cropId);
+      setActivityLogs(
+        activityRows.map((a) => ({
+          id: `a-${a.id}`,
+          dbId: a.id,
+          title: a.title,
+          icon: getActivityIcon(a.title),
+          dateText: a.date,
+          remarks: a.remark || 'No remarks',
+        })),
+      );
+
+      // Load expenses
+      const expenseRows = await getExpensesByCrop(db, cropId);
+      setExpenses(
+        expenseRows.map((e) => ({
+          id: `e-${e.id}`,
+          dbId: e.id,
+          title: e.title,
+          icon: getExpenseIcon(e.title),
+          dateText: e.date,
+          amount: e.amount,
+          remarks: e.remark || 'No remarks',
+        })),
+      );
+
+      // Load earnings
+      const earningRows = await getEarningsByCrop(db, cropId);
+      setEarnings(
+        earningRows.map((n) => ({
+          id: `n-${n.id}`,
+          dbId: n.id,
+          title: n.title,
+          icon: getEarningIcon(n.title),
+          dateText: n.date,
+          amount: n.amount,
+          remarks: n.remark || 'No remarks',
+        })),
+      );
+    } catch (err) {
+      console.error('Failed to load crop data:', err);
+    }
+  }, [db, cropId]);
+
+  // Reload data whenever the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadAllData();
+    }, [loadAllData]),
+  );
 
   const pendingTaskCount = useMemo(
     () => timelineItems.filter((item) => item.kind === 'task').length,
@@ -675,13 +650,21 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     }, 2100);
   };
 
-  const handleDismissReminder = (id) => {
-    setTimelineItems((prev) => prev.filter((item) => item.id !== id));
+  const handleDismissReminder = async (id) => {
+    const item = timelineItems.find((i) => i.id === id);
+    if (item?.dbId) {
+      try {
+        await deleteReminder(db, item.dbId);
+      } catch (err) {
+        console.error('Failed to delete reminder:', err);
+      }
+    }
+    setTimelineItems((prev) => prev.filter((i) => i.id !== id));
     setOpenTaskMenuId(null);
     showToast('Reminder dismissed.');
   };
 
-  const handleTaskMenuAction = (id, action) => {
+  const handleTaskMenuAction = async (id, action) => {
     setOpenTaskMenuId(null);
 
     if (action === 'snooze') {
@@ -700,15 +683,32 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
       return;
     }
 
-    setTimelineItems((prev) => prev.filter((item) => item.id !== id));
+    // done or skip — delete from DB
+    const item = timelineItems.find((i) => i.id === id);
+    if (item?.dbId) {
+      try {
+        await deleteTask(db, item.dbId);
+      } catch (err) {
+        console.error('Failed to delete task:', err);
+      }
+    }
+    setTimelineItems((prev) => prev.filter((i) => i.id !== id));
     showToast(action === 'done' ? 'Task marked as done.' : 'Task skipped.');
   };
 
-  const handleActivityMenuAction = (id, action) => {
+  const handleActivityMenuAction = async (id, action) => {
     setOpenLogMenuId(null);
 
     if (action === 'delete') {
-      setActivityLogs((prev) => prev.filter((item) => item.id !== id));
+      const item = activityLogs.find((a) => a.id === id);
+      if (item?.dbId) {
+        try {
+          await deleteActivity(db, item.dbId);
+        } catch (err) {
+          console.error('Failed to delete activity:', err);
+        }
+      }
+      setActivityLogs((prev) => prev.filter((a) => a.id !== id));
       showToast('Activity log deleted.');
       return;
     }
@@ -716,11 +716,19 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     showToast('Edit activity coming soon.');
   };
 
-  const handleExpenseMenuAction = (id, action) => {
+  const handleExpenseMenuAction = async (id, action) => {
     setOpenExpenseMenuId(null);
 
     if (action === 'delete') {
-      setExpenses((prev) => prev.filter((item) => item.id !== id));
+      const item = expenses.find((e) => e.id === id);
+      if (item?.dbId) {
+        try {
+          await deleteExpense(db, item.dbId);
+        } catch (err) {
+          console.error('Failed to delete expense:', err);
+        }
+      }
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
       showToast('Expense deleted.');
       return;
     }
@@ -728,7 +736,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     showToast('Edit expense coming soon.');
   };
 
-  const handleEarningMenuAction = (id, action) => {
+  const handleEarningMenuAction = async (id, action) => {
     setOpenEarningMenuId(null);
 
     if (action === 'delete') {
@@ -736,6 +744,13 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
       if (deleteIndex === -1) return;
 
       const itemToDelete = earnings[deleteIndex];
+      if (itemToDelete?.dbId) {
+        try {
+          await deleteEarning(db, itemToDelete.dbId);
+        } catch (err) {
+          console.error('Failed to delete earning:', err);
+        }
+      }
       setEarnings((prev) => prev.filter((item) => item.id !== id));
       queueDeletedEarning(itemToDelete, deleteIndex);
       return;
@@ -765,7 +780,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     setOpenEarningMenuId(null);
   };
 
-  const handleHeaderMenuAction = (action) => {
+  const handleHeaderMenuAction = async (action) => {
     setShowHeaderMenu(false);
 
     if (action === 'delete') {
@@ -774,7 +789,17 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     }
 
     if (action === 'deactivate') {
-      showToast('Deactivate crop flow coming soon.');
+      if (!cropId) return;
+      try {
+        const currentStatus = route?.params?.crop?.status || 'active';
+        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        await updateCropStatus(db, cropId, newStatus);
+        showToast(newStatus === 'inactive' ? 'Crop deactivated.' : 'Crop activated.');
+        navigation.goBack();
+      } catch (err) {
+        console.error('Failed to update crop status:', err);
+        showToast('Failed to update crop status.');
+      }
       return;
     }
 
@@ -1214,92 +1239,104 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
       <CreateTaskModal
         visible={showCreateTask}
         onClose={() => setShowCreateTask(false)}
-        onSave={() => {
-          setShowCreateTask(false);
-          showToast('Task created.');
+        onSave={async (taskData) => {
+          try {
+            await insertTask(db, { ...taskData, cropId });
+            setShowCreateTask(false);
+            await loadAllData();
+            showToast('Task created.');
+          } catch (err) {
+            console.error('Failed to insert task:', err);
+            showToast('Failed to save task.');
+          }
         }}
       />
 
       <CreateReminderModal
         visible={showCreateReminder}
         onClose={() => setShowCreateReminder(false)}
-        onSave={() => {
-          setShowCreateReminder(false);
-          showToast('Reminder created.');
+        onSave={async (reminderData) => {
+          try {
+            await insertReminder(db, { ...reminderData, cropId });
+            setShowCreateReminder(false);
+            await loadAllData();
+            showToast('Reminder created.');
+          } catch (err) {
+            console.error('Failed to insert reminder:', err);
+            showToast('Failed to save reminder.');
+          }
         }}
       />
 
       <CreateActivityModal
         visible={showCreateActivity}
         onClose={() => setShowCreateActivity(false)}
-        onSave={({ activityName, remarks, date }) => {
+        onSave={async ({ activityName, remarks, date }) => {
           const title = activityName || 'Untitled Activity';
-          const note = remarks || 'No remarks added.';
+          const remark = remarks || null;
 
-          setShowCreateActivity(false);
-          setActivityLogs((prev) => [
-            {
-              id: `a-${Date.now()}`,
-              title,
-              icon: getActivityIcon(activityName),
-              dateText: formatActivityDate(date || new Date()),
-              remarks: note,
-            },
-            ...prev,
-          ]);
-
-          showToast('Activity added.');
+          try {
+            await insertActivity(db, { cropId, title, remark, date: date || new Date() });
+            setShowCreateActivity(false);
+            await loadAllData();
+            showToast('Activity added.');
+          } catch (err) {
+            console.error('Failed to insert activity:', err);
+            showToast('Failed to save activity.');
+          }
         }}
       />
 
       <CreateExpenseModal
         visible={showCreateExpense}
         onClose={() => setShowCreateExpense(false)}
-        onSave={({ expenseName, remarks, amount, date }) => {
+        onSave={async ({ expenseName, remarks, amount, date }) => {
           const title = expenseName || 'Untitled Expense';
-          const note = remarks || 'No remarks added.';
+          const remark = remarks || null;
 
-          setShowCreateExpense(false);
-          setExpenses((prev) => [
-            {
-              id: `e-${Date.now()}`,
+          try {
+            await insertExpense(db, {
+              cropId,
               title,
-              icon: getExpenseIcon(expenseName),
-              dateText: formatEntryDate(date || new Date()),
+              remark,
               amount: Number.isFinite(amount) ? amount : 0,
-              remarks: note,
-            },
-            ...prev,
-          ]);
-
-          showToast('Expense added.');
+              date: date || new Date(),
+            });
+            setShowCreateExpense(false);
+            await loadAllData();
+            showToast('Expense added.');
+          } catch (err) {
+            console.error('Failed to insert expense:', err);
+            showToast('Failed to save expense.');
+          }
         }}
       />
 
       <CreateEarningsModal
         visible={showCreateEarnings}
         onClose={() => setShowCreateEarnings(false)}
-        onSave={({ earningName, remarks, amount, date }) => {
+        onSave={async ({ earningName, remarks, amount, date }) => {
           const title = earningName || 'Untitled Earning';
-          const note = remarks || 'No remarks added.';
+          const remark = remarks || null;
 
           clearUndoDeleteTimer();
           setDeletedEarning(null);
-          setShowCreateEarnings(false);
 
-          setEarnings((prev) => [
-            {
-              id: `n-${Date.now()}`,
+          try {
+            await insertEarning(db, {
+              cropId,
               title,
-              icon: getEarningIcon(earningName),
-              dateText: formatEntryDate(date || new Date()),
+              remark,
               amount: Number.isFinite(amount) ? amount : 0,
-              remarks: note,
-            },
-            ...prev,
-          ]);
-
-          showToast('Earning added.');
+              date: date || new Date(),
+            });
+            setShowCreateEarnings(false);
+            await loadAllData();
+            showToast('Earning added.');
+          } catch (err) {
+            console.error('Failed to insert earning:', err);
+            showToast('Failed to save earning.');
+          }
         }}
       />
     </SafeAreaView>

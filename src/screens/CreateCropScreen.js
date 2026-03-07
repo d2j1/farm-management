@@ -17,6 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import { useDatabase } from '../database/DatabaseProvider';
+import { insertCrop } from '../database/cropService';
 
 function formatDate(date) {
   return date.toLocaleDateString('en-US', {
@@ -27,10 +29,11 @@ function formatDate(date) {
 }
 
 const AREA_UNIT_OPTIONS = [
-  { label: 'Acres', value: 'acres' },
-  { label: 'Hectare', value: 'hectare' },
-  { label: 'Bigha', value: 'bigha' },
-  { label: 'Guntha', value: 'guntha' },
+  { label: 'Acre', value: 'Acre' },
+  { label: 'Hectare', value: 'Hectare' },
+  { label: 'Bigha', value: 'Bigha' },
+  { label: 'Guntha', value: 'Guntha' },
+  { label: 'Sq Ft', value: 'SqFt' },
 ];
 
 const SOIL_TYPE_OPTIONS = [
@@ -218,11 +221,12 @@ function SelectInput({
 }
 
 export default function CreateCropScreen({ navigation, route }) {
+  const db = useDatabase();
   const [photoUri, setPhotoUri] = useState('');
 
   const [landNickname, setLandNickname] = useState('');
   const [totalArea, setTotalArea] = useState('');
-  const [areaUnit, setAreaUnit] = useState('acres');
+  const [areaUnit, setAreaUnit] = useState('Acre');
   const [cropName, setCropName] = useState('');
   const [plantingDate, setPlantingDate] = useState(null);
 
@@ -262,7 +266,7 @@ export default function CreateCropScreen({ navigation, route }) {
     }
   };
 
-  const handleCreateCrop = () => {
+  const handleCreateCrop = async () => {
     const areaValue = Number(totalArea);
 
     if (!landNickname.trim() || !cropName.trim() || !plantingDate || !totalArea.trim()) {
@@ -276,26 +280,29 @@ export default function CreateCropScreen({ navigation, route }) {
     }
 
     const cropPayload = {
-      photoUri,
       landNickname: landNickname.trim(),
       totalArea: areaValue,
       areaUnit,
       cropName: cropName.trim(),
-      plantingDate,
-      seedVariety: seedVariety.trim(),
-      soilType,
-      harvestDate,
-      previousCrop: previousCrop.trim(),
+      plantationDate: plantingDate,
+      seedVariety: seedVariety.trim() || null,
+      soilType: soilType || null,
+      expectedHarvestDate: harvestDate,
+      previousCrop: previousCrop.trim() || null,
     };
 
-    route.params?.onCreate?.(cropPayload);
-
-    Alert.alert('Crop created', 'Your crop record has been created successfully.', [
-      {
-        text: 'OK',
-        onPress: () => navigation.goBack(),
-      },
-    ]);
+    try {
+      await insertCrop(db, cropPayload);
+      Alert.alert('Crop created', 'Your crop record has been created successfully.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (err) {
+      console.error('Failed to insert crop:', err);
+      Alert.alert('Error', 'Failed to save crop. Please try again.');
+    }
   };
 
   return (

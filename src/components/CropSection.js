@@ -88,6 +88,7 @@ export default function CropSection({ navigation }) {
   const openCropDetails = (crop) => {
     navigation?.navigate('Crops', {
       screen: 'CropDetails',
+      initial: false,
       params: {
         crop: {
           name: crop.name,
@@ -145,7 +146,7 @@ export default function CropSection({ navigation }) {
         <TouchableOpacity
           className="flex-row items-center gap-2"
           activeOpacity={0.75}
-          onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop' })}
+          onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
         >
           <MaterialIcons name="add-circle" size={18} color="#3ce619" />
           <Text className="text-primary text-sm font-semibold opacity-80">Add New Crop or Field</Text>

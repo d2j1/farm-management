@@ -2,23 +2,15 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-export default function CropsScreenHeader({ onBackPress, onNotificationPress }) {
+export default function CropsScreenHeader({ onNotificationPress }) {
   return (
     <View className="flex-row items-center bg-white px-4 py-4 border-b border-slate-100">
-      {/* Left — Back */}
-      <View className="w-10">
-        <TouchableOpacity
-          className="p-2 -ml-2 rounded-full"
-          onPress={onBackPress}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="#94a3b8" />
-        </TouchableOpacity>
-      </View>
+      {/* Left — Spacer */}
+      <View className="w-10" />
 
       {/* Center — Title */}
       <View className="flex-1 items-center">
-        <Text className="text-slate-900 text-lg font-extrabold tracking-tight">
+        <Text className="text-xl font-bold tracking-tight text-black">
           Your Crops
         </Text>
       </View>

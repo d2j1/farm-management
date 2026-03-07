@@ -1,113 +1,121 @@
-import React, { useCallback, useState } from 'react';
-import { BackHandler, ScrollView, View, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import CropsScreenHeader from '../components/CropsScreenHeader';
 import FilterTabs from '../components/FilterTabs';
 import CropDetailCard from '../components/CropDetailCard';
 import FloatingActionButton from '../components/FloatingActionButton';
+import { useDatabase } from '../database/DatabaseProvider';
+import { getAllCrops } from '../database/cropService';
+import { getLatestActivityByCrop } from '../database/activityService';
+import { getUpcomingTaskByCrop } from '../database/taskService';
+import { getTotalExpensesByCrop } from '../database/expenseService';
+import { getTotalEarningsByCrop } from '../database/earningService';
 
-const FILTER_TABS = ['All', 'Active', 'Harvested'];
+const FILTER_TABS = ['All', 'Active', 'Inactive'];
 
-const CROPS_DATA = [
-  {
-    id: '1',
-    name: 'Tomato',
-    icon: 'restaurant',
-    iconColor: '#ef4444',
-    iconBgClass: 'bg-red-50',
-    blobBgClass: 'bg-red-400',
-    ringClass: 'ring-red-100',
-    location: 'East Field • 2 Acres',
-    status: 'active',
-    lastActivity: {
-      label: 'FERTILIZED',
-      colorClass: 'text-primary',
-      dotClass: 'bg-primary',
-    },
-    upcoming: {
-      label: 'WATERING (TOMORROW)',
-      colorClass: 'text-blue-400',
-    },
-    expenses: '₹1,200',
-    earnings: '₹4,500',
-  },
-  {
-    id: '2',
-    name: 'Corn',
-    icon: 'grass',
-    iconColor: '#ca8a04',
-    iconBgClass: 'bg-yellow-50',
-    blobBgClass: 'bg-yellow-400',
-    ringClass: 'ring-yellow-100',
-    location: 'West Field • 5 Acres',
-    status: 'active',
-    lastActivity: {
-      label: 'IRRIGATED',
-      colorClass: 'text-orange-400',
-      dotClass: 'bg-orange-400',
-    },
-    upcoming: {
-      label: 'PEST CONTROL (IN 3 DAYS)',
-      colorClass: 'text-blue-400',
-    },
-    expenses: '₹2,500',
-    earnings: '₹8,000',
-  },
-  {
-    id: '3',
-    name: 'Wheat',
-    icon: 'agriculture',
-    iconColor: '#ea580c',
-    iconBgClass: 'bg-orange-50',
-    blobBgClass: 'bg-orange-400',
-    ringClass: 'ring-orange-100',
-    location: 'North Ridge • 12 Acres',
-    status: 'active',
-    lastActivity: {
-      label: 'WEEDED',
-      colorClass: 'text-primary',
-      dotClass: 'bg-primary',
-    },
-    upcoming: {
-      label: 'FERTILIZE (NEXT WEEK)',
-      colorClass: 'text-blue-400',
-    },
-    expenses: '₹4,100',
-    earnings: '₹15,200',
-  },
-];
+/**
+ * Map icon config based on the crop name for visual variety.
+ */
+function getCropVisuals(cropName) {
+  const name = (cropName || '').toLowerCase();
+
+  if (name.includes('tomato') || name.includes('chili') || name.includes('pepper')) {
+    return { icon: 'restaurant', iconColor: '#ef4444', iconBgClass: 'bg-red-50', blobBgClass: 'bg-red-400', ringClass: 'ring-red-100' };
+  }
+  if (name.includes('corn') || name.includes('maize')) {
+    return { icon: 'grass', iconColor: '#ca8a04', iconBgClass: 'bg-yellow-50', blobBgClass: 'bg-yellow-400', ringClass: 'ring-yellow-100' };
+  }
+  if (name.includes('rice') || name.includes('paddy')) {
+    return { icon: 'grass', iconColor: '#16a34a', iconBgClass: 'bg-green-50', blobBgClass: 'bg-green-400', ringClass: 'ring-green-100' };
+  }
+  // default
+  return { icon: 'agriculture', iconColor: '#ea580c', iconBgClass: 'bg-orange-50', blobBgClass: 'bg-orange-400', ringClass: 'ring-orange-100' };
+}
+
+/**
+ * Transform a DB row into the shape CropDetailCard expects.
+ */
+function mapCropRow(row, latestActivity, upcomingTask, totalExpenses, totalEarnings) {
+  const visuals = getCropVisuals(row.cropName);
+
+  const formatCurrency = (val) => {
+    const num = Number(val) || 0;
+    return `₹${num.toLocaleString('en-IN')}`;
+  };
+
+  return {
+    id: String(row.id),
+    dbId: row.id,
+    name: row.cropName,
+    ...visuals,
+    location: `${row.landNickname} • ${row.totalArea} ${row.areaUnit}`,
+    status: row.status || 'active',
+    lastActivity: latestActivity
+      ? {
+          label: latestActivity.title.toUpperCase(),
+          colorClass: 'text-primary',
+          dotClass: 'bg-primary',
+        }
+      : null,
+    upcoming: upcomingTask
+      ? {
+          label: `${upcomingTask.taskName.toUpperCase()} (${upcomingTask.startDate})`,
+          colorClass: 'text-blue-400',
+        }
+      : null,
+    expenses: formatCurrency(totalExpenses),
+    earnings: formatCurrency(totalEarnings),
+  };
+}
 
 export default function CropsScreen({ navigation }) {
+  const db = useDatabase();
+  const [crops, setCrops] = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const handleGoHome = useCallback(() => {
-    navigation.navigate('Home', { screen: 'HomeMain' });
-  }, [navigation]);
-
+  // Reload crops every time the screen gains focus (e.g. after creating one)
   useFocusEffect(
     useCallback(() => {
-      const onHardwareBackPress = () => {
-        handleGoHome();
-        return true;
-      };
+      let cancelled = false;
 
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
-      return () => subscription.remove();
-    }, [handleGoHome]),
+      (async () => {
+        try {
+          const rows = await getAllCrops(db);
+          const enriched = await Promise.all(
+            rows.map(async (row) => {
+              const [latest, upcoming, totalExp, totalEarn] = await Promise.all([
+                getLatestActivityByCrop(db, row.id),
+                getUpcomingTaskByCrop(db, row.id),
+                getTotalExpensesByCrop(db, row.id),
+                getTotalEarningsByCrop(db, row.id),
+              ]);
+              return mapCropRow(row, latest, upcoming, totalExp, totalEarn);
+            }),
+          );
+          if (!cancelled) setCrops(enriched);
+        } catch (err) {
+          console.error('Failed to load crops:', err);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [db]),
   );
 
-  const filteredCrops = CROPS_DATA.filter((crop) => {
+  const filteredCrops = crops.filter((crop) => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Active') return crop.status === 'active';
-    if (activeFilter === 'Harvested') return crop.status === 'harvested';
+    if (activeFilter === 'Inactive') return crop.status === 'inactive';
     return true;
   });
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       <CropsScreenHeader
-        onBackPress={handleGoHome}
         onNotificationPress={() => {}}
       />
 
@@ -123,13 +131,19 @@ export default function CropsScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <View className="px-4 gap-5">
-          {filteredCrops.map((crop) => (
-            <CropDetailCard
-              key={crop.id}
-              crop={crop}
-              onPress={() => navigation.navigate('CropDetails', { crop })}
-            />
-          ))}
+          {filteredCrops.length === 0 ? (
+            <View className="items-center justify-center py-16">
+              <Text className="text-slate-400 text-sm">No crops yet — tap + to add one.</Text>
+            </View>
+          ) : (
+            filteredCrops.map((crop) => (
+              <CropDetailCard
+                key={crop.id}
+                crop={crop}
+                onPress={() => navigation.navigate('CropDetails', { crop })}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
 

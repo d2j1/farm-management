@@ -32,9 +32,17 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
       seedVariety         TEXT,
       soilType            TEXT,
       expectedHarvestDate TEXT,
-      previousCrop        TEXT
+      previousCrop        TEXT,
+      status              TEXT    NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive'))
     );
   `);
+
+  // Migration: add status column to existing crops tables that don't have it
+  try {
+    await db.execAsync(`ALTER TABLE crops ADD COLUMN status TEXT NOT NULL DEFAULT 'active';`);
+  } catch (_) {
+    // Column already exists — safe to ignore
+  }
 
   // ── Activities ─────────────────────────────────────────────
   await db.execAsync(`
