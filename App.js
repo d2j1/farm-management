@@ -8,6 +8,7 @@ import TasksScreen from './src/screens/TasksScreen';
 import CropsScreen from './src/screens/CropsScreen';
 import CropDetailsActionsScreen from './src/screens/CropDetailsActionsScreen';
 import CreateCropScreen from './src/screens/CreateCropScreen';
+import EditCropScreen from './src/screens/EditCropScreen';
 import InsightsScreen from './src/screens/InsightsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
@@ -56,6 +57,7 @@ function CropsStackScreen() {
       <CropsStack.Screen name="CropsMain" component={CropsScreen} />
       <CropsStack.Screen name="CropDetails" component={CropDetailsActionsScreen} />
       <CropsStack.Screen name="CreateCrop" component={CreateCropScreen} />
+      <CropsStack.Screen name="EditCrop" component={EditCropScreen} />
     </CropsStack.Navigator>
   );
 }

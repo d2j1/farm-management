@@ -64,3 +64,28 @@ export async function deleteCrop(db, id) {
 export async function updateCropStatus(db, id, status) {
   return db.runAsync('UPDATE crops SET status = ? WHERE id = ?', [status, id]);
 }
+
+/**
+ * Update all editable fields of a crop record.
+ */
+export async function updateCrop(db, id, data) {
+  return db.runAsync(
+    `UPDATE crops
+       SET landNickname = ?, totalArea = ?, areaUnit = ?, cropName = ?,
+           plantationDate = ?, seedVariety = ?, soilType = ?,
+           expectedHarvestDate = ?, previousCrop = ?
+     WHERE id = ?`,
+    [
+      data.landNickname,
+      data.totalArea,
+      data.areaUnit,
+      data.cropName,
+      toISODate(data.plantationDate),
+      data.seedVariety || null,
+      data.soilType || null,
+      toISODate(data.expectedHarvestDate),
+      data.previousCrop || null,
+      id,
+    ],
+  );
+}

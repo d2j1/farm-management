@@ -17,7 +17,7 @@ const TABS = [
  * @param {Object} props.navigation  - Navigation object from Tab.Navigator
  */
 // Screen names where the bottom tab bar should be hidden.
-const HIDDEN_SCREENS = ['UpdateProfile', 'Tasks', 'CropDetails', 'CreateCrop'];
+const HIDDEN_SCREENS = ['UpdateProfile', 'Tasks', 'CropDetails', 'CreateCrop', 'EditCrop'];
 
 /**
  * Resolve the deepest focused route name from a tab route.

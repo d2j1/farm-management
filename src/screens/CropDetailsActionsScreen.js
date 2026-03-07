@@ -24,6 +24,7 @@ import { insertReminder, getRemindersByCrop, deleteReminder } from '../database/
 import { insertActivity, getActivitiesByCrop, deleteActivity } from '../database/activityService';
 import { insertExpense, getExpensesByCrop, deleteExpense } from '../database/expenseService';
 import { insertEarning, getEarningsByCrop, deleteEarning } from '../database/earningService';
+import CropResultModal from '../components/CropResultModal';
 
 const DETAIL_TABS = ['Actions', 'Activity Logs', 'Expenses', 'Earnings'];
 const SWIPE_DISTANCE_THRESHOLD = 56;
@@ -464,6 +465,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
   const [openEarningMenuId, setOpenEarningMenuId] = useState(null);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [cropStatus, setCropStatus] = useState(route?.params?.crop?.status || 'active');
+  const [statusModal, setStatusModal] = useState({ visible: false, newStatus: '' });
   const [deletedEarning, setDeletedEarning] = useState(null);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false);
@@ -791,11 +794,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     if (action === 'deactivate') {
       if (!cropId) return;
       try {
-        const currentStatus = route?.params?.crop?.status || 'active';
-        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        const newStatus = cropStatus === 'active' ? 'inactive' : 'active';
         await updateCropStatus(db, cropId, newStatus);
-        showToast(newStatus === 'inactive' ? 'Crop deactivated.' : 'Crop activated.');
-        navigation.goBack();
+        setCropStatus(newStatus);
+        setStatusModal({ visible: true, newStatus });
       } catch (err) {
         console.error('Failed to update crop status:', err);
         showToast('Failed to update crop status.');
@@ -803,7 +805,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
       return;
     }
 
-    showToast('Edit crop details coming soon.');
+    navigation.navigate('EditCrop', { cropDbId: cropId });
   };
 
   const handleTabPress = (tab) => {
@@ -867,14 +869,18 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             >
               <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
             </TouchableOpacity>
-            <View className="flex-1">
+            <TouchableOpacity
+              className="flex-1"
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('EditCrop', { cropDbId: cropId })}
+            >
               <Text className="text-lg font-bold text-slate-900" numberOfLines={1}>
                 {cropName}
               </Text>
               <Text className="text-xs text-slate-500" numberOfLines={1}>
                 {cropLocation}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View className="flex-row items-center">
@@ -920,8 +926,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               activeOpacity={0.7}
               onPress={() => handleHeaderMenuAction('deactivate')}
             >
-              <MaterialIcons name="pause-circle" size={18} color="#475569" />
-              <Text className="ml-3 text-sm text-slate-700">Deactivate crop</Text>
+              <MaterialIcons name={cropStatus === 'active' ? 'pause-circle' : 'play-circle'} size={18} color="#475569" />
+              <Text className="ml-3 text-sm text-slate-700">{cropStatus === 'active' ? 'Deactivate crop' : 'Activate crop'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1337,6 +1343,23 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             console.error('Failed to insert earning:', err);
             showToast('Failed to save earning.');
           }
+        }}
+      />
+
+      <CropResultModal
+        visible={statusModal.visible}
+        type="success"
+        variant={statusModal.newStatus === 'active' ? 'bottom' : 'center'}
+        title={statusModal.newStatus === 'active' ? 'Crop Reactivated' : 'Crop Deactivated'}
+        message={
+          statusModal.newStatus === 'active'
+            ? 'The crop has been successfully reactivated and is now visible in your active list.'
+            : 'The crop has been successfully deactivated and moved to your archive.'
+        }
+        buttonText={statusModal.newStatus === 'active' ? 'Great' : 'Got it'}
+        onDismiss={() => {
+          setStatusModal({ visible: false, newStatus: '' });
+          navigation.goBack();
         }}
       />
     </SafeAreaView>

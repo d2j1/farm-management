@@ -38,14 +38,9 @@ export default function CropDetailCard({ crop, onPress }) {
 
           {/* Text info */}
           <View className="flex-1">
-            <View className="flex-row justify-between items-start">
-              <Text className="text-xl font-black text-slate-900" numberOfLines={1}>
-                {crop.name}
-              </Text>
-              <TouchableOpacity activeOpacity={0.6}>
-                <MaterialIcons name="more-vert" size={20} color="#cbd5e1" />
-              </TouchableOpacity>
-            </View>
+            <Text className="text-xl font-black text-slate-900" numberOfLines={1}>
+              {crop.name}
+            </Text>
 
             {/* Location */}
             <View className="flex-row items-center gap-1 mt-0.5">
