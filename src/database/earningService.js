@@ -38,6 +38,22 @@ export async function getEarningsByCrop(db, cropId) {
 }
 
 /**
+ * Update an existing earning by id.
+ */
+export async function updateEarning(db, id, data) {
+  return db.runAsync(
+    `UPDATE earnings SET title = ?, remark = ?, amount = ?, date = ? WHERE id = ?`,
+    [
+      data.title,
+      data.remark || null,
+      data.amount || 0,
+      toISODate(data.date),
+      id,
+    ],
+  );
+}
+
+/**
  * Delete an earning by id.
  */
 export async function deleteEarning(db, id) {

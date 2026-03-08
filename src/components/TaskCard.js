@@ -22,12 +22,15 @@ import { MaterialIcons } from '@expo/vector-icons';
  * @param {() => void} [props.onMenuPress]
  */
 export default function TaskCard({
+  id,
   title,
   categoryLabel,
   categoryIcon = 'eco',
   statusText,
   status = 'pending',
-  onMenuPress,
+  isMenuOpen,
+  onToggleMenu,
+  onMenuAction,
 }) {
   // ── Derive style tokens from status ───────────────────────
   const isDueToday = status === 'dueToday';
@@ -61,7 +64,10 @@ export default function TaskCard({
     : 'text-[10px] text-slate-500';
 
   return (
-    <View className={cardClass}>
+    <View 
+      className={cardClass}
+      style={isMenuOpen ? { zIndex: 50, elevation: 10 } : { zIndex: 1, elevation: 1 }}
+    >
       <View className="flex-row justify-between items-start">
         <View className="flex-row items-start gap-3 flex-1">
           {/* Leading icon / checkbox */}
@@ -70,6 +76,8 @@ export default function TaskCard({
               <SpinningIcon />
             ) : isSnoozed ? (
               <MaterialIcons name="bedtime" size={24} color="#fb923c" />
+            ) : status === 'multi_day' ? (
+              <MaterialIcons name="sync" size={24} color="#3b82f6" />
             ) : (
               <View
                 className={`h-6 w-6 rounded-md border-2 items-center justify-center ${
@@ -97,17 +105,65 @@ export default function TaskCard({
         </View>
 
         {/* 3-dot menu */}
-        <TouchableOpacity
-          className="p-1 rounded-full"
-          activeOpacity={0.6}
-          onPress={onMenuPress}
-        >
-          <MaterialIcons name="more-vert" size={22} color="#94a3b8" />
-        </TouchableOpacity>
+        <View className="relative">
+          <TouchableOpacity
+            className="p-1 rounded-full"
+            activeOpacity={0.6}
+            onPress={() => onToggleMenu?.(id)}
+          >
+            <MaterialIcons name="more-vert" size={22} color="#94a3b8" />
+          </TouchableOpacity>
+
+          {isMenuOpen && (
+            <View style={styles.dropdownMenu}>
+              <TouchableOpacity
+                className="px-4 py-2"
+                activeOpacity={0.7}
+                onPress={() => onMenuAction?.(id, 'done')}
+              >
+                <Text className="text-sm font-medium text-slate-700">Mark as Done</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-4 py-2"
+                activeOpacity={0.7}
+                onPress={() => onMenuAction?.(id, 'skip')}
+              >
+                <Text className="text-sm font-medium text-slate-700">Skip</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-4 py-2"
+                activeOpacity={0.7}
+                onPress={() => onMenuAction?.(id, 'snooze')}
+              >
+                <Text className="text-sm font-medium text-slate-700">Snooze</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
 }
+
+const styles = {
+  dropdownMenu: {
+    position: 'absolute',
+    top: 30,
+    right: 0,
+    width: 150,
+    backgroundColor: '#ffffff',
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    zIndex: 100, // Higher zIndex for better visibility
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+  },
+};
 
 // ── Spinning progress icon (replaces CSS animate-spin-slow) ──
 function SpinningIcon() {

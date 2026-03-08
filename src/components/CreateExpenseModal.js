@@ -30,6 +30,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const resetForm = () => {
     setExpenseName('');
@@ -37,6 +38,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
     setAmount('');
     setDate(new Date());
     setShowDatePicker(false);
+    setErrors({});
   };
 
   const handleCancel = () => {
@@ -45,6 +47,20 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
   };
 
   const handleSave = () => {
+    const newErrors = {};
+    if (!expenseName.trim()) {
+      newErrors.expenseName = 'Expense name is required';
+    }
+    if (!amount.trim() || parseAmount(amount) <= 0) {
+      newErrors.amount = 'Valid amount is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+
     onSave?.({
       expenseName: expenseName.trim(),
       remarks: remarks.trim(),
@@ -96,12 +112,20 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
               Expense Name
             </Text>
             <TextInput
-              className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4"
+              className={`w-full h-14 rounded-xl border ${
+                errors.expenseName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+              } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4`}
               placeholder="e.g. Groceries"
               placeholderTextColor="#94a3b8"
               value={expenseName}
-              onChangeText={setExpenseName}
+              onChangeText={(text) => {
+                setExpenseName(text);
+                if (errors.expenseName) setErrors({ ...errors, expenseName: '' });
+              }}
             />
+            {errors.expenseName ? (
+              <Text className="text-red-500 text-xs font-medium mt-1">{errors.expenseName}</Text>
+            ) : null}
           </View>
 
           <View className="flex flex-col gap-2 mb-6">
@@ -127,14 +151,22 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
             <View className="relative flex-row items-center">
               <Text className="absolute left-4 text-slate-500 dark:text-slate-400 font-medium">₹</Text>
               <TextInput
-                className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4"
+                className={`w-full h-14 rounded-xl border ${
+                  errors.amount ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4`}
                 placeholder="45.00"
                 placeholderTextColor="#94a3b8"
                 keyboardType="decimal-pad"
                 value={amount}
-                onChangeText={setAmount}
+                onChangeText={(text) => {
+                  setAmount(text);
+                  if (errors.amount) setErrors({ ...errors, amount: '' });
+                }}
               />
             </View>
+            {errors.amount ? (
+              <Text className="text-red-500 text-xs font-medium mt-1">{errors.amount}</Text>
+            ) : null}
           </View>
 
           <View className="flex flex-col gap-2 mb-8">

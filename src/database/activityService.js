@@ -52,3 +52,18 @@ export async function getLatestActivityByCrop(db, cropId) {
     [cropId],
   );
 }
+
+/**
+ * Update an existing activity log by id.
+ */
+export async function updateActivity(db, id, data) {
+  return db.runAsync(
+    `UPDATE activities SET title = ?, remark = ?, date = ? WHERE id = ?`,
+    [
+      data.title,
+      data.remark || null,
+      toISODate(data.date),
+      id,
+    ],
+  );
+}

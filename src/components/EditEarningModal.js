@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Platform,
   ScrollView,
@@ -13,24 +13,56 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const formatDate = (date) =>
   date.toLocaleDateString('en-US', {
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 
-export default function CreateActivityModal({ visible, onClose, onSave }) {
-  const [activityName, setActivityName] = useState('');
+function parseDate(value) {
+  if (!value) return new Date();
+  if (value instanceof Date) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+function parseAmount(value) {
+  const normalized = (value || '').replace(/[^0-9.]/g, '');
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/**
+ * EditEarningModal — pre-filled bottom sheet for editing an existing earning.
+ *
+ * Props:
+ *   visible   {boolean}
+ *   earning   {{ id, title, remarks, amount, date }} — record to edit
+ *   onClose   {() => void}
+ *   onSave    {(data: { id, earningName, remarks, amount, date }) => void}
+ */
+export default function EditEarningModal({ visible, earning, onClose, onSave }) {
+  const [earningName, setEarningName] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [error, setError] = useState('');
+
+  // Populate fields whenever the `earning` prop changes
+  useEffect(() => {
+    if (earning) {
+      setEarningName(earning.title || '');
+      setRemarks(earning.remarks || '');
+      setAmount(earning.amount != null ? String(earning.amount) : '');
+      setDate(parseDate(earning.dateText || earning.date));
+    }
+  }, [earning]);
 
   const resetForm = () => {
-    setActivityName('');
+    setEarningName('');
     setRemarks('');
+    setAmount('');
     setDate(new Date());
     setShowDatePicker(false);
-    setError('');
   };
 
   const handleCancel = () => {
@@ -39,18 +71,13 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
   };
 
   const handleSave = () => {
-    if (!activityName.trim()) {
-      setError('Activity name is required');
-      return;
-    }
-    setError('');
-
     onSave?.({
-      activityName: activityName.trim(),
+      id: earning?.id,
+      earningName: earningName.trim(),
       remarks: remarks.trim(),
+      amount: parseAmount(amount),
       date,
     });
-
     resetForm();
   };
 
@@ -58,7 +85,6 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
-
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -87,28 +113,20 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            Add Activity
+            Update Earning
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Activity Name
+              Earning Name
             </Text>
             <TextInput
-              className={`w-full h-14 rounded-xl border ${
-                error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-              } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4`}
-              placeholder="e.g. Daily Irrigation Check"
+              className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4"
+              placeholder="e.g. Crop Sale"
               placeholderTextColor="#94a3b8"
-              value={activityName}
-              onChangeText={(text) => {
-                setActivityName(text);
-                if (error) setError('');
-              }}
+              value={earningName}
+              onChangeText={setEarningName}
             />
-            {error ? (
-              <Text className="text-red-500 text-xs font-medium mt-1">{error}</Text>
-            ) : null}
           </View>
 
           <View className="flex flex-col gap-2 mb-6">
@@ -120,11 +138,28 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
               style={styles.remarksInput}
               multiline
               textAlignVertical="top"
-              placeholder="Add detailed notes here..."
+              placeholder="Details about the earning..."
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
             />
+          </View>
+
+          <View className="flex flex-col gap-2 mb-6">
+            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
+              Amount
+            </Text>
+            <View className="relative flex-row items-center">
+              <Text className="absolute left-4 text-slate-500 dark:text-slate-400 font-medium">₹</Text>
+              <TextInput
+                className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4"
+                placeholder="45.00"
+                placeholderTextColor="#94a3b8"
+                keyboardType="decimal-pad"
+                value={amount}
+                onChangeText={setAmount}
+              />
+            </View>
           </View>
 
           <View className="flex flex-col gap-2 mb-8">
@@ -149,7 +184,7 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">Add Activity</Text>
+              <Text className="text-slate-900 font-bold">Update Earning</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

@@ -54,3 +54,22 @@ export async function getTotalExpensesByCrop(db, cropId) {
   );
   return row?.total ?? 0;
 }
+
+
+/**
+ * Update an existing expense by id.
+ */
+export async function updateExpense(db, id, data) {
+  return db.runAsync(
+    `UPDATE expenses SET title = ?, remark = ?, amount = ?, date = ? WHERE id = ?`,
+    [
+      data.title,
+      data.remark || null,
+      data.amount || 0,
+      toISODate(data.date),
+      id,
+    ],
+  );
+}
+
+

@@ -67,7 +67,11 @@ export async function insertTask(db, data) {
  */
 export async function getTasksByCrop(db, cropId) {
   return db.getAllAsync(
-    'SELECT * FROM tasks WHERE cropId = ? ORDER BY startDate DESC',
+    `SELECT t.*, c.cropName 
+     FROM tasks t 
+     LEFT JOIN crops c ON t.cropId = c.id 
+     WHERE t.cropId = ? 
+     ORDER BY t.startDate DESC`,
     [cropId],
   );
 }
@@ -76,7 +80,12 @@ export async function getTasksByCrop(db, cropId) {
  * Fetch all tasks (across all crops + standalone).
  */
 export async function getAllTasks(db) {
-  return db.getAllAsync('SELECT * FROM tasks ORDER BY startDate DESC');
+  return db.getAllAsync(
+    `SELECT t.*, c.cropName 
+     FROM tasks t 
+     LEFT JOIN crops c ON t.cropId = c.id 
+     ORDER BY t.startDate DESC`
+  );
 }
 
 /**
@@ -145,4 +154,40 @@ export async function getNextUpcomingTaskPerCrop(db) {
     if (!map[row.cropId]) map[row.cropId] = row;
   }
   return map;
+}
+/**
+ * Update an existing task.
+ */
+export async function updateTask(db, id, data) {
+  const type = mapDurationType(data.duration);
+
+  let startDate = null;
+  let endDate = null;
+  let repeatIntervalDays = 0;
+
+  if (type === 'one_time') {
+    startDate = toISODate(data.date);
+  } else if (type === 'multi_day') {
+    startDate = toISODate(data.startDate);
+    endDate = toISODate(data.endDate);
+  } else {
+    // recurring
+    startDate = toISODate(data.startDate);
+    endDate = toISODate(data.endDate);
+    repeatIntervalDays = data.repeatInterval || 0;
+  }
+
+  return db.runAsync(
+    `UPDATE tasks 
+     SET taskName = ?, type = ?, startDate = ?, endDate = ?, repeatIntervalDays = ?
+     WHERE id = ?`,
+    [
+      data.taskName,
+      type,
+      startDate,
+      endDate,
+      repeatIntervalDays,
+      id,
+    ],
+  );
 }

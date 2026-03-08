@@ -1,64 +1,130 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Pressable, Animated } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import ActionCenter from '../components/ActionCenter';
 import FilterTabs from '../components/FilterTabs';
 import TaskCard from '../components/TaskCard';
+import TimelineItemCard from '../components/TimelineItemCard';
 import CreateTaskModal from '../components/CreateTaskModal';
 import CreateReminderModal from '../components/CreateReminderModal';
+import UpdateTaskModal from '../components/UpdateTaskModal';
+import { useDatabase } from '../database/DatabaseProvider';
+import { getAllTasks, deleteTask, updateTask, insertTask } from '../database/taskService';
+import { insertActivity } from '../database/activityService';
+import { getAllReminders, deleteReminder, insertReminder } from '../database/reminderService';
 
 // ─── Filter pill labels ──────────────────────────────────────
 const FILTER_TABS = [
   'All',
-  'Due Today',
+  'Due today',
   'Upcoming',
-  'Snoozed',
-  'Completed',
-  'Crop-related',
   'General',
-];
-
-// ─── Dummy task data ─────────────────────────────────────────
-const TASKS = [
-  {
-    id: '1',
-    title: 'Apply Urea Fertilizer',
-    categoryLabel: 'Wheat',
-    categoryIcon: 'eco',
-    statusText: 'Due Today • 05:00 PM',
-    status: 'dueToday',
-  },
-  {
-    id: '2',
-    title: 'Repair Main Gate',
-    categoryLabel: 'Infrastructure',
-    categoryIcon: 'foundation',
-    statusText: 'Tomorrow • 10:00 AM',
-    status: 'pending',
-  },
-  {
-    id: '3',
-    title: 'Watering Corn Block B',
-    categoryLabel: 'Corn',
-    categoryIcon: 'eco',
-    statusText: 'In Progress • Started 20m ago',
-    status: 'inProgress',
-  },
-  {
-    id: '4',
-    title: 'Soil pH Testing',
-    categoryLabel: 'Wheat',
-    categoryIcon: 'eco',
-    statusText: 'Snoozed until Nov 22, 09:00 AM',
-    status: 'snoozed',
-  },
+  'Crop related',
 ];
 
 export default function TasksScreen({ navigation, route }) {
+  const db = useDatabase();
+  const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState('All');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false);
+  const [showUpdateTask, setShowUpdateTask] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [reminders, setReminders] = useState([]);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Toast state
+  const [toastMessage, setToastMessage] = useState('');
+  const toastY = useRef(new Animated.Value(24)).current;
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    toastY.setValue(24);
+    toastOpacity.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(toastY, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(toastY, {
+          toValue: 18,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setToastMessage('');
+      });
+    }, 2100);
+  };
+
+  const loadData = useCallback(async () => {
+    try {
+      const [dbTasks, dbReminders] = await Promise.all([
+        getAllTasks(db),
+        getAllReminders(db),
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+
+      setTasks(dbTasks.map(t => {
+        let statusText = t.startDate || 'No date set';
+        let taskState = t.startDate === today ? 'dueToday' : 'pending';
+
+        if (t.type === 'multi_day' && t.endDate) {
+          statusText = `${t.startDate} - ${t.endDate}`;
+          taskState = 'multi_day';
+        }
+
+        return {
+          ...t,
+          id: t.id,
+          rawDate: t.startDate,
+          title: t.taskName,
+          categoryLabel: t.cropName || 'General',
+          categoryIcon: 'eco',
+          statusText,
+          status: taskState,
+        };
+      }));
+
+      setReminders(dbReminders.map(r => ({
+        id: `r-${r.id}`,
+        dbId: r.id,
+        kind: 'reminder',
+        rawDate: r.reminderDate,
+        title: r.details,
+        statusText: `${r.reminderDate}${r.reminderTime ? ' • ' + r.reminderTime : ''}`,
+        icon: 'notifications',
+        iconBgClass: 'bg-orange-100',
+        iconColor: '#ea580c',
+      })));
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    }
+  }, [db]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     const shouldOpenTask = Boolean(route.params?.openCreateTask);
@@ -75,64 +141,151 @@ export default function TasksScreen({ navigation, route }) {
     });
   }, [navigation, route.params?.openCreateTask, route.params?.openCreateReminder]);
 
+  const handleMenuAction = async (id, action) => {
+    setOpenMenuId(null);
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    try {
+      if (action === 'done') {
+        await insertActivity(db, {
+          cropId: task.cropId || null,
+          title: task.title,
+          remark: 'Task completed from My Tasks',
+          date: new Date(),
+        });
+        await deleteTask(db, id);
+        showToast('Task marked as done!');
+      } else if (action === 'skip') {
+        await deleteTask(db, id);
+        showToast('Task skipped');
+      } else if (action === 'snooze') {
+        setEditingTask(task);
+        setShowUpdateTask(true);
+        return;
+      }
+      loadData();
+    } catch (err) {
+      console.error('Failed to process task action:', err);
+      showToast('Action failed');
+    }
+  };
+
+  const handleDismissReminder = async (id) => {
+    const reminder = reminders.find(r => r.id === id);
+    if (reminder?.dbId) {
+      try {
+        await deleteReminder(db, reminder.dbId);
+        loadData();
+        showToast('Reminder dismissed');
+      } catch (err) {
+        console.error('Failed to delete reminder:', err);
+        showToast('Failed to dismiss reminder');
+      }
+    }
+  };
+
+  // Combine tasks and reminders for the timeline and sort by date descending
+  const timelineItems = [...tasks, ...reminders]
+    .filter(item => {
+      if (activeFilter === 'All') return true;
+
+      const today = new Date().toISOString().split('T')[0];
+
+      if (activeFilter === 'Due today') {
+        return item.rawDate === today;
+      }
+      if (activeFilter === 'Upcoming') {
+        return item.rawDate > today;
+      }
+      if (activeFilter === 'General') {
+        return !item.cropId;
+      }
+      if (activeFilter === 'Crop related') {
+        return Boolean(item.cropId);
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.rawDate < b.rawDate) return 1;
+      if (a.rawDate > b.rawDate) return -1;
+      return 0;
+    });
+
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
-      {/* ─── Header ──────────────────────────────────── */}
-      <View className="bg-white flex-row items-center justify-center py-4 border-b border-slate-100 relative">
-        <TouchableOpacity
-          className="absolute left-4"
-          activeOpacity={0.7}
-          onPress={() => navigation.goBack()}
+      <Pressable className="flex-1" onPress={() => setOpenMenuId(null)}>
+        {/* ─── Header ──────────────────────────────────── */}
+        <View className="bg-white flex-row items-center justify-center py-4 border-b border-slate-100 relative">
+          <TouchableOpacity
+            className="absolute left-4"
+            activeOpacity={0.7}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+
+          <View className="items-center">
+            <Text className="text-xl font-bold tracking-tight text-black">
+              My Tasks
+            </Text>
+            <Text className="text-xs text-slate-500">Farm & Personal</Text>
+          </View>
+        </View>
+
+        {/* ─── Scrollable content ──────────────────────── */}
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
-        </TouchableOpacity>
+          {/* Action Center */}
+          <View className="px-4 pt-4">
+            <ActionCenter pendingCount={tasks.length} reminderCount={reminders.length} />
+          </View>
 
-        <View className="items-center">
-          <Text className="text-xl font-bold tracking-tight text-black">
-            My Tasks
+          {/* Filter tabs */}
+          <FilterTabs
+            tabs={FILTER_TABS}
+            activeTab={activeFilter}
+            onTabChange={setActiveFilter}
+          />
+
+          {/* Timeline header */}
+          <Text className="text-xs font-bold text-slate-400 uppercase px-5 mb-3">
+            Timeline
           </Text>
-          <Text className="text-xs text-slate-500">Farm & Personal</Text>
-        </View>
-      </View>
 
-      {/* ─── Scrollable content ──────────────────────── */}
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Action Center */}
-        <View className="px-4 pt-4">
-          <ActionCenter pendingCount={12} reminderCount={5} />
-        </View>
-
-        {/* Filter tabs */}
-        <FilterTabs
-          tabs={FILTER_TABS}
-          activeTab={activeFilter}
-          onTabChange={setActiveFilter}
-        />
-
-        {/* Timeline header */}
-        <Text className="text-xs font-bold text-slate-400 uppercase px-5 mb-3">
-          Timeline
-        </Text>
-
-        {/* Task cards */}
-        <View className="px-4 gap-3 mb-4">
-          {TASKS.map((task) => (
-            <TaskCard
-              key={task.id}
-              title={task.title}
-              categoryLabel={task.categoryLabel}
-              categoryIcon={task.categoryIcon}
-              statusText={task.statusText}
-              status={task.status}
-              onMenuPress={() => {}}
-            />
-          ))}
-        </View>
-      </ScrollView>
+          {/* Timeline cards */}
+          <View className="px-4 gap-3 mb-4">
+            {timelineItems.map((item) => {
+              if (item.kind === 'reminder') {
+                return (
+                  <TimelineItemCard
+                    key={item.id}
+                    item={item}
+                    onDismiss={() => handleDismissReminder(item.id)}
+                  />
+                );
+              }
+              return (
+                <TaskCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  categoryLabel={item.categoryLabel}
+                  categoryIcon={item.categoryIcon}
+                  statusText={item.statusText}
+                  status={item.status}
+                  isMenuOpen={openMenuId === item.id}
+                  onToggleMenu={setOpenMenuId}
+                  onMenuAction={handleMenuAction}
+                />
+              );
+            })}
+          </View>
+        </ScrollView>
+      </Pressable>
 
       {/* ─── Floating action buttons ─────────────────── */}
       <View className="absolute bottom-6 right-6 items-end gap-3">
@@ -165,9 +318,16 @@ export default function TasksScreen({ navigation, route }) {
       <CreateTaskModal
         visible={showCreateTask}
         onClose={() => setShowCreateTask(false)}
-        onSave={(task) => {
-          setShowCreateTask(false);
-          // TODO: persist the task
+        onSave={async (task) => {
+          try {
+            await insertTask(db, task);
+            setShowCreateTask(false);
+            loadData();
+            showToast('Task created!');
+          } catch (err) {
+            console.error('Failed to create task:', err);
+            showToast('Failed to create task');
+          }
         }}
       />
 
@@ -175,11 +335,60 @@ export default function TasksScreen({ navigation, route }) {
       <CreateReminderModal
         visible={showCreateReminder}
         onClose={() => setShowCreateReminder(false)}
-        onSave={(reminder) => {
-          setShowCreateReminder(false);
-          // TODO: persist the reminder
+        onSave={async (reminder) => {
+          try {
+            await insertReminder(db, reminder);
+            setShowCreateReminder(false);
+            loadData();
+            showToast('Reminder created!');
+          } catch (err) {
+            console.error('Failed to create reminder:', err);
+            showToast('Failed to create reminder');
+          }
         }}
       />
+
+      {/* ─── Update Task Overlay ─────────────────────── */}
+      <UpdateTaskModal
+        visible={showUpdateTask}
+        taskData={editingTask}
+        onClose={() => {
+          setShowUpdateTask(false);
+          setEditingTask(null);
+        }}
+        onSave={async (taskData) => {
+          try {
+            await updateTask(db, editingTask.id, taskData);
+            setShowUpdateTask(false);
+            setEditingTask(null);
+            loadData();
+            showToast('Task updated!');
+          } catch (err) {
+            console.error('Failed to update task:', err);
+            showToast('Failed to update task');
+          }
+        }}
+      />
+
+      {/* Standardized Toast UI */}
+      {toastMessage ? (
+        <Animated.View
+          style={[
+            styles.toast,
+            {
+              bottom: (insets.bottom || 0) + 106,
+              opacity: toastOpacity,
+              transform: [{ translateY: toastY }],
+            },
+          ]}
+          pointerEvents="none"
+        >
+          <View className="mr-2">
+            <MaterialIcons name="check-circle" size={14} color="#3ce619" />
+          </View>
+          <Text className="text-white text-xs font-medium">{toastMessage}</Text>
+        </Animated.View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -187,6 +396,19 @@ export default function TasksScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 160,
+  },
+  toast: {
+    position: 'absolute',
+    alignSelf: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    zIndex: 50,
   },
   fabShadow: {
     shadowColor: '#000',

@@ -77,6 +77,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
   const [quickDays, setQuickDays] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [error, setError] = useState('');
 
   const resetForm = () => {
     setDetails('');
@@ -85,6 +86,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
     setQuickDays(null);
     setShowDatePicker(false);
     setShowTimePicker(false);
+    setError('');
   };
 
   const handleCancel = () => {
@@ -93,6 +95,12 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
   };
 
   const handleSave = () => {
+    if (!details.trim()) {
+      setError('Reminder details are required');
+      return;
+    }
+    setError('');
+
     const dateTime = new Date(reminderDate);
     dateTime.setHours(reminderTime.getHours(), reminderTime.getMinutes(), 0, 0);
 
@@ -164,12 +172,20 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
               Reminder Details
             </Text>
             <TextInput
-              className="h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 text-slate-900 dark:text-slate-100"
+              className={`h-14 rounded-xl border ${
+                error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+              } bg-slate-50 dark:bg-slate-800 px-4 text-slate-900 dark:text-slate-100`}
               placeholder="e.g. Call the vet for annual checkup"
               placeholderTextColor="#94a3b8"
               value={details}
-              onChangeText={setDetails}
+              onChangeText={(text) => {
+                setDetails(text);
+                if (error) setError('');
+              }}
             />
+            {error ? (
+              <Text className="text-red-500 text-xs font-medium mt-1">{error}</Text>
+            ) : null}
           </View>
 
           <View className="flex-row gap-4 mb-6">
