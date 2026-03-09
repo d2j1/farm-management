@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView,
   TouchableOpacity, StyleSheet, useWindowDimensions,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,6 +10,10 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import InsightCard from '../components/InsightCard';
 import VideoCard from '../components/VideoCard';
 import NoInternetView from '../components/NoInternetView';
+import FilterButton from '../components/FilterButton';
+import axios from 'axios';
+import { API_CONFIG } from '../utils/api.config';
+import { useLanguageStore } from '../utils/languageStore';
 
 // ─── Content-type tabs ────────────────────────────────────────
 const CONTENT_TYPES = ['Articles', 'Videos'];
@@ -16,43 +21,30 @@ const CONTENT_TYPES = ['Articles', 'Videos'];
 // ─── Category filter pills ───────────────────────────────────
 const CATEGORIES = ['All', 'Organic', 'Fertilizer', 'Economy'];
 
-// ─── Dummy article data ──────────────────────────────────────
-const ARTICLES = [
+const ARTICLES_DUMMY = [
   {
-    id: '1',
-    category: 'Soil',
+    id: 'a1',
+    category: 'Organic',
     readTime: '5 min read',
-    title: 'Optimizing Soil PH for Leafy Greens',
-    description:
-      'Learn how to maintain the perfect balance for your spinach and kale crops using natural amendments.',
-    icon: 'local-florist',
-  },
-  {
-    id: '2',
-    category: 'Pests',
-    readTime: '8 min read',
-    title: 'Natural Pest Control Strategies',
-    description:
-      'Combat aphids and mites without harsh chemicals using these proven organic farming techniques.',
+    title: 'Natural Pest Control Methods',
+    description: 'Learn how to protect your crops using organic solutions and beneficial insects.',
     icon: 'bug-report',
   },
   {
-    id: '3',
-    category: 'Economy',
-    readTime: '12 min read',
-    title: 'Market Trends for Organic Produce',
-    description:
-      'Analyzing the rising demand for organic heritage vegetables in urban local markets.',
-    icon: 'trending-up',
+    id: 'a2',
+    category: 'Fertilizer',
+    readTime: '8 min read',
+    title: 'Optimizing Soil Nutrition',
+    description: 'A comprehensive guide to understanding NPK ratios and soil testing for better yields.',
+    icon: 'science',
   },
   {
-    id: '4',
-    category: 'Fertilizer',
-    readTime: '4 min read',
-    title: 'Composting for Small Gardens',
-    description:
-      'Turn kitchen waste into black gold with our step-by-step guide to backyard composting.',
-    icon: 'recycling',
+    id: 'a3',
+    category: 'Economy',
+    readTime: '6 min read',
+    title: 'Market Price Trends 2026',
+    description: 'Stay ahead of the curve with our latest analysis of crop market prices and demand forecasts.',
+    icon: 'trending-up',
   },
 ];
 
@@ -94,6 +86,59 @@ export default function InsightsScreen() {
   const [activeContentType, setActiveContentType] = useState('Articles');
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { languageLabel } = useLanguageStore();
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPosts = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+
+    try {
+      // Temporarily disabled fetching from localhost
+      /*
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/posts`, {
+        params: {
+          page: 1,
+          limit: 20,
+          language: languageLabel,
+        },
+        headers: API_CONFIG.HEADERS,
+        timeout: 10000,
+      });
+
+      const posts = Array.isArray(response.data) ? response.data : (response.data.data || []);
+      
+      const mappedPosts = posts.map(post => ({
+        id: post.id || post._id,
+        category: post.category || 'General',
+        readTime: post.readTime || '5 min read',
+        title: post.title,
+        description: post.description,
+        icon: post.icon || 'article',
+      }));
+
+      setArticles(mappedPosts);
+      */
+
+      // Using dummy data for now
+      setArticles(ARTICLES_DUMMY);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError('Failed to load insights. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [languageLabel]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   // Determine search placeholder based on active content type
   const searchPlaceholder =
@@ -174,29 +219,14 @@ export default function InsightsScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 16 }}
           style={{ flexGrow: 0 }}
         >
-          {CATEGORIES.map((cat) => {
-            const isActive = cat === activeCategory;
-            return (
-              <TouchableOpacity
-                key={cat}
-                className={`h-9 items-center justify-center rounded-full shadow-sm ${
-                  isActive
-                    ? 'bg-primary px-6'
-                    : 'bg-white border border-slate-200 px-5'
-                }`}
-                activeOpacity={0.8}
-                onPress={() => setActiveCategory(cat)}
-              >
-                <Text
-                  className={`text-sm ${
-                    isActive ? 'font-bold text-black' : 'font-medium text-slate-600'
-                  }`}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {CATEGORIES.map((cat) => (
+            <FilterButton
+              key={cat}
+              label={cat}
+              isActive={cat === activeCategory}
+              onPress={() => setActiveCategory(cat)}
+            />
+          ))}
         </ScrollView>
       </View>
 
@@ -219,18 +249,44 @@ export default function InsightsScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={() => fetchPosts(true)} />
+            }
           >
             <View className="px-4 gap-4">
-              {ARTICLES.map((article) => (
-                <InsightCard
-                  key={article.id}
-                  category={article.category}
-                  readTime={article.readTime}
-                  title={article.title}
-                  description={article.description}
-                  icon={article.icon}
-                />
-              ))}
+              {loading && !refreshing ? (
+                <View className="py-20 items-center justify-center">
+                  <ActivityIndicator size="large" color="#3ce619" />
+                  <Text className="mt-4 text-slate-500 font-medium">Fetching insights...</Text>
+                </View>
+              ) : error ? (
+                <View className="py-10 items-center justify-center">
+                  <MaterialIcons name="error-outline" size={48} color="#ef4444" />
+                  <Text className="mt-4 text-slate-600 text-center font-medium px-10">{error}</Text>
+                  <TouchableOpacity 
+                    onPress={() => fetchPosts()}
+                    className="mt-6 bg-primary px-8 py-3 rounded-full shadow-sm"
+                  >
+                    <Text className="text-black font-bold">Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : articles.length === 0 ? (
+                <View className="py-20 items-center justify-center">
+                  <MaterialIcons name="article" size={48} color="#94a3b8" />
+                  <Text className="mt-4 text-slate-500 font-medium">No insights found for {languageLabel}</Text>
+                </View>
+              ) : (
+                articles.map((article) => (
+                  <InsightCard
+                    key={article.id}
+                    category={article.category}
+                    readTime={article.readTime}
+                    title={article.title}
+                    description={article.description}
+                    icon={article.icon}
+                  />
+                ))
+              )}
             </View>
           </ScrollView>
 

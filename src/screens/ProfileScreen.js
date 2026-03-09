@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 // ─── Language options ─────────────────────────────────────────
 const LANGUAGES = [
@@ -11,7 +12,7 @@ const LANGUAGES = [
 ];
 
 export default function ProfileScreen({ navigation }) {
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const { languageCode, setLanguage } = useLanguageStore();
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
@@ -59,7 +60,7 @@ export default function ProfileScreen({ navigation }) {
           </Text>
           <View className="bg-white border border-slate-200 rounded-xl mx-4 overflow-hidden shadow-sm">
             {LANGUAGES.map((lang, index) => {
-              const isSelected = selectedLanguage === lang.id;
+              const isSelected = languageCode === lang.id;
               return (
                 <TouchableOpacity
                   key={lang.id}
@@ -67,7 +68,7 @@ export default function ProfileScreen({ navigation }) {
                     index !== 0 ? 'border-t border-slate-100' : ''
                   }`}
                   activeOpacity={0.7}
-                  onPress={() => setSelectedLanguage(lang.id)}
+                  onPress={() => setLanguage(lang.id)}
                 >
                   <View className="flex-row items-center gap-4">
                     <View className="h-10 w-10 items-center justify-center rounded-full bg-slate-100">

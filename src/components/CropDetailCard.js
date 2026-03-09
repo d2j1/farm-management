@@ -59,7 +59,7 @@ export default function CropDetailCard({ crop, onPress }) {
 
           {/* Text info */}
           <View className="flex-1">
-            <Text className="text-xl font-black text-slate-900" numberOfLines={1}>
+            <Text className="text-base font-bold text-slate-900" numberOfLines={1}>
               {crop.name}
             </Text>
 
@@ -103,7 +103,7 @@ export default function CropDetailCard({ crop, onPress }) {
                 Expenses
               </Text>
             </View>
-            <Text className="text-lg font-black text-slate-800">{crop.expenses}</Text>
+            <Text className="text-base font-bold text-slate-800">{crop.expenses}</Text>
           </View>
 
           {/* Earnings */}
@@ -114,7 +114,7 @@ export default function CropDetailCard({ crop, onPress }) {
                 Earnings
               </Text>
             </View>
-            <Text className="text-lg font-black text-primary">{crop.earnings}</Text>
+            <Text className="text-base font-bold text-primary">{crop.earnings}</Text>
           </View>
         </View>
       </View>
