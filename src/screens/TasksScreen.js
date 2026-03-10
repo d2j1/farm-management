@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Pressable, Animated, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useLanguageStore } from '../utils/languageStore';
 import ActionCenter from '../components/ActionCenter';
 import FilterTabs from '../components/FilterTabs';
@@ -28,7 +29,9 @@ export default function TasksScreen({ navigation, route }) {
   const { t } = useLanguageStore();
   const db = useDatabase();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false);
   const [showUpdateTask, setShowUpdateTask] = useState(false);
@@ -121,12 +124,16 @@ export default function TasksScreen({ navigation, route }) {
       })));
     } catch (err) {
       console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
     }
   }, [db, t]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isFocused) {
+      loadData();
+    }
+  }, [isFocused, loadData]);
 
   useEffect(() => {
     const shouldOpenTask = Boolean(route.params?.openCreateTask);
@@ -269,31 +276,43 @@ export default function TasksScreen({ navigation, route }) {
 
           {/* Timeline cards */}
           <View className="px-4 gap-3 mb-4">
-            {timelineItems.map((item) => {
-              if (item.kind === 'reminder') {
+            {loading ? (
+              <View className="py-10 items-center justify-center">
+                <ActivityIndicator size="large" color="#3ce619" />
+                <Text className="text-slate-400 text-xs mt-2">{t('loading') || 'Loading...'}</Text>
+              </View>
+            ) : timelineItems.length === 0 ? (
+              <View className="py-10 items-center justify-center bg-white rounded-2xl border border-slate-100">
+                <MaterialIcons name="assignment-late" size={48} color="#cbd5e1" />
+                <Text className="text-slate-500 font-medium mt-2">{t('noTasksFound') || 'No tasks found'}</Text>
+              </View>
+            ) : (
+              timelineItems.map((item) => {
+                if (item.kind === 'reminder') {
+                  return (
+                    <TimelineItemCard
+                      key={item.id}
+                      item={item}
+                      onDismiss={() => handleDismissReminder(item.id)}
+                    />
+                  );
+                }
                 return (
-                  <TimelineItemCard
+                  <TaskCard
                     key={item.id}
-                    item={item}
-                    onDismiss={() => handleDismissReminder(item.id)}
+                    id={item.id}
+                    title={item.title}
+                    categoryLabel={item.categoryLabel}
+                    categoryIcon={item.categoryIcon}
+                    statusText={item.statusText}
+                    status={item.status}
+                    isMenuOpen={openMenuId === item.id}
+                    onToggleMenu={setOpenMenuId}
+                    onMenuAction={handleMenuAction}
                   />
                 );
-              }
-              return (
-                <TaskCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  categoryLabel={item.categoryLabel}
-                  categoryIcon={item.categoryIcon}
-                  statusText={item.statusText}
-                  status={item.status}
-                  isMenuOpen={openMenuId === item.id}
-                  onToggleMenu={setOpenMenuId}
-                  onMenuAction={handleMenuAction}
-                />
-              );
-            })}
+              })
+            )}
           </View>
         </ScrollView>
       </Pressable>
