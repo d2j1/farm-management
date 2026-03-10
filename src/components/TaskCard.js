@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
@@ -22,7 +22,7 @@ import { useLanguageStore } from '../utils/languageStore';
  * @param {'pending'|'dueToday'|'inProgress'|'snoozed'} props.status
  * @param {() => void} [props.onMenuPress]
  */
-export default function TaskCard({
+function TaskCard({
   id,
   title,
   categoryLabel,
@@ -43,19 +43,19 @@ export default function TaskCard({
   const cardClass = isInProgress
     ? 'bg-blue-50 border border-blue-100 p-4 rounded-2xl shadow-sm'
     : isSnoozed
-    ? 'bg-white border border-orange-200 p-4 rounded-2xl shadow-sm'
-    : isDueToday
-    ? 'bg-white border border-primary/10 p-4 rounded-2xl shadow-sm'
-    : 'bg-white border border-slate-100 p-4 rounded-2xl shadow-sm';
+      ? 'bg-white border border-orange-200 p-4 rounded-2xl shadow-sm'
+      : isDueToday
+        ? 'bg-white border border-primary/10 p-4 rounded-2xl shadow-sm'
+        : 'bg-white border border-slate-100 p-4 rounded-2xl shadow-sm';
 
   // Status text colour
   const statusTextClass = isDueToday
     ? 'text-xs font-medium mt-0.5 text-red-500'
     : isInProgress
-    ? 'text-xs font-medium mt-0.5 text-blue-600'
-    : isSnoozed
-    ? 'text-xs font-medium mt-0.5 text-orange-600'
-    : 'text-xs font-medium mt-0.5 text-slate-500';
+      ? 'text-xs font-medium mt-0.5 text-blue-600'
+      : isSnoozed
+        ? 'text-xs font-medium mt-0.5 text-orange-600'
+        : 'text-xs font-medium mt-0.5 text-slate-500';
 
   // Category tag
   const tagBgClass = isInProgress
@@ -66,7 +66,7 @@ export default function TaskCard({
     : 'text-[10px] text-slate-500';
 
   return (
-    <View 
+    <View
       className={cardClass}
       style={isMenuOpen ? { zIndex: 50, elevation: 10 } : { zIndex: 1, elevation: 1 }}
     >
@@ -82,9 +82,8 @@ export default function TaskCard({
               <MaterialIcons name="sync" size={24} color="#3b82f6" />
             ) : (
               <View
-                className={`h-6 w-6 rounded-md border-2 items-center justify-center ${
-                  isDueToday ? 'border-primary/30' : 'border-slate-200'
-                }`}
+                className={`h-6 w-6 rounded-md border-2 items-center justify-center ${isDueToday ? 'border-primary/30' : 'border-slate-200'
+                  }`}
               />
             )}
           </View>
@@ -146,6 +145,8 @@ export default function TaskCard({
     </View>
   );
 }
+
+export default memo(TaskCard);
 
 const styles = {
   dropdownMenu: {

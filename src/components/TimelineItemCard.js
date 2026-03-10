@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, memo } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
@@ -60,7 +60,7 @@ function TimelineTaskIcon({ taskState }) {
   );
 }
 
-export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAction }) {
+function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAction }) {
   const { t } = useLanguageStore();
   const isReminder = item.kind === 'reminder';
   const isDueToday = item.taskState === 'dueToday';
@@ -70,23 +70,23 @@ export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDis
   const cardClass = isReminder
     ? 'bg-white border border-slate-200'
     : isInProgress
-    ? 'bg-blue-50/50 border border-blue-100'
-    : isSnoozed
-    ? 'bg-white border border-orange-200'
-    : isDueToday
-    ? 'bg-white border border-primary/10'
-    : 'bg-white border border-slate-200';
+      ? 'bg-blue-50/50 border border-blue-100'
+      : isSnoozed
+        ? 'bg-white border border-orange-200'
+        : isDueToday
+          ? 'bg-white border border-primary/10'
+          : 'bg-white border border-slate-200';
 
   const statusClass = isDueToday
     ? 'text-xs font-medium text-red-500 mt-0.5'
     : isInProgress
-    ? 'text-xs font-medium text-blue-600 mt-0.5'
-    : isSnoozed
-    ? 'text-xs font-medium text-orange-600 mt-0.5'
-    : 'text-xs text-slate-500 mt-0.5';
+      ? 'text-xs font-medium text-blue-600 mt-0.5'
+      : isSnoozed
+        ? 'text-xs font-medium text-orange-600 mt-0.5'
+        : 'text-xs text-slate-500 mt-0.5';
 
   return (
-    <View 
+    <View
       className={`relative p-4 rounded-2xl shadow-sm ${cardClass}`}
       style={isMenuOpen ? { zIndex: 50, elevation: 10 } : { zIndex: 1, elevation: 1 }}
     >
@@ -133,27 +133,27 @@ export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDis
 
             {isMenuOpen ? (
               <View style={styles.dropdownMenu}>
-                 <TouchableOpacity
-                   className="px-4 py-2"
-                   activeOpacity={0.7}
-                   onPress={() => onMenuAction(item.id, 'done')}
-                 >
-                   <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
-                 </TouchableOpacity>
-                 <TouchableOpacity
-                   className="px-4 py-2"
-                   activeOpacity={0.7}
-                   onPress={() => onMenuAction(item.id, 'skip')}
-                 >
-                   <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
-                 </TouchableOpacity>
-                 <TouchableOpacity
-                   className="px-4 py-2"
-                   activeOpacity={0.7}
-                   onPress={() => onMenuAction(item.id, 'snooze')}
-                 >
-                   <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
-                 </TouchableOpacity>
+                <TouchableOpacity
+                  className="px-4 py-2"
+                  activeOpacity={0.7}
+                  onPress={() => onMenuAction(item.id, 'done')}
+                >
+                  <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="px-4 py-2"
+                  activeOpacity={0.7}
+                  onPress={() => onMenuAction(item.id, 'skip')}
+                >
+                  <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="px-4 py-2"
+                  activeOpacity={0.7}
+                  onPress={() => onMenuAction(item.id, 'snooze')}
+                >
+                  <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
+                </TouchableOpacity>
               </View>
             ) : null}
           </View>
@@ -162,6 +162,8 @@ export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDis
     </View>
   );
 }
+
+export default memo(TimelineItemCard);
 
 const styles = StyleSheet.create({
   dropdownMenu: {

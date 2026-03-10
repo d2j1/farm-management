@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Pressable, Animated, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Pressable, Animated, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
@@ -12,7 +12,7 @@ import CreateTaskModal from '../components/CreateTaskModal';
 import CreateReminderModal from '../components/CreateReminderModal';
 import UpdateTaskModal from '../components/UpdateTaskModal';
 import { useDatabase } from '../database/DatabaseProvider';
-import { getAllTasks, deleteTask, updateTask, insertTask } from '../database/taskService';
+import { deleteTask, updateTask, insertTask, getPaginatedTasksAndReminders, getAllTasks } from '../database/taskService';
 import { insertActivity } from '../database/activityService';
 import { getAllReminders, deleteReminder, insertReminder } from '../database/reminderService';
 
@@ -25,20 +25,33 @@ const FILTER_TABS_KEYS = [
   'cropRelated',
 ];
 
+const PAGE_SIZE = 15;
+
 export default function TasksScreen({ navigation, route }) {
   const { t } = useLanguageStore();
   const db = useDatabase();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
+
   const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false);
   const [showUpdateTask, setShowUpdateTask] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [reminders, setReminders] = useState([]);
+
+  const [timelineItems, setTimelineItems] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [reminderCount, setReminderCount] = useState(0);
+
   const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Guard ref to prevent concurrent fetches
+  const isFetchingRef = useRef(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState('');
@@ -81,59 +94,109 @@ export default function TasksScreen({ navigation, route }) {
     }, 2100);
   };
 
-  const loadData = useCallback(async () => {
+  const loadActionCenterStats = useCallback(async () => {
     try {
-      const [dbTasks, dbReminders] = await Promise.all([
+      const [allTasks, allReminders] = await Promise.all([
         getAllTasks(db),
         getAllReminders(db),
       ]);
+      setPendingCount(allTasks.length);
+      setReminderCount(allReminders.length);
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+    }
+  }, [db]);
 
-      const today = new Date().toISOString().split('T')[0];
+  const transformRow = useCallback((item) => {
+    const today = new Date().toISOString().split('T')[0];
 
-      setTasks(dbTasks.map(taskItem => {
-        let statusText = taskItem.startDate || 'No date set';
-        let taskState = taskItem.startDate === today ? 'dueToday' : 'pending';
+    if (item.kind === 'task') {
+      let statusText = item.rawDate || 'No date set';
+      let taskState = item.rawDate === today ? 'dueToday' : 'pending';
 
-        if (taskItem.type === 'multi_day' && taskItem.endDate) {
-          statusText = `${taskItem.startDate} - ${taskItem.endDate}`;
-          taskState = 'multi_day';
-        }
+      if (item.type === 'multi_day' && item.endDate) {
+        statusText = `${item.rawDate} - ${item.endDate}`;
+        taskState = 'multi_day';
+      }
 
-        return {
-          ...taskItem,
-          id: taskItem.id,
-          rawDate: taskItem.startDate,
-          title: taskItem.taskName,
-          categoryLabel: taskItem.cropName || t('general'),
-          categoryIcon: 'eco',
-          statusText,
-          status: taskState,
-        };
-      }));
-
-      setReminders(dbReminders.map(r => ({
-        id: `r-${r.id}`,
-        dbId: r.id,
+      return {
+        ...item,
+        id: item.id,
+        title: item.title,
+        categoryLabel: item.cropName || t('general'),
+        categoryIcon: 'eco',
+        statusText,
+        status: taskState,
+      };
+    } else {
+      // reminder
+      return {
+        id: `r-${item.id}`,
+        dbId: item.id,
         kind: 'reminder',
-        rawDate: r.reminderDate,
-        title: r.details,
-        statusText: `${r.reminderDate}${r.reminderTime ? ' • ' + r.reminderTime : ''}`,
+        rawDate: item.rawDate,
+        title: item.title,
+        statusText: `${item.rawDate}${item.reminderTime ? ' • ' + item.reminderTime : ''}`,
         icon: 'notifications',
         iconBgClass: 'bg-orange-100',
         iconColor: '#ea580c',
-      })));
+      };
+    }
+  }, [t]);
+
+  const loadData = useCallback(async (isInitial = true) => {
+    if (isFetchingRef.current) return;
+
+    if (isInitial) {
+      setLoading(true);
+      setOffset(0);
+      setHasMore(true);
+      loadActionCenterStats();
+    } else {
+      if (!hasMore) return;
+      setLoadingMore(true);
+    }
+
+    isFetchingRef.current = true;
+
+    try {
+      const currentOffset = isInitial ? 0 : offset;
+      const rows = await getPaginatedTasksAndReminders(db, {
+        limit: PAGE_SIZE,
+        offset: currentOffset,
+        filter: activeFilter,
+      });
+
+      const transformed = rows.map(transformRow);
+
+      if (isInitial) {
+        setTimelineItems(transformed);
+      } else {
+        setTimelineItems(prev => {
+          // Prevent duplicates
+          const existingIds = new Set(prev.map(i => i.id));
+          const uniqueNew = transformed.filter(i => !existingIds.has(i.id));
+          return [...prev, ...uniqueNew];
+        });
+      }
+
+      const nextOffset = currentOffset + rows.length;
+      setOffset(nextOffset);
+      setHasMore(rows.length === PAGE_SIZE);
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      isFetchingRef.current = false;
     }
-  }, [db, t]);
+  }, [db, activeFilter, offset, transformRow, loadActionCenterStats, hasMore]);
 
   useEffect(() => {
     if (isFocused) {
-      loadData();
+      loadData(true);
     }
-  }, [isFocused, loadData]);
+  }, [isFocused, activeFilter]); // Re-load when focus or filter changes
 
   useEffect(() => {
     const shouldOpenTask = Boolean(route.params?.openCreateTask);
@@ -150,9 +213,9 @@ export default function TasksScreen({ navigation, route }) {
     });
   }, [navigation, route.params?.openCreateTask, route.params?.openCreateReminder]);
 
-  const handleMenuAction = async (id, action) => {
+  const handleMenuAction = useCallback(async (id, action) => {
     setOpenMenuId(null);
-    const task = tasks.find(item => item.id === id);
+    const task = timelineItems.find(item => item.id === id);
     if (!task) return;
 
     try {
@@ -173,53 +236,123 @@ export default function TasksScreen({ navigation, route }) {
         setShowUpdateTask(true);
         return;
       }
-      loadData();
+      loadData(true);
     } catch (err) {
       console.error('Failed to process task action:', err);
       showToast(t('actionFailedToast'));
     }
-  };
+  }, [timelineItems, db, t, loadData]);
 
-  const handleDismissReminder = async (id) => {
-    const reminder = reminders.find(r => r.id === id);
+  const handleDismissReminder = useCallback(async (id) => {
+    const reminder = timelineItems.find(r => r.id === id);
     if (reminder?.dbId) {
       try {
         await deleteReminder(db, reminder.dbId);
-        loadData();
+        loadData(true);
         showToast(t('reminderDismissedToast'));
       } catch (err) {
         console.error('Failed to delete reminder:', err);
         showToast(t('reminderDismissFailedToast'));
       }
     }
+  }, [timelineItems, db, t, loadData]);
+
+  const renderHeader = () => (
+    <View>
+      {/* Action Center */}
+      <View className="px-4 pt-4">
+        <ActionCenter pendingCount={pendingCount} reminderCount={reminderCount} />
+      </View>
+
+      {/* Filter tabs */}
+      <FilterTabs
+        tabs={FILTER_TABS_KEYS.map(key => t(key))}
+        activeTab={t(activeFilter)}
+        onTabChange={(val) => {
+          const reverseMap = {
+            [t('all')]: 'all',
+            [t('dueToday')]: 'dueToday',
+            [t('upcoming')]: 'upcoming',
+            [t('general')]: 'general',
+            [t('cropRelated')]: 'cropRelated',
+          };
+          setActiveFilter(reverseMap[val]);
+        }}
+      />
+
+      {/* Timeline header */}
+      <Text className="text-xs font-bold text-slate-400 uppercase px-5 mb-3">
+        {t('timeline')}
+      </Text>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (loadingMore) {
+      return (
+        <View className="py-4 items-center">
+          <ActivityIndicator size="small" color="#3ce619" />
+        </View>
+      );
+    }
+    if (!hasMore && timelineItems.length > 0) {
+      return (
+        <View className="py-10 items-center justify-center">
+          <MaterialIcons name="done-all" size={24} color="#3ce619" />
+          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">
+            {t('allCaughtUp') || 'End of records'}
+          </Text>
+          <View style={{ height: 160 }} />
+        </View>
+      );
+    }
+    return <View style={{ height: 160 }} />;
   };
 
-  // Combine tasks and reminders for the timeline and sort by date descending
-  const timelineItems = [...tasks, ...reminders]
-    .filter(item => {
-      if (activeFilter === 'all') return true;
+  const renderEmpty = () => {
+    if (loading) {
+      return (
+        <View className="py-20 items-center justify-center">
+          <ActivityIndicator size="large" color="#3ce619" />
+          <Text className="text-slate-400 text-xs mt-2">{t('loading') || 'Loading...'}</Text>
+        </View>
+      );
+    }
+    return (
+      <View className="mx-4 py-10 items-center justify-center bg-white rounded-2xl border border-slate-100">
+        <MaterialIcons name="assignment-late" size={48} color="#cbd5e1" />
+        <Text className="text-slate-500 font-medium mt-2">{t('noTasksFound') || 'No tasks found'}</Text>
+      </View>
+    );
+  };
 
-      const today = new Date().toISOString().split('T')[0];
-
-      if (activeFilter === 'dueToday') {
-        return item.rawDate === today;
-      }
-      if (activeFilter === 'upcoming') {
-        return item.rawDate > today;
-      }
-      if (activeFilter === 'general') {
-        return !item.cropId;
-      }
-      if (activeFilter === 'cropRelated') {
-        return Boolean(item.cropId);
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (a.rawDate < b.rawDate) return 1;
-      if (a.rawDate > b.rawDate) return -1;
-      return 0;
-    });
+  const renderItem = useCallback(({ item }) => {
+    if (item.kind === 'reminder') {
+      return (
+        <View className="px-4 mb-3">
+          <TimelineItemCard
+            item={item}
+            onDismiss={handleDismissReminder}
+          />
+        </View>
+      );
+    }
+    return (
+      <View className="px-4 mb-3">
+        <TaskCard
+          id={item.id}
+          title={item.title}
+          categoryLabel={item.categoryLabel}
+          categoryIcon={item.categoryIcon}
+          statusText={item.statusText}
+          status={item.status}
+          isMenuOpen={openMenuId === item.id}
+          onToggleMenu={setOpenMenuId}
+          onMenuAction={handleMenuAction}
+        />
+      </View>
+    );
+  }, [openMenuId, handleDismissReminder, handleMenuAction]);
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
@@ -235,86 +368,33 @@ export default function TasksScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <View className="items-center">
-            <Text className="text-xl font-bold tracking-tight text-black">
+            <Text className="text-xl font-bold tracking-tight text-primary">
               {t('myTasks')}
             </Text>
             <Text className="text-xs text-slate-500">{t('farmPersonal')}</Text>
           </View>
         </View>
 
-        {/* ─── Scrollable content ──────────────────────── */}
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={styles.scrollContent}
+        {/* ─── FlatList content ──────────────────────── */}
+        <FlatList
+          data={timelineItems}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          onEndReached={() => {
+            if (hasMore && !loadingMore && !loading) {
+              loadData(false);
+            }
+          }}
+          onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
-        >
-          {/* Action Center */}
-          <View className="px-4 pt-4">
-            <ActionCenter pendingCount={tasks.length} reminderCount={reminders.length} />
-          </View>
-
-          {/* Filter tabs */}
-          <FilterTabs
-            tabs={FILTER_TABS_KEYS.map(key => t(key))}
-            activeTab={t(activeFilter)}
-            onTabChange={(val) => {
-              const reverseMap = {
-                [t('all')]: 'all',
-                [t('dueToday')]: 'dueToday',
-                [t('upcoming')]: 'upcoming',
-                [t('general')]: 'general',
-                [t('cropRelated')]: 'cropRelated',
-              };
-              setActiveFilter(reverseMap[val]);
-            }}
-          />
-
-          {/* Timeline header */}
-          <Text className="text-xs font-bold text-slate-400 uppercase px-5 mb-3">
-            {t('timeline')}
-          </Text>
-
-          {/* Timeline cards */}
-          <View className="px-4 gap-3 mb-4">
-            {loading ? (
-              <View className="py-10 items-center justify-center">
-                <ActivityIndicator size="large" color="#3ce619" />
-                <Text className="text-slate-400 text-xs mt-2">{t('loading') || 'Loading...'}</Text>
-              </View>
-            ) : timelineItems.length === 0 ? (
-              <View className="py-10 items-center justify-center bg-white rounded-2xl border border-slate-100">
-                <MaterialIcons name="assignment-late" size={48} color="#cbd5e1" />
-                <Text className="text-slate-500 font-medium mt-2">{t('noTasksFound') || 'No tasks found'}</Text>
-              </View>
-            ) : (
-              timelineItems.map((item) => {
-                if (item.kind === 'reminder') {
-                  return (
-                    <TimelineItemCard
-                      key={item.id}
-                      item={item}
-                      onDismiss={() => handleDismissReminder(item.id)}
-                    />
-                  );
-                }
-                return (
-                  <TaskCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    categoryLabel={item.categoryLabel}
-                    categoryIcon={item.categoryIcon}
-                    statusText={item.statusText}
-                    status={item.status}
-                    isMenuOpen={openMenuId === item.id}
-                    onToggleMenu={setOpenMenuId}
-                    onMenuAction={handleMenuAction}
-                  />
-                );
-              })
-            )}
-          </View>
-        </ScrollView>
+          removeClippedSubviews={true}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+        />
       </Pressable>
 
       {/* ─── Floating action buttons ─────────────────── */}
@@ -352,7 +432,7 @@ export default function TasksScreen({ navigation, route }) {
           try {
             await insertTask(db, task);
             setShowCreateTask(false);
-            loadData();
+            loadData(true);
             showToast(t('taskCreatedToast'));
           } catch (err) {
             console.error('Failed to create task:', err);
@@ -369,7 +449,7 @@ export default function TasksScreen({ navigation, route }) {
           try {
             await insertReminder(db, reminder);
             setShowCreateReminder(false);
-            loadData();
+            loadData(true);
             showToast(t('reminderCreatedToast'));
           } catch (err) {
             console.error('Failed to create reminder:', err);
@@ -391,7 +471,7 @@ export default function TasksScreen({ navigation, route }) {
             await updateTask(db, editingTask.id, taskData);
             setShowUpdateTask(false);
             setEditingTask(null);
-            loadData();
+            loadData(true);
             showToast(t('taskUpdatedToast'));
           } catch (err) {
             console.error('Failed to update task:', err);
@@ -424,9 +504,6 @@ export default function TasksScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 160,
-  },
   toast: {
     position: 'absolute',
     alignSelf: 'center',
