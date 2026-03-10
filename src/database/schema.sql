@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS crops (
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS activities (
     id      INTEGER PRIMARY KEY AUTOINCREMENT,
-    cropId  INTEGER NOT NULL REFERENCES crops(id) ON DELETE CASCADE,
+    cropId  INTEGER REFERENCES crops(id) ON DELETE CASCADE,
     title   TEXT    NOT NULL,
     remark  TEXT,
     date    TEXT    NOT NULL   -- ISO-8601  YYYY-MM-DD

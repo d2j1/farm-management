@@ -1,6 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Extract YouTube video ID from a standard or short URL.
@@ -23,6 +23,7 @@ function getYouTubeVideoId(url) {
  * @param {() => void} [props.onWatch] - Callback when "Watch Video" is pressed.
  */
 export default function VideoCard({ category, duration, title, icon, url, onWatch }) {
+  const { t } = useLanguageStore();
   const videoId = getYouTubeVideoId(url);
   const thumbnailUri = videoId
     ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
@@ -80,7 +81,7 @@ export default function VideoCard({ category, duration, title, icon, url, onWatc
           onPress={onWatch}
         >
           <MaterialIcons name="play-arrow" size={20} color="#000" />
-          <Text className="text-black font-bold text-sm">Watch Video</Text>
+          <Text className="text-black font-bold text-sm">{t('watchVideo')}</Text>
         </TouchableOpacity>
       </View>
     </View>

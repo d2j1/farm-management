@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Full-screen overlay modal shown after crop operations.
@@ -20,19 +21,22 @@ export default function CropResultModal({
   variant = 'center',
   title: titleOverride,
   message: messageOverride,
-  buttonText = 'Got it',
+  buttonText,
   onDismiss,
 }) {
+  const { t } = useLanguageStore();
   const isSuccess = type === 'success';
 
   const iconName = isSuccess ? 'check-circle' : 'error';
   const iconColor = isSuccess ? '#3ce619' : '#ef4444';
   const iconBg = isSuccess ? (variant === 'bottom' ? 'bg-primary/10' : 'bg-primary/20') : 'bg-red-100';
 
-  const title = titleOverride || (isSuccess ? 'New Crop Added' : 'Crop Creation Failed');
+  const title = titleOverride || (isSuccess ? t('cropCreated') : t('cropCreationFailed'));
   const message = messageOverride || (isSuccess
-    ? 'The crop has been successfully created and is now available in your active crops list for management.'
-    : 'We encountered an issue while trying to create your crop. Please try again or contact support if the problem persists.');
+    ? t('cropCreateSuccess')
+    : t('cropCreateError'));
+
+  const btnText = buttonText || t('gotIt');
 
   if (variant === 'bottom') {
     return (
@@ -68,7 +72,7 @@ export default function CropResultModal({
                   elevation: 5,
                 }}
               >
-                <Text className="text-slate-950 text-lg font-bold">{buttonText}</Text>
+                <Text className="text-slate-950 text-lg font-bold">{btnText}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -106,7 +110,7 @@ export default function CropResultModal({
               elevation: 5,
             }}
           >
-            <Text className="text-base font-bold text-slate-900">{buttonText}</Text>
+            <Text className="text-base font-bold text-slate-900">{btnText}</Text>
           </TouchableOpacity>
         </View>
       </View>

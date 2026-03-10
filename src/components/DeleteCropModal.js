@@ -9,8 +9,11 @@ import {
   View,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 export function DeleteCropConfirmModal({ visible, isDeletingCrop, onConfirm, onCancel }) {
+  const { t } = useLanguageStore();
+
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View
@@ -34,14 +37,14 @@ export function DeleteCropConfirmModal({ visible, isDeletingCrop, onConfirm, onC
           </View>
 
           <Text className="mb-2 text-center text-2xl font-bold text-slate-900">
-            Delete Crop?
+            {t('deleteCropTitle')}
           </Text>
 
           <Text
             className="mb-8 px-2 text-center text-base text-slate-600"
             style={{ lineHeight: 26 }}
           >
-            Are you sure you want to permanently delete this crop? This action cannot be undone.
+            {t('deleteCropConfirmMsg')}
           </Text>
 
           <View className="w-full">
@@ -55,7 +58,7 @@ export function DeleteCropConfirmModal({ visible, isDeletingCrop, onConfirm, onC
               {isDeletingCrop ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text className="text-base font-bold text-white">Delete</Text>
+                <Text className="text-base font-bold text-white">{t('deleteBtn')}</Text>
               )}
             </TouchableOpacity>
 
@@ -66,7 +69,7 @@ export function DeleteCropConfirmModal({ visible, isDeletingCrop, onConfirm, onC
               onPress={onCancel}
               style={styles.cancelButton}
             >
-              <Text className="text-base font-semibold text-slate-600">Cancel</Text>
+              <Text className="text-base font-semibold text-slate-600">{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -76,6 +79,8 @@ export function DeleteCropConfirmModal({ visible, isDeletingCrop, onConfirm, onC
 }
 
 export function DeleteCropSuccessModal({ visible, onDismiss }) {
+  const { t } = useLanguageStore();
+
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View className="flex-1 items-center justify-center bg-background-dark/60 px-4">
@@ -85,10 +90,10 @@ export function DeleteCropSuccessModal({ visible, onDismiss }) {
           </View>
 
           <Text className="mb-2 text-center text-2xl font-bold text-slate-900">
-            Crop Deleted
+            {t('deleteCropSuccessTitle')}
           </Text>
           <Text className="mb-8 px-2 text-center text-base leading-relaxed text-slate-600">
-            The crop has been successfully deleted from your farm records and cannot be recovered.
+            {t('deleteCropSuccessMsg')}
           </Text>
 
           <TouchableOpacity
@@ -103,7 +108,7 @@ export function DeleteCropSuccessModal({ visible, onDismiss }) {
               elevation: 8,
             }}
           >
-            <Text className="text-base font-bold text-black">Got it</Text>
+            <Text className="text-base font-bold text-black">{t('gotIt')}</Text>
           </TouchableOpacity>
         </View>
       </View>

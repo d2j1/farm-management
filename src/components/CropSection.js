@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDatabase } from '../database/DatabaseProvider';
 import { getAllCrops } from '../database/cropService';
 import { getNextUpcomingTaskPerCrop, getLastTaskPerCrop } from '../database/taskService';
+import { useLanguageStore } from '../utils/languageStore';
 
 function getCropVisuals(cropName) {
   const name = (cropName || '').toLowerCase();
@@ -30,7 +31,7 @@ function getCropVisuals(cropName) {
   return { icon: 'agriculture', iconColor: '#ea580c', iconBg: '#fff7ed' };
 }
 
-function CropCard({ crop, upcomingTask, lastTask, onPress }) {
+function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
   const { icon, iconColor, iconBg } = getCropVisuals(crop.cropName);
   const isActive = (crop.status || 'active') === 'active';
 
@@ -51,7 +52,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress }) {
           style={[styles.statusDot, { backgroundColor: isActive ? '#16a34a' : '#94a3b8' }]}
         />
         <Text style={[styles.statusText, { color: isActive ? '#16a34a' : '#94a3b8' }]}>
-          {isActive ? 'Active' : 'Inactive'}
+          {isActive ? t('active') : t('inactive')}
         </Text>
       </View>
 
@@ -97,7 +98,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress }) {
             ? upcomingTask.taskName
             : lastTask
             ? lastTask.taskName
-            : 'All caught up!'}
+            : t('allCaughtUp')}
         </Text>
       </View>
     </TouchableOpacity>
@@ -106,6 +107,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress }) {
 
 export default function CropSection({ navigation }) {
   const db = useDatabase();
+  const { t } = useLanguageStore();
   const [crops, setCrops] = useState([]);
   const [upcomingTasksMap, setUpcomingTasksMap] = useState({});
   const [lastTasksMap, setLastTasksMap] = useState({});
@@ -145,18 +147,24 @@ export default function CropSection({ navigation }) {
     <View className="py-2">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-4">
-        <Text className="text-slate-900 text-lg font-bold tracking-tight">Your Crops</Text>
+        <Text className="text-slate-900 text-lg font-bold tracking-tight">
+          {t('yourCrops')}
+        </Text>
         <TouchableOpacity
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Crops', { screen: 'CropsMain' })}
         >
-          <Text className="text-primary text-sm font-semibold">View All</Text>
+          <Text className="text-primary text-sm font-semibold">
+            {t('viewAll')}
+          </Text>
         </TouchableOpacity>
       </View>
 
       {crops.length === 0 ? (
         <View className="px-4 py-6 items-center">
-          <Text className="text-slate-400 text-sm">No crops yet — tap + to add one.</Text>
+          <Text className="text-slate-400 text-sm">
+            {t('noCrops')}
+          </Text>
         </View>
       ) : (
         <ScrollView
@@ -171,6 +179,7 @@ export default function CropSection({ navigation }) {
               upcomingTask={upcomingTasksMap[crop.id]}
               lastTask={lastTasksMap[crop.id]}
               onPress={() => openCropDetails(crop)}
+              t={t}
             />
           ))}
         </ScrollView>
@@ -184,7 +193,9 @@ export default function CropSection({ navigation }) {
           onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
         >
           <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-          <Text className="text-primary text-sm font-semibold opacity-80">Add New Crop or Field</Text>
+          <Text className="text-primary text-sm font-semibold opacity-80">
+            {t('addNewCropOrField')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

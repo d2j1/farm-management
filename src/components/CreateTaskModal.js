@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 import SegmentedControl from './SegmentedControl';
 import DateField from './DateField';
 
 const DURATION_OPTIONS = ['One-time', 'Multi-day', 'Recurring'];
 const FREQUENCY_OPTIONS = ['Daily', 'Weekly', 'Monthly'];
 
-const getFrequencyUnit = (freq) =>
+const getFrequencyUnitKey = (freq) =>
   freq === 'Daily' ? 'days' : freq === 'Weekly' ? 'weeks' : 'months';
 
 const formatEndLabel = (date) =>
   date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
 // ── Repeat-interval stepper ─────────────────────────────────
-function RepeatStepper({ value, onDecrement, onIncrement, unit }) {
+function RepeatStepper({ value, onDecrement, onIncrement, unit, t }) {
   return (
     <View className="flex-row items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 mt-4">
       <Text className="text-slate-700 dark:text-slate-300 text-sm font-medium ml-1">
-        Repeat every X {unit}
+        {t('repeatEvery').replace('X', '')} {t(unit)}
       </Text>
       <View className="flex-row items-center gap-1">
         <Pressable
@@ -42,13 +43,16 @@ function RepeatStepper({ value, onDecrement, onIncrement, unit }) {
 }
 
 // ── Info banner for recurring tasks ─────────────────────────
-function RecurringInfoBanner({ interval, unit, endDate }) {
+function RecurringInfoBanner({ interval, unit, endDate, t }) {
   return (
     <View className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-8">
       <View className="flex-row items-start gap-3">
         <MaterialIcons name="info" size={20} color="#3ce619" style={{ marginTop: 2 }} />
         <Text className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed font-medium flex-1">
-          This task will repeat every {interval} {unit} until {formatEndLabel(endDate)}.
+          {t('repeatInfo')
+            .replace('{interval}', interval)
+            .replace('{unit}', t(unit))
+            .replace('{endDate}', formatEndLabel(endDate))}
         </Text>
       </View>
     </View>
@@ -71,6 +75,7 @@ function DateRangeRow({ startDate, endDate, onStartChange, onEndChange, startLab
 
 // ── Main modal ──────────────────────────────────────────────
 export default function CreateTaskModal({ visible, onClose, onSave }) {
+  const { t } = useLanguageStore();
   const [taskName, setTaskName] = useState('');
   const [duration, setDuration] = useState('One-time');
   const [frequency, setFrequency] = useState('Daily');
@@ -95,7 +100,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
 
   const handleSave = () => {
     if (!taskName.trim()) {
-      setError('Task name is required');
+      setError(t('taskNameRequired'));
       return;
     }
     setError('');
@@ -121,7 +126,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
     onClose();
   };
 
-  const unit = getFrequencyUnit(frequency);
+  const unit = getFrequencyUnitKey(frequency);
 
   if (!visible) return null;
 
@@ -144,19 +149,19 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
           >
             {/* Title */}
             <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-              Create New Task
+              {t('createNewTask')}
             </Text>
 
             {/* Task Name */}
             <View className="gap-2 mb-6">
               <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest">
-                Task Name
+                {t('taskNameLabel')}
               </Text>
               <TextInput
                 className={`rounded-xl border ${
                   error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
                 } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 h-14 px-4`}
-                placeholder="e.g. Fertilize North Pasture"
+                placeholder={t('taskNamePlaceholder')}
                 placeholderTextColor="#94a3b8"
                 value={taskName}
                 onChangeText={(text) => {
@@ -172,19 +177,25 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
             {/* Duration Toggle */}
             <View className="mb-6">
               <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
-                Duration
+                {t('duration')}
               </Text>
               <SegmentedControl
-                options={DURATION_OPTIONS}
-                selected={duration}
-                onSelect={setDuration}
+                options={DURATION_OPTIONS.map(opt => {
+                  const map = { 'One-time': 'oneTime', 'Multi-day': 'multiDay', 'Recurring': 'recurring' };
+                  return t(map[opt]);
+                })}
+                selected={t({ 'One-time': 'oneTime', 'Multi-day': 'multiDay', 'Recurring': 'recurring' }[duration])}
+                onSelect={(val) => {
+                  const reverseMap = { [t('oneTime')]: 'One-time', [t('multiDay')]: 'Multi-day', [t('recurring')]: 'Recurring' };
+                  setDuration(reverseMap[val]);
+                }}
               />
             </View>
 
             {/* ─── One-time fields ─── */}
             {duration === 'One-time' && (
               <View className="mb-8">
-                <DateField label="Date" value={date} onChange={setDate} />
+                <DateField label={t('date')} value={date} onChange={setDate} />
               </View>
             )}
 
@@ -196,8 +207,8 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                   endDate={endDate}
                   onStartChange={setStartDate}
                   onEndChange={setEndDate}
-                  startLabel="Start Date"
-                  endLabel="End Date"
+                  startLabel={t('startDate')}
+                  endLabel={t('endDate')}
                 />
               </View>
             )}
@@ -208,16 +219,23 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                 {/* Frequency */}
                 <View className="mb-6">
                   <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
-                    Frequency
+                    {t('frequency')}
                   </Text>
                   <SegmentedControl
-                    options={FREQUENCY_OPTIONS}
-                    selected={frequency}
-                    onSelect={setFrequency}
+                    options={FREQUENCY_OPTIONS.map(opt => {
+                      const map = { 'Daily': 'daily', 'Weekly': 'weekly', 'Monthly': 'monthly' };
+                      return t(map[opt]);
+                    })}
+                    selected={t({ 'Daily': 'daily', 'Weekly': 'weekly', 'Monthly': 'monthly' }[frequency])}
+                    onSelect={(val) => {
+                      const reverseMap = { [t('daily')]: 'Daily', [t('weekly')]: 'Weekly', [t('monthly')]: 'Monthly' };
+                      setFrequency(reverseMap[val]);
+                    }}
                   />
                   <RepeatStepper
                     value={repeatInterval}
                     unit={unit}
+                    t={t}
                     onDecrement={() => setRepeatInterval(Math.max(1, repeatInterval - 1))}
                     onIncrement={() => setRepeatInterval(repeatInterval + 1)}
                   />
@@ -230,8 +248,8 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                     endDate={endDate}
                     onStartChange={setStartDate}
                     onEndChange={setEndDate}
-                    startLabel="Starts On"
-                    endLabel="Ends On"
+                    startLabel={t('startsOn')}
+                    endLabel={t('endsOn')}
                   />
                 </View>
 
@@ -240,6 +258,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                   interval={repeatInterval}
                   unit={unit}
                   endDate={endDate}
+                  t={t}
                 />
               </>
             )}
@@ -250,14 +269,14 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                 onPress={handleSave}
                 className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
               >
-                <Text className="text-slate-900 font-bold text-base">Save Task</Text>
+                <Text className="text-slate-900 font-bold text-base">{t('saveTask')}</Text>
               </Pressable>
               <Pressable
                 onPress={handleCancel}
                 className="w-full py-3 rounded-xl items-center"
               >
                 <Text className="text-slate-500 dark:text-slate-400 font-medium text-base">
-                  Cancel
+                  {t('cancel')}
                 </Text>
               </Pressable>
             </View>

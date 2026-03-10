@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 function SpinningIcon() {
   const spin = useRef(new Animated.Value(0)).current;
@@ -60,6 +61,7 @@ function TimelineTaskIcon({ taskState }) {
 }
 
 export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAction }) {
+  const { t } = useLanguageStore();
   const isReminder = item.kind === 'reminder';
   const isDueToday = item.taskState === 'dueToday';
   const isInProgress = item.taskState === 'inProgress';
@@ -131,27 +133,27 @@ export default function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDis
 
             {isMenuOpen ? (
               <View style={styles.dropdownMenu}>
-                <TouchableOpacity
-                  className="px-4 py-2"
-                  activeOpacity={0.7}
-                  onPress={() => onMenuAction(item.id, 'done')}
-                >
-                  <Text className="text-sm font-medium text-slate-700">Mark as Done</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="px-4 py-2"
-                  activeOpacity={0.7}
-                  onPress={() => onMenuAction(item.id, 'skip')}
-                >
-                  <Text className="text-sm font-medium text-slate-700">Skip</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="px-4 py-2"
-                  activeOpacity={0.7}
-                  onPress={() => onMenuAction(item.id, 'snooze')}
-                >
-                  <Text className="text-sm font-medium text-slate-700">Snooze</Text>
-                </TouchableOpacity>
+                 <TouchableOpacity
+                   className="px-4 py-2"
+                   activeOpacity={0.7}
+                   onPress={() => onMenuAction(item.id, 'done')}
+                 >
+                   <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
+                 </TouchableOpacity>
+                 <TouchableOpacity
+                   className="px-4 py-2"
+                   activeOpacity={0.7}
+                   onPress={() => onMenuAction(item.id, 'skip')}
+                 >
+                   <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
+                 </TouchableOpacity>
+                 <TouchableOpacity
+                   className="px-4 py-2"
+                   activeOpacity={0.7}
+                   onPress={() => onMenuAction(item.id, 'snooze')}
+                 >
+                   <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
+                 </TouchableOpacity>
               </View>
             ) : null}
           </View>

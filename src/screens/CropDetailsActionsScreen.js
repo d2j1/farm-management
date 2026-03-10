@@ -30,7 +30,7 @@ import ExpenseCard from '../components/ExpenseCard';
 import EarningCard from '../components/EarningCard';
 import { DeleteCropConfirmModal, DeleteCropSuccessModal } from '../components/DeleteCropModal';
 import { useDatabase } from '../database/DatabaseProvider';
-import { deleteCrop, updateCropStatus } from '../database/cropService';
+import { deleteCrop, updateCropStatus, getCropById } from '../database/cropService';
 import { insertTask, getTasksByCrop, deleteTask, updateTask } from '../database/taskService';
 import { insertReminder, getRemindersByCrop, deleteReminder } from '../database/reminderService';
 import { insertActivity, getActivitiesByCrop, deleteActivity, updateActivity } from '../database/activityService';
@@ -43,6 +43,7 @@ import {
   getExpenseIcon,
   getEarningIcon,
 } from '../utils/cropDetailsUtils';
+import { useLanguageStore } from '../utils/languageStore';
 
 const DETAIL_TABS = ['Actions', 'Activity Logs', 'Expenses', 'Earnings'];
 const SWIPE_DISTANCE_THRESHOLD = 56;
@@ -50,9 +51,11 @@ const SWIPE_VELOCITY_THRESHOLD = 0.42;
 
 
 export default function CropDetailsActionsScreen({ navigation, route }) {
+  const { t } = useLanguageStore();
   const db = useDatabase();
   const cropId = route?.params?.crop?.dbId || null;
 
+  const [crop, setCrop] = useState(null);
   const [activeTab, setActiveTab] = useState('Actions');
   const [timelineItems, setTimelineItems] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
@@ -88,14 +91,21 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
 
-  const cropName = route?.params?.crop?.name || 'Wheat';
-  const cropLocation = route?.params?.crop?.location || 'North Field • 2 Acres';
+  const cropName = crop?.cropName || route?.params?.crop?.name || t('general');
+  const cropLocation = crop?.landNickname || route?.params?.crop?.location || '';
 
   // ── Load all data for this crop from the database ───────────
   const loadAllData = useCallback(async () => {
     if (!cropId) return;
 
     try {
+      // Load crop details
+      const cropRow = await getCropById(db, cropId);
+      if (cropRow) {
+        setCrop(cropRow);
+        setCropStatus(cropRow.status);
+      }
+
       // Load tasks → timeline items
       const taskRows = await getTasksByCrop(db, cropId);
       const today = new Date().toISOString().split('T')[0];
@@ -157,7 +167,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           title: a.title,
           icon: getActivityIcon(a.title),
           dateText: a.date,
-          remarks: a.remark || 'No remarks',
+          remarks: a.remark || t('noRemarks'),
         })),
       );
 
@@ -171,7 +181,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           icon: getExpenseIcon(e.title),
           dateText: e.date,
           amount: e.amount,
-          remarks: e.remark || 'No remarks',
+          remarks: e.remark || t('noRemarks'),
         })),
       );
 
@@ -185,13 +195,13 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           icon: getEarningIcon(n.title),
           dateText: n.date,
           amount: n.amount,
-          remarks: n.remark || 'No remarks',
+          remarks: n.remark || t('noRemarks'),
         })),
       );
     } catch (err) {
       console.error('Failed to load crop data:', err);
     }
-  }, [db, cropId]);
+  }, [db, cropId, t]);
 
   // Reload data whenever the screen is focused
   useFocusEffect(
@@ -289,7 +299,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     }
     setTimelineItems((prev) => prev.filter((i) => i.id !== id));
     setOpenTaskMenuId(null);
-    showToast('Reminder dismissed.');
+    showToast(t('reminderDismissed'));
   };
 
   const handleTaskMenuAction = async (id, action) => {
@@ -312,7 +322,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           await insertActivity(db, {
             cropId,
             title: item.title,
-            remark: 'Task completed from Actions',
+            remark: t('taskMarkedDone'),
             date: new Date(),
           });
         }
@@ -322,7 +332,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         console.error('Failed to process task:', err);
       }
     }
-    showToast(action === 'done' ? 'Task marked as done.' : 'Task skipped.');
+    showToast(action === 'done' ? t('taskMarkedDone') : t('taskSkipped'));
   };
 
   const handleActivityMenuAction = async (id, action) => {
@@ -338,7 +348,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         }
       }
       setActivityLogs((prev) => prev.filter((a) => a.id !== id));
-      showToast('Activity log deleted.');
+      showToast(t('activityLogDeleted'));
       return;
     }
     if (action === 'edit') {
@@ -362,7 +372,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         }
       }
       setExpenses((prev) => prev.filter((e) => e.id !== id));
-      showToast('Expense deleted.');
+      showToast(t('expenseDeleted'));
       return;
     }
 
@@ -385,7 +395,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         }
       }
       setEarnings((prev) => prev.filter((e) => e.id !== id));
-      showToast('Earning deleted.');
+      showToast(t('earningDeleted'));
       return;
     }
 
@@ -399,7 +409,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     if (!cropId || isDeletingCrop) {
       if (!cropId) {
         setShowDeleteConfirm(false);
-        showToast('Unable to delete this crop.');
+        showToast(t('unableToDeleteCrop'));
       }
       return;
     }
@@ -421,7 +431,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     } catch (err) {
       console.error('Failed to delete crop:', err);
       setShowDeleteConfirm(false);
-      showToast('Failed to delete crop. Please try again.');
+      showToast(t('failedDeleteCrop'));
     } finally {
       setIsDeletingCrop(false);
     }
@@ -462,7 +472,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         setStatusModal({ visible: true, newStatus });
       } catch (err) {
         console.error('Failed to update crop status:', err);
-        showToast('Failed to update crop status.');
+        showToast(t('actionFailedToast'));
       }
       return;
     }
@@ -552,10 +562,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                 <View className="bg-primary/10 border border-primary/20 rounded-2xl p-5">
                   <View className="flex-row items-center justify-between mb-4">
                     <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                      Action Center
+                      {t('actionCenter')}
                     </Text>
                     <View className="bg-primary/20 px-2 py-0.5 rounded">
-                      <Text className="text-[10px] font-bold uppercase text-primary">Updates today</Text>
+                      <Text className="text-[10px] font-bold uppercase text-primary">{t('updatesToday')}</Text>
                     </View>
                   </View>
 
@@ -563,7 +573,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                     <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
                       <View className="flex-row items-center gap-2 mb-1">
                         <MaterialIcons name="task-alt" size={14} color="#3ce619" />
-                        <Text className="text-[10px] text-slate-500 font-bold uppercase">Pending Tasks</Text>
+                        <Text className="text-[10px] text-slate-500 font-bold uppercase">{t('pendingTasks')}</Text>
                       </View>
                       <Text className="text-2xl font-bold text-slate-900">
                         {formatCount(pendingTaskCount)}
@@ -573,7 +583,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                     <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
                       <View className="flex-row items-center gap-2 mb-1">
                         <MaterialIcons name="notifications-active" size={14} color="#f97316" />
-                        <Text className="text-[10px] text-slate-500 font-bold uppercase">Reminders</Text>
+                        <Text className="text-[10px] text-slate-500 font-bold uppercase">{t('reminders')}</Text>
                       </View>
                       <Text className="text-2xl font-bold text-slate-900">{formatCount(reminderCount)}</Text>
                     </View>
@@ -581,7 +591,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                 </View>
 
                 <View className="gap-3">
-                  <Text className="text-xs font-bold uppercase text-slate-400 px-1">Timeline</Text>
+                  <Text className="text-xs font-bold uppercase text-slate-400 px-1">{t('timeline')}</Text>
                   {timelineItems.map((item) => (
                     <TimelineItemCard
                       key={item.id}
@@ -621,14 +631,14 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                 <View className="flex-col items-center justify-center py-8 opacity-40">
                   <MaterialIcons name="history" size={30} color="#64748b" />
                   <Text className="text-[10px] mt-1 font-medium uppercase tracking-widest text-slate-500">
-                    End of recent activities
+                    {t('endOfRecentActivities')}
                   </Text>
                 </View>
               </View>
             ) : activeTab === 'Expenses' ? (
               <View className="px-4 pt-4 gap-4">
                 <View className="bg-primary/10 border border-primary/20 rounded-2xl p-6 mb-2">
-                  <Text className="text-sm font-medium text-slate-600 mb-1">Total Investment</Text>
+                  <Text className="text-sm font-medium text-slate-600 mb-1">{t('totalInvestment')}</Text>
                   <Text className="text-3xl font-bold text-slate-900">{formatCurrency(totalInvestment)}</Text>
                 </View>
 
@@ -653,7 +663,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             ) : (
               <View className="px-4 pt-4 gap-4">
                 <View className="bg-primary/10 border border-primary/20 rounded-2xl p-6 mb-2">
-                  <Text className="text-sm font-medium text-slate-600 mb-1">Total Earnings</Text>
+                  <Text className="text-sm font-medium text-slate-600 mb-1">{t('totalEarnings')}</Text>
                   <Text className="text-3xl font-bold text-slate-900">{formatCurrency(totalEarnings)}</Text>
                 </View>
 
@@ -712,7 +722,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           >
             <MaterialIcons name="add-task" size={20} color="#3ce619" />
             <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
-              Add Task
+              {t('addTask')}
             </Text>
           </TouchableOpacity>
 
@@ -724,7 +734,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           >
             <MaterialIcons name="notification-add" size={20} color="#1a2e05" />
             <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
-              Create Reminder
+              {t('createReminder')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -743,7 +753,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             }}
           >
             <MaterialIcons name="add" size={20} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">Add Activity</Text>
+            <Text className="font-bold text-slate-900">{t('addActivity')}</Text>
           </TouchableOpacity>
         </View>
       ) : activeTab === 'Expenses' ? (
@@ -761,7 +771,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             }}
           >
             <MaterialIcons name="add" size={20} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">Add Expense</Text>
+            <Text className="font-bold text-slate-900">{t('addExpense')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -779,7 +789,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             }}
           >
             <MaterialIcons name="add" size={20} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">Add Earnings</Text>
+            <Text className="font-bold text-slate-900">{t('addEarnings')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -792,10 +802,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             await insertTask(db, { ...taskData, cropId });
             setShowCreateTask(false);
             await loadAllData();
-            showToast('Task created.');
+            showToast(t('taskCreatedToast'));
           } catch (err) {
             console.error('Failed to insert task:', err);
-            showToast('Failed to save task.');
+            showToast(t('taskCreateFailedToast'));
           }
         }}
       />
@@ -808,10 +818,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             await insertReminder(db, { ...reminderData, cropId });
             setShowCreateReminder(false);
             await loadAllData();
-            showToast('Reminder created.');
+            showToast(t('reminderCreatedToast'));
           } catch (err) {
             console.error('Failed to insert reminder:', err);
-            showToast('Failed to save reminder.');
+            showToast(t('reminderCreateFailedToast'));
           }
         }}
       />
@@ -820,17 +830,17 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         visible={showCreateActivity}
         onClose={() => setShowCreateActivity(false)}
         onSave={async ({ activityName, remarks, date }) => {
-          const title = activityName || 'Untitled Activity';
+          const title = activityName || t('untitledActivity');
           const remark = remarks || null;
 
           try {
             await insertActivity(db, { cropId, title, remark, date: date || new Date() });
             setShowCreateActivity(false);
             await loadAllData();
-            showToast('Activity added.');
+            showToast(t('activityAdded'));
           } catch (err) {
             console.error('Failed to insert activity:', err);
-            showToast('Failed to save activity.');
+            showToast(t('activitySaveFailed'));
           }
         }}
       />
@@ -839,7 +849,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         visible={showCreateExpense}
         onClose={() => setShowCreateExpense(false)}
         onSave={async ({ expenseName, remarks, amount, date }) => {
-          const title = expenseName || 'Untitled Expense';
+          const title = expenseName || t('untitledExpense');
           const remark = remarks || null;
 
           try {
@@ -852,10 +862,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             });
             setShowCreateExpense(false);
             await loadAllData();
-            showToast('Expense added.');
+            showToast(t('expenseAdded'));
           } catch (err) {
             console.error('Failed to insert expense:', err);
-            showToast('Failed to save expense.');
+            showToast(t('expenseSaveFailed'));
           }
         }}
       />
@@ -864,7 +874,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         visible={showCreateEarnings}
         onClose={() => setShowCreateEarnings(false)}
         onSave={async ({ earningName, remarks, amount, date }) => {
-          const title = earningName || 'Untitled Earning';
+          const title = earningName || t('untitledEarning');
           const remark = remarks || null;
 
           clearUndoDeleteTimer();
@@ -880,10 +890,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             });
             setShowCreateEarnings(false);
             await loadAllData();
-            showToast('Earning added.');
+            showToast(t('earningAdded'));
           } catch (err) {
             console.error('Failed to insert earning:', err);
-            showToast('Failed to save earning.');
+            showToast(t('earningSaveFailed'));
           }
         }}
       />
@@ -895,27 +905,26 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           setShowEditActivity(false);
           setEditingActivity(null);
         }}
-        onSave={async ({ id, activityName, remarks, amount, date }) => {
+        onSave={async ({ id, activityName, remarks, date }) => {
           const item = activityLogs.find((e) => e.id === id);
           if (!item?.dbId) return;
 
-          const title = activityName || 'Untitled Activity';
+          const title = activityName || t('untitledActivity');
           const remark = remarks || null;
 
           try {
             await updateActivity(db, item.dbId, {
               title,
               remark,
-              amount: Number.isFinite(amount) ? amount : 0,
               date: date || new Date(),
             });
             setShowEditActivity(false);
             setEditingActivity(null);
             await loadAllData();
-            showToast('Activity updated.');
+            showToast(t('activityUpdated'));
           } catch (err) {
             console.error('Failed to update activity:', err);
-            showToast('Failed to update activity.');
+            showToast(t('activityUpdateFailed'));
           }
         }}
       />
@@ -932,7 +941,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           const item = earnings.find((e) => e.id === id);
           if (!item?.dbId) return;
 
-          const title = earningName || 'Untitled Earning';
+          const title = earningName || t('untitledEarning');
           const remark = remarks || null;
 
           try {
@@ -945,10 +954,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             setShowEditEarning(false);
             setEditingEarning(null);
             await loadAllData();
-            showToast('Earning updated.');
+            showToast(t('earningUpdated'));
           } catch (err) {
             console.error('Failed to update earning:', err);
-            showToast('Failed to update earning.');
+            showToast(t('earningUpdateFailed'));
           }
         }}
       />
@@ -964,7 +973,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           const item = expenses.find((e) => e.id === id);
           if (!item?.dbId) return;
 
-          const title = expenseName || 'Untitled Expense';
+          const title = expenseName || t('untitledExpense');
           const remark = remarks || null;
 
           try {
@@ -977,10 +986,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             setShowEditExpense(false);
             setEditingExpense(null);
             await loadAllData();
-            showToast('Expense updated.');
+            showToast(t('expenseUpdated'));
           } catch (err) {
             console.error('Failed to update expense:', err);
-            showToast('Failed to update expense.');
+            showToast(t('expenseUpdateFailed'));
           }
         }}
       />
@@ -1011,10 +1020,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             setShowUpdateTask(false);
             setEditingTask(null);
             await loadAllData();
-            showToast('Task updated.');
+            showToast(t('taskUpdatedToast'));
           } catch (err) {
             console.error('Failed to update task:', err);
-            showToast('Failed to update task.');
+            showToast(t('taskUpdateFailedToast'));
           }
         }}
       />
@@ -1023,13 +1032,13 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
         visible={statusModal.visible}
         type="success"
         variant={statusModal.newStatus === 'active' ? 'bottom' : 'center'}
-        title={statusModal.newStatus === 'active' ? 'Crop Reactivated' : 'Crop Deactivated'}
+        title={statusModal.newStatus === 'active' ? t('cropReactivated') : t('cropDeactivated')}
         message={
           statusModal.newStatus === 'active'
-            ? 'The crop has been successfully reactivated and is now visible in your active list.'
-            : 'The crop has been successfully deactivated and moved to your archive.'
+            ? t('cropReactivateSuccess')
+            : t('cropDeactivateSuccess')
         }
-        buttonText={statusModal.newStatus === 'active' ? 'Great' : 'Got it'}
+        buttonText={statusModal.newStatus === 'active' ? t('great') : t('gotIt')}
         onDismiss={() => {
           setStatusModal({ visible: false, newStatus: '' });
           navigation.goBack();

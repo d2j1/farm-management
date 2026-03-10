@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 const QUICK_REMIND_DAYS = [5, 10, 15, 20, 25, 30];
 
@@ -46,7 +47,7 @@ function DateTimeField({ label, value, icon, onPress }) {
   );
 }
 
-function QuickRemindChip({ days, active, onPress }) {
+function QuickRemindChip({ days, active, onPress, t }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -64,13 +65,14 @@ function QuickRemindChip({ days, active, onPress }) {
             : 'text-slate-600 dark:text-slate-300'
         }`}
       >
-        {days} days
+        {days}{' '}{t('days')}
       </Text>
     </TouchableOpacity>
   );
 }
 
 export default function CreateReminderModal({ visible, onClose, onSave }) {
+  const { t } = useLanguageStore();
   const [details, setDetails] = useState('');
   const [reminderDate, setReminderDate] = useState(new Date());
   const [reminderTime, setReminderTime] = useState(new Date());
@@ -96,7 +98,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
 
   const handleSave = () => {
     if (!details.trim()) {
-      setError('Reminder details are required');
+      setError(t('reminderRequired'));
       return;
     }
     setError('');
@@ -164,18 +166,18 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            Create New Reminder
+            {t('createNewReminder')}
           </Text>
 
           <View className="gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest">
-              Reminder Details
+              {t('reminderDetails')}
             </Text>
             <TextInput
               className={`h-14 rounded-xl border ${
                 error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
               } bg-slate-50 dark:bg-slate-800 px-4 text-slate-900 dark:text-slate-100`}
-              placeholder="e.g. Call the vet for annual checkup"
+              placeholder={t('reminderPlaceholder')}
               placeholderTextColor="#94a3b8"
               value={details}
               onChangeText={(text) => {
@@ -190,13 +192,13 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
 
           <View className="flex-row gap-4 mb-6">
             <DateTimeField
-              label="Date"
+              label={t('date')}
               value={formatDate(reminderDate)}
               icon="calendar-today"
               onPress={() => setShowDatePicker(true)}
             />
             <DateTimeField
-              label="Time"
+              label={t('time')}
               value={formatTime(reminderTime)}
               icon="schedule"
               onPress={() => setShowTimePicker(true)}
@@ -205,7 +207,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
 
           <View className="mb-8">
             <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
-              Quick Remind
+              {t('quickRemind')}
             </Text>
             <ScrollView
               horizontal
@@ -218,11 +220,12 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
                   days={days}
                   active={quickDays === days}
                   onPress={() => handleQuickRemindSelect(days)}
+                  t={t}
                 />
               ))}
             </ScrollView>
             <Text className="text-[11px] text-slate-400 mt-2 italic">
-              *Sets reminder relative to today's date
+              {t('quickRemindNote')}
             </Text>
           </View>
 
@@ -232,7 +235,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
             >
-              <Text className="text-slate-900 font-bold text-base">Save Reminder</Text>
+              <Text className="text-slate-900 font-bold text-base">{t('saveReminder')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleCancel}
@@ -240,7 +243,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
               className="w-full py-3 rounded-xl items-center"
             >
               <Text className="text-slate-500 dark:text-slate-400 font-medium text-base">
-                Cancel
+                {t('cancel')}
               </Text>
             </TouchableOpacity>
           </View>

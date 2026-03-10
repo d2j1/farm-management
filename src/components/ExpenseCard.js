@@ -2,8 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { formatCurrency } from '../utils/cropDetailsUtils';
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function ExpenseCard({ expense, isMenuOpen, onToggleMenu, onMenuAction }) {
+  const { t } = useLanguageStore();
+
   return (
     <View 
       className={`bg-white border border-primary/10 p-4 relative shadow-sm rounded-2xl ${expense.isMuted ? 'opacity-80' : ''}`}
@@ -24,14 +27,14 @@ export default function ExpenseCard({ expense, isMenuOpen, onToggleMenu, onMenuA
             activeOpacity={0.7}
             onPress={() => onMenuAction(expense.id, 'edit')}
           >
-            <Text className="text-sm font-medium text-slate-700">Edit Expense</Text>
+            <Text className="text-sm font-medium text-slate-700">{t('editExpense')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="px-4 py-2"
             activeOpacity={0.7}
             onPress={() => onMenuAction(expense.id, 'delete')}
           >
-            <Text className="text-sm font-medium text-red-600">Delete Expense</Text>
+            <Text className="text-sm font-medium text-red-600">{t('deleteExpense')}</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -55,7 +58,7 @@ export default function ExpenseCard({ expense, isMenuOpen, onToggleMenu, onMenuA
 
       <View className="mt-4 bg-background-light p-3 rounded-lg border border-primary/5">
         <Text className="text-sm text-slate-600 leading-relaxed">
-          <Text className="font-semibold text-slate-700">Remarks: </Text>
+          <Text className="font-semibold text-slate-700">{t('remarksColon')}</Text>
           <Text className="italic">{expense.remarks}</Text>
         </Text>
       </View>

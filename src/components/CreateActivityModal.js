@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 const formatDate = (date) =>
   date.toLocaleDateString('en-US', {
@@ -19,6 +20,7 @@ const formatDate = (date) =>
   });
 
 export default function CreateActivityModal({ visible, onClose, onSave }) {
+  const { t } = useLanguageStore();
   const [activityName, setActivityName] = useState('');
   const [remarks, setRemarks] = useState('');
   const [date, setDate] = useState(new Date());
@@ -40,7 +42,7 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
 
   const handleSave = () => {
     if (!activityName.trim()) {
-      setError('Activity name is required');
+      setError(t('activityNameRequired'));
       return;
     }
     setError('');
@@ -87,18 +89,18 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            Add Activity
+            {t('addActivityTitle')}
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Activity Name
+              {t('activityNameLabel')}
             </Text>
             <TextInput
               className={`w-full h-14 rounded-xl border ${
                 error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
               } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4`}
-              placeholder="e.g. Daily Irrigation Check"
+              placeholder={t('activityNamePlaceholder')}
               placeholderTextColor="#94a3b8"
               value={activityName}
               onChangeText={(text) => {
@@ -113,14 +115,14 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Remarks
+              {t('remarksLabel')}
             </Text>
             <TextInput
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-4"
               style={styles.remarksInput}
               multiline
               textAlignVertical="top"
-              placeholder="Add detailed notes here..."
+              placeholder={t('remarksPlaceholder')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
@@ -129,7 +131,7 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
 
           <View className="flex flex-col gap-2 mb-8">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Date
+              {t('dateLabel')}
             </Text>
             <TouchableOpacity
               className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 flex-row items-center"
@@ -149,7 +151,7 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">Add Activity</Text>
+              <Text className="text-slate-900 font-bold">{t('saveActivity')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -158,7 +160,7 @@ export default function CreateActivityModal({ visible, onClose, onSave }) {
               onPress={handleCancel}
             >
               <Text className="text-slate-500 dark:text-slate-400 font-medium">
-                Cancel
+                {t('cancel')}
               </Text>
             </TouchableOpacity>
           </View>

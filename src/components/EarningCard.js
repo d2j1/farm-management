@@ -2,8 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { formatCurrency } from '../utils/cropDetailsUtils';
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuAction }) {
+  const { t } = useLanguageStore();
+
   return (
     <View 
       className="bg-white border border-primary/10 p-4 relative shadow-sm rounded-2xl"
@@ -25,7 +28,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
             onPress={() => onMenuAction(earning.id, 'edit')}
           >
             <MaterialIcons name="edit" size={16} color="#334155" />
-            <Text className="ml-2 text-sm font-medium text-slate-700">Edit Earning</Text>
+            <Text className="ml-2 text-sm font-medium text-slate-700">{t('editEarning')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="px-4 py-2 flex-row items-center border-t border-slate-100"
@@ -33,7 +36,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
             onPress={() => onMenuAction(earning.id, 'delete')}
           >
             <MaterialIcons name="delete" size={16} color="#dc2626" />
-            <Text className="ml-2 text-sm font-medium text-red-600">Delete Earning</Text>
+            <Text className="ml-2 text-sm font-medium text-red-600">{t('deleteEarning')}</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -55,7 +58,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
 
       <View className="mt-4 bg-background-light p-3 rounded-lg border border-primary/5">
         <Text className="text-sm text-slate-600 leading-relaxed">
-          <Text className="font-semibold text-slate-700">Remarks: </Text>
+          <Text className="font-semibold text-slate-700">{t('remarksColon')}</Text>
           <Text className="italic">{earning.remarks}</Text>
         </Text>
       </View>

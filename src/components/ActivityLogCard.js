@@ -1,8 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function ActivityLogCard({ log, isMenuOpen, onToggleMenu, onMenuAction }) {
+  const { t } = useLanguageStore();
+
   return (
     <View 
       className="bg-white border border-primary/10 p-4 relative shadow-sm rounded-2xl"
@@ -23,14 +26,14 @@ export default function ActivityLogCard({ log, isMenuOpen, onToggleMenu, onMenuA
             activeOpacity={0.7}
             onPress={() => onMenuAction(log.id, 'edit')}
           >
-            <Text className="text-sm font-medium text-slate-700">Edit Log</Text>
+            <Text className="text-sm font-medium text-slate-700">{t('editLog')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="px-4 py-2"
             activeOpacity={0.7}
             onPress={() => onMenuAction(log.id, 'delete')}
           >
-            <Text className="text-sm font-medium text-red-600">Delete Log</Text>
+            <Text className="text-sm font-medium text-red-600">{t('deleteLog')}</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -48,7 +51,7 @@ export default function ActivityLogCard({ log, isMenuOpen, onToggleMenu, onMenuA
 
       <View className="mt-4 bg-background-light p-3 rounded-lg border border-primary/5">
         <Text className="text-sm text-slate-600 leading-relaxed">
-          <Text className="font-semibold text-slate-700">Remarks: </Text>
+          <Text className="font-semibold text-slate-700">{t('remarksColon')}</Text>
           <Text className="italic">{log.remarks}</Text>
         </Text>
       </View>

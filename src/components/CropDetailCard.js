@@ -1,6 +1,6 @@
-import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Large crop detail card for the Crops screen.
@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
  * @param {string} props.crop.earnings
  */
 export default function CropDetailCard({ crop, onPress }) {
+  const { t } = useLanguageStore();
   return (
     <TouchableOpacity
       activeOpacity={0.88}
@@ -43,7 +44,7 @@ export default function CropDetailCard({ crop, onPress }) {
           styles.statusLabel,
           { color: crop.status === 'inactive' ? '#64748b' : '#15803d' },
         ]}>
-          {crop.status === 'inactive' ? 'Inactive' : 'Active'}
+          {crop.status === 'inactive' ? t('inactive') : t('active')}
         </Text>
       </View>
 
@@ -79,14 +80,14 @@ export default function CropDetailCard({ crop, onPress }) {
                   <Text
                     className={`text-[10px] font-bold uppercase tracking-widest ${crop.lastActivity.colorClass}`}
                   >
-                    LAST ACTIVITY: {crop.lastActivity.label}
+                    {t('latestActivityLabel')}: {crop.lastActivity.label}
                   </Text>
                 </View>
               ) : null}
               <View className="flex-row items-center gap-1">
                 <View className={`w-2 h-2 rounded-full ${crop.upcoming ? 'bg-blue-400' : 'bg-slate-300'}`} />
                 <Text className={`text-[10px] font-bold uppercase tracking-widest ${crop.upcoming ? 'text-blue-400' : 'text-slate-400'}`}>
-                  UPCOMING: {crop.upcoming ? crop.upcoming.label : 'NO UPCOMING TASKS'}
+                  {t('upcomingTaskLabel')}: {crop.upcoming ? crop.upcoming.label : t('noUpcomingTasks')}
                 </Text>
               </View>
             </View>
@@ -100,7 +101,7 @@ export default function CropDetailCard({ crop, onPress }) {
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-downward" size={12} color="#ef4444" />
               <Text className="text-[9px] text-slate-400 uppercase font-black tracking-widest">
-                Expenses
+                {t('expensesLabel')}
               </Text>
             </View>
             <Text className="text-base font-bold text-slate-800">{crop.expenses}</Text>
@@ -111,7 +112,7 @@ export default function CropDetailCard({ crop, onPress }) {
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-upward" size={12} color="#3ce619" />
               <Text className="text-[9px] text-primary/70 uppercase font-black tracking-widest">
-                Earnings
+                {t('earningsLabel')}
               </Text>
             </View>
             <Text className="text-base font-bold text-primary">{crop.earnings}</Text>

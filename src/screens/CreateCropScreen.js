@@ -18,6 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useDatabase } from '../database/DatabaseProvider';
 import { insertCrop } from '../database/cropService';
 import CropResultModal from '../components/CropResultModal';
+import { useLanguageStore } from '../utils/languageStore';
 
 function formatDate(date) {
   return date.toLocaleDateString('en-US', {
@@ -50,7 +51,7 @@ function SectionLabel({ children, required = false }) {
         {children}
       </Text>
       {required ? (
-        <Text className="text-[10px] font-bold text-primary uppercase">Required</Text>
+        <Text className="text-[10px] font-bold text-primary uppercase">{useLanguageStore.getState().t('required')}</Text>
       ) : null}
     </View>
   );
@@ -210,7 +211,7 @@ function SelectInput({
               activeOpacity={0.8}
               onPress={() => setIsOpen(false)}
             >
-              <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</Text>
+              <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">{useLanguageStore.getState().t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -220,6 +221,7 @@ function SelectInput({
 }
 
 export default function CreateCropScreen({ navigation, route }) {
+  const { t } = useLanguageStore();
   const db = useDatabase();
 
   // Result modal state: { visible, type: 'success' | 'error' }
@@ -264,14 +266,14 @@ export default function CreateCropScreen({ navigation, route }) {
     const areaValue = Number(totalArea);
     const errors = {};
 
-    if (!landNickname.trim()) errors.landNickname = 'Land nickname is required';
+    if (!landNickname.trim()) errors.landNickname = t('landNicknameRequired');
     if (!totalArea.trim()) {
-      errors.totalArea = 'Total area is required';
+      errors.totalArea = t('totalAreaRequired');
     } else if (Number.isNaN(areaValue) || areaValue <= 0) {
-      errors.totalArea = 'Must be a number greater than zero';
+      errors.totalArea = t('areaNumberRequired');
     }
-    if (!cropName.trim()) errors.cropName = 'Crop name is required';
-    if (!plantingDate) errors.plantingDate = 'Planting date is required';
+    if (!cropName.trim()) errors.cropName = t('cropNameRequired');
+    if (!plantingDate) errors.plantingDate = t('plantingDateRequired');
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -317,7 +319,7 @@ export default function CreateCropScreen({ navigation, route }) {
               <MaterialIcons name="arrow-back" size={22} color="#64748b" />
             </TouchableOpacity>
             <Text className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Create Crop
+              {t('createCropHeader')}
             </Text>
             <View className="w-8" />
           </View>
@@ -332,14 +334,14 @@ export default function CreateCropScreen({ navigation, route }) {
 
 
           <View className="mt-8 px-4">
-            <SectionLabel required>Essential Crop Data</SectionLabel>
+            <SectionLabel required>{t('essentialCropData')}</SectionLabel>
             <View className="gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <View>
-                <FieldLabel htmlRequired>Land Nickname</FieldLabel>
+                <FieldLabel htmlRequired>{t('landNickname')}</FieldLabel>
                 <TextInput
                   value={landNickname}
                   onChangeText={(t) => { setLandNickname(t); clearError('landNickname'); }}
-                  placeholder="e.g. North Field, Valley Farm"
+                  placeholder={t('landNicknamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   className={`${textInputClassName} ${fieldErrors.landNickname ? 'border-red-400' : ''}`}
                 />
@@ -347,7 +349,7 @@ export default function CreateCropScreen({ navigation, route }) {
               </View>
 
               <View>
-                <FieldLabel htmlRequired>Total Area</FieldLabel>
+                <FieldLabel htmlRequired>{t('totalArea')}</FieldLabel>
                 <View className="flex-row gap-2">
                   <TextInput
                     value={totalArea}
@@ -361,20 +363,21 @@ export default function CreateCropScreen({ navigation, route }) {
                   <SelectInput
                     value={areaUnit}
                     onChange={setAreaUnit}
-                    options={AREA_UNIT_OPTIONS}
+                    options={AREA_UNIT_OPTIONS.map(opt => ({ label: t(opt.value.toLowerCase()), value: opt.value }))}
                     wrapperClassName="w-32"
-                    modalTitle="Select Area Unit"
+                    modalTitle={t('selectAreaUnit')}
+                    placeholder={t('selectOption')}
                   />
                 </View>
                 {fieldErrors.totalArea ? <Text className="mt-1 ml-1 text-xs text-red-500">{fieldErrors.totalArea}</Text> : null}
               </View>
 
               <View>
-                <FieldLabel htmlRequired>Crop Name</FieldLabel>
+                <FieldLabel htmlRequired>{t('cropNameLabel')}</FieldLabel>
                 <TextInput
                   value={cropName}
                   onChangeText={(t) => { setCropName(t); clearError('cropName'); }}
-                  placeholder="e.g. Wheat, Maize"
+                  placeholder={t('cropNamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   className={`${textInputClassName} ${fieldErrors.cropName ? 'border-red-400' : ''}`}
                 />
@@ -383,10 +386,10 @@ export default function CreateCropScreen({ navigation, route }) {
 
               <View>
                 <DateInput
-                  label="Plantation or Sowing Date"
+                  label={t('plantationDateLabel')}
                   value={plantingDate}
                   onChange={(d) => { setPlantingDate(d); clearError('plantingDate'); }}
-                  placeholder="Select date"
+                  placeholder={t('selectDate')}
                   iconName="calendar-month"
                   maximumDate={new Date()}
                   inputClassName={`border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800 ${fieldErrors.plantingDate ? 'border-red-400' : ''}`}
@@ -397,44 +400,44 @@ export default function CreateCropScreen({ navigation, route }) {
           </View>
 
           <View className="mt-8 px-4">
-            <SectionLabel>Optional Details</SectionLabel>
+            <SectionLabel>{t('optionalDetails')}</SectionLabel>
             <View className="gap-5 rounded-xl border border-slate-200 bg-white/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
               <View>
-                <FieldLabel>Seed Variety</FieldLabel>
+                <FieldLabel>{t('seedVarietyLabel')}</FieldLabel>
                 <TextInput
                   value={seedVariety}
                   onChangeText={setSeedVariety}
-                  placeholder="e.g. Durum, Hybrid 702"
+                  placeholder={t('seedVarietyPlaceholder')}
                   placeholderTextColor="#94a3b8"
                   className={optionalInputClassName}
                 />
               </View>
 
               <SelectInput
-                label="Soil Type"
+                label={t('soilTypeLabel')}
                 value={soilType}
                 onChange={setSoilType}
-                options={SOIL_TYPE_OPTIONS}
-                placeholder="Select Soil Type"
-                modalTitle="Select Soil Type"
+                options={SOIL_TYPE_OPTIONS.map(opt => ({ label: t(opt.value + 'Soil'), value: opt.value }))}
+                placeholder={t('selectSoilType')}
+                modalTitle={t('selectSoilType')}
               />
 
               <DateInput
-                label="Expected Harvest Date"
+                label={t('expectedHarvestDateLabel')}
                 value={harvestDate}
                 onChange={setHarvestDate}
-                placeholder="Select date"
+                placeholder={t('selectDate')}
                 iconName="event-available"
                 minimumDate={plantingDate || undefined}
                 inputClassName="border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
               />
 
               <View>
-                <FieldLabel>Previous Crop (Rotation)</FieldLabel>
+                <FieldLabel>{t('previousCropLabel')}</FieldLabel>
                 <TextInput
                   value={previousCrop}
                   onChangeText={setPreviousCrop}
-                  placeholder="What was planted here before?"
+                  placeholder={t('previousCropPlaceholder')}
                   placeholderTextColor="#94a3b8"
                   className={optionalInputClassName}
                 />
@@ -450,7 +453,7 @@ export default function CreateCropScreen({ navigation, route }) {
               style={styles.createButton}
             >
               <MaterialIcons name="task-alt" size={22} color="#0f172a" />
-              <Text className="text-base font-bold text-slate-900">Create Crop Record</Text>
+              <Text className="text-base font-bold text-slate-900">{t('createCropBtn')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

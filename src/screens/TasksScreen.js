@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Pressable, Animated } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 import ActionCenter from '../components/ActionCenter';
 import FilterTabs from '../components/FilterTabs';
 import TaskCard from '../components/TaskCard';
@@ -15,18 +16,19 @@ import { insertActivity } from '../database/activityService';
 import { getAllReminders, deleteReminder, insertReminder } from '../database/reminderService';
 
 // ─── Filter pill labels ──────────────────────────────────────
-const FILTER_TABS = [
-  'All',
-  'Due today',
-  'Upcoming',
-  'General',
-  'Crop related',
+const FILTER_TABS_KEYS = [
+  'all',
+  'dueToday',
+  'upcoming',
+  'general',
+  'cropRelated',
 ];
 
 export default function TasksScreen({ navigation, route }) {
+  const { t } = useLanguageStore();
   const db = useDatabase();
   const insets = useSafeAreaInsets();
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateReminder, setShowCreateReminder] = useState(false);
   const [showUpdateTask, setShowUpdateTask] = useState(false);
@@ -85,21 +87,21 @@ export default function TasksScreen({ navigation, route }) {
 
       const today = new Date().toISOString().split('T')[0];
 
-      setTasks(dbTasks.map(t => {
-        let statusText = t.startDate || 'No date set';
-        let taskState = t.startDate === today ? 'dueToday' : 'pending';
+      setTasks(dbTasks.map(taskItem => {
+        let statusText = taskItem.startDate || 'No date set';
+        let taskState = taskItem.startDate === today ? 'dueToday' : 'pending';
 
-        if (t.type === 'multi_day' && t.endDate) {
-          statusText = `${t.startDate} - ${t.endDate}`;
+        if (taskItem.type === 'multi_day' && taskItem.endDate) {
+          statusText = `${taskItem.startDate} - ${taskItem.endDate}`;
           taskState = 'multi_day';
         }
 
         return {
-          ...t,
-          id: t.id,
-          rawDate: t.startDate,
-          title: t.taskName,
-          categoryLabel: t.cropName || 'General',
+          ...taskItem,
+          id: taskItem.id,
+          rawDate: taskItem.startDate,
+          title: taskItem.taskName,
+          categoryLabel: taskItem.cropName || t('general'),
           categoryIcon: 'eco',
           statusText,
           status: taskState,
@@ -120,7 +122,7 @@ export default function TasksScreen({ navigation, route }) {
     } catch (err) {
       console.error('Failed to load data:', err);
     }
-  }, [db]);
+  }, [db, t]);
 
   useEffect(() => {
     loadData();
@@ -143,7 +145,7 @@ export default function TasksScreen({ navigation, route }) {
 
   const handleMenuAction = async (id, action) => {
     setOpenMenuId(null);
-    const task = tasks.find(t => t.id === id);
+    const task = tasks.find(item => item.id === id);
     if (!task) return;
 
     try {
@@ -151,14 +153,14 @@ export default function TasksScreen({ navigation, route }) {
         await insertActivity(db, {
           cropId: task.cropId || null,
           title: task.title,
-          remark: 'Task completed from My Tasks',
+          remark: t('taskCompletedFromMyTasks'),
           date: new Date(),
         });
         await deleteTask(db, id);
-        showToast('Task marked as done!');
+        showToast(t('taskDoneToast'));
       } else if (action === 'skip') {
         await deleteTask(db, id);
-        showToast('Task skipped');
+        showToast(t('taskSkippedToast'));
       } else if (action === 'snooze') {
         setEditingTask(task);
         setShowUpdateTask(true);
@@ -167,7 +169,7 @@ export default function TasksScreen({ navigation, route }) {
       loadData();
     } catch (err) {
       console.error('Failed to process task action:', err);
-      showToast('Action failed');
+      showToast(t('actionFailedToast'));
     }
   };
 
@@ -177,10 +179,10 @@ export default function TasksScreen({ navigation, route }) {
       try {
         await deleteReminder(db, reminder.dbId);
         loadData();
-        showToast('Reminder dismissed');
+        showToast(t('reminderDismissedToast'));
       } catch (err) {
         console.error('Failed to delete reminder:', err);
-        showToast('Failed to dismiss reminder');
+        showToast(t('reminderDismissFailedToast'));
       }
     }
   };
@@ -188,20 +190,20 @@ export default function TasksScreen({ navigation, route }) {
   // Combine tasks and reminders for the timeline and sort by date descending
   const timelineItems = [...tasks, ...reminders]
     .filter(item => {
-      if (activeFilter === 'All') return true;
+      if (activeFilter === 'all') return true;
 
       const today = new Date().toISOString().split('T')[0];
 
-      if (activeFilter === 'Due today') {
+      if (activeFilter === 'dueToday') {
         return item.rawDate === today;
       }
-      if (activeFilter === 'Upcoming') {
+      if (activeFilter === 'upcoming') {
         return item.rawDate > today;
       }
-      if (activeFilter === 'General') {
+      if (activeFilter === 'general') {
         return !item.cropId;
       }
-      if (activeFilter === 'Crop related') {
+      if (activeFilter === 'cropRelated') {
         return Boolean(item.cropId);
       }
       return true;
@@ -227,9 +229,9 @@ export default function TasksScreen({ navigation, route }) {
 
           <View className="items-center">
             <Text className="text-xl font-bold tracking-tight text-black">
-              My Tasks
+              {t('myTasks')}
             </Text>
-            <Text className="text-xs text-slate-500">Farm & Personal</Text>
+            <Text className="text-xs text-slate-500">{t('farmPersonal')}</Text>
           </View>
         </View>
 
@@ -246,14 +248,23 @@ export default function TasksScreen({ navigation, route }) {
 
           {/* Filter tabs */}
           <FilterTabs
-            tabs={FILTER_TABS}
-            activeTab={activeFilter}
-            onTabChange={setActiveFilter}
+            tabs={FILTER_TABS_KEYS.map(key => t(key))}
+            activeTab={t(activeFilter)}
+            onTabChange={(val) => {
+              const reverseMap = {
+                [t('all')]: 'all',
+                [t('dueToday')]: 'dueToday',
+                [t('upcoming')]: 'upcoming',
+                [t('general')]: 'general',
+                [t('cropRelated')]: 'cropRelated',
+              };
+              setActiveFilter(reverseMap[val]);
+            }}
           />
 
           {/* Timeline header */}
           <Text className="text-xs font-bold text-slate-400 uppercase px-5 mb-3">
-            Timeline
+            {t('timeline')}
           </Text>
 
           {/* Timeline cards */}
@@ -297,7 +308,7 @@ export default function TasksScreen({ navigation, route }) {
         >
           <MaterialIcons name="add-task" size={20} color="#3ce619" />
           <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
-            New Task
+            {t('newTask')}
           </Text>
         </TouchableOpacity>
 
@@ -309,7 +320,7 @@ export default function TasksScreen({ navigation, route }) {
         >
           <MaterialIcons name="notification-add" size={20} color="#1a2e05" />
           <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
-            New Reminder
+            {t('newReminder')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -323,10 +334,10 @@ export default function TasksScreen({ navigation, route }) {
             await insertTask(db, task);
             setShowCreateTask(false);
             loadData();
-            showToast('Task created!');
+            showToast(t('taskCreatedToast'));
           } catch (err) {
             console.error('Failed to create task:', err);
-            showToast('Failed to create task');
+            showToast(t('taskCreateFailedToast'));
           }
         }}
       />
@@ -340,10 +351,10 @@ export default function TasksScreen({ navigation, route }) {
             await insertReminder(db, reminder);
             setShowCreateReminder(false);
             loadData();
-            showToast('Reminder created!');
+            showToast(t('reminderCreatedToast'));
           } catch (err) {
             console.error('Failed to create reminder:', err);
-            showToast('Failed to create reminder');
+            showToast(t('reminderCreateFailedToast'));
           }
         }}
       />
@@ -362,10 +373,10 @@ export default function TasksScreen({ navigation, route }) {
             setShowUpdateTask(false);
             setEditingTask(null);
             loadData();
-            showToast('Task updated!');
+            showToast(t('taskUpdatedToast'));
           } catch (err) {
             console.error('Failed to update task:', err);
-            showToast('Failed to update task');
+            showToast(t('taskUpdateFailedToast'));
           }
         }}
       />

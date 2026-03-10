@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 const formatDate = (date) =>
   date.toLocaleDateString('en-US', {
@@ -25,6 +26,7 @@ function parseAmount(value) {
 }
 
 export default function CreateExpenseModal({ visible, onClose, onSave }) {
+  const { t } = useLanguageStore();
   const [expenseName, setExpenseName] = useState('');
   const [remarks, setRemarks] = useState('');
   const [amount, setAmount] = useState('');
@@ -49,10 +51,10 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
   const handleSave = () => {
     const newErrors = {};
     if (!expenseName.trim()) {
-      newErrors.expenseName = 'Expense name is required';
+      newErrors.expenseName = t('expenseNameRequired');
     }
     if (!amount.trim() || parseAmount(amount) <= 0) {
-      newErrors.amount = 'Valid amount is required';
+      newErrors.amount = t('validAmountRequired');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -104,18 +106,18 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            Add Expense
+            {t('addExpenseTitle')}
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Expense Name
+              {t('expenseNameLabel')}
             </Text>
             <TextInput
               className={`w-full h-14 rounded-xl border ${
                 errors.expenseName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
               } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4`}
-              placeholder="e.g. Groceries"
+              placeholder={t('expenseNamePlaceholder')}
               placeholderTextColor="#94a3b8"
               value={expenseName}
               onChangeText={(text) => {
@@ -130,14 +132,14 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Remarks
+              {t('remarksLabel')}
             </Text>
             <TextInput
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-4"
               style={styles.remarksInput}
               multiline
               textAlignVertical="top"
-              placeholder="Details about the expense..."
+              placeholder={t('remarksPlaceholderExpenses')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
@@ -146,7 +148,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Amount
+              {t('amountLabel')}
             </Text>
             <View className="relative flex-row items-center">
               <Text className="absolute left-4 text-slate-500 dark:text-slate-400 font-medium">₹</Text>
@@ -171,7 +173,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
 
           <View className="flex flex-col gap-2 mb-8">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Date
+              {t('dateLabel')}
             </Text>
             <TouchableOpacity
               className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 flex-row items-center"
@@ -191,7 +193,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">Add Expense</Text>
+              <Text className="text-slate-900 font-bold">{t('saveExpense')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -200,7 +202,7 @@ export default function CreateExpenseModal({ visible, onClose, onSave }) {
               onPress={handleCancel}
             >
               <Text className="text-slate-500 dark:text-slate-400 font-medium">
-                Cancel
+                {t('cancel')}
               </Text>
             </TouchableOpacity>
           </View>

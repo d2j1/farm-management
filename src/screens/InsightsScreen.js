@@ -16,34 +16,34 @@ import { API_CONFIG } from '../utils/api.config';
 import { useLanguageStore } from '../utils/languageStore';
 
 // ─── Content-type tabs ────────────────────────────────────────
-const CONTENT_TYPES = ['Articles', 'Videos'];
+const CONTENT_TYPES_KEYS = ['articles', 'videos'];
 
 // ─── Category filter pills ───────────────────────────────────
-const CATEGORIES = ['All', 'Organic', 'Fertilizer', 'Economy'];
+const CATEGORIES_KEYS = ['all', 'organic', 'fertilizer', 'economy'];
 
-const ARTICLES_DUMMY = [
+const getArticles = (t) => [
   {
     id: 'a1',
-    category: 'Organic',
-    readTime: '5 min read',
-    title: 'Natural Pest Control Methods',
-    description: 'Learn how to protect your crops using organic solutions and beneficial insects.',
+    category: t('organic'),
+    readTime: `5 ${t('minRead')}`,
+    title: t('pestControlTitle'),
+    description: t('pestControlDesc'),
     icon: 'bug-report',
   },
   {
     id: 'a2',
-    category: 'Fertilizer',
-    readTime: '8 min read',
-    title: 'Optimizing Soil Nutrition',
-    description: 'A comprehensive guide to understanding NPK ratios and soil testing for better yields.',
+    category: t('fertilizer'),
+    readTime: `8 ${t('minRead')}`,
+    title: t('soilNutritionTitle'),
+    description: t('soilNutritionDesc'),
     icon: 'science',
   },
   {
     id: 'a3',
-    category: 'Economy',
-    readTime: '6 min read',
-    title: 'Market Price Trends 2026',
-    description: 'Stay ahead of the curve with our latest analysis of crop market prices and demand forecasts.',
+    category: t('economy'),
+    readTime: `6 ${t('minRead')}`,
+    title: t('marketTrendsTitle'),
+    description: t('marketTrendsDesc'),
     icon: 'trending-up',
   },
 ];
@@ -77,14 +77,15 @@ const VIDEOS = [
 ];
 
 export default function InsightsScreen() {
+  const { t } = useLanguageStore();
   const { width: screenWidth } = useWindowDimensions();
   const pagerRef = useRef(null);
   const netInfo = useNetInfo();
 
   const isOffline = netInfo.isConnected === false;
 
-  const [activeContentType, setActiveContentType] = useState('Articles');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeContentType, setActiveContentType] = useState('articles');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
   const { languageLabel } = useLanguageStore();
@@ -126,10 +127,10 @@ export default function InsightsScreen() {
       */
 
       // Using dummy data for now
-      setArticles(ARTICLES_DUMMY);
+      setArticles(getArticles(t));
     } catch (err) {
       console.error('Fetch error:', err);
-      setError('Failed to load insights. Please try again.');
+      setError(t('failedLoadInsights'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -142,21 +143,21 @@ export default function InsightsScreen() {
 
   // Determine search placeholder based on active content type
   const searchPlaceholder =
-    activeContentType === 'Articles' ? 'Search articles' : 'Search videos';
+    activeContentType === 'articles' ? t('searchArticles') : t('searchVideos');
 
   /** Tap toggle → scroll pager to matching page */
-  const handleToggle = useCallback((type) => {
-    setActiveContentType(type);
-    const pageIndex = CONTENT_TYPES.indexOf(type);
+  const handleToggle = useCallback((typeKey) => {
+    setActiveContentType(typeKey);
+    const pageIndex = CONTENT_TYPES_KEYS.indexOf(typeKey);
     pagerRef.current?.scrollTo({ x: pageIndex * screenWidth, animated: true });
   }, [screenWidth]);
 
   /** Swipe pager → sync toggle state */
   const handlePagerScroll = useCallback((e) => {
     const pageIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-    const type = CONTENT_TYPES[pageIndex];
-    if (type && type !== activeContentType) {
-      setActiveContentType(type);
+    const typeKey = CONTENT_TYPES_KEYS[pageIndex];
+    if (typeKey && typeKey !== activeContentType) {
+      setActiveContentType(typeKey);
     }
   }, [screenWidth, activeContentType]);
 
@@ -165,7 +166,7 @@ export default function InsightsScreen() {
       {/* ─── Header ─────────────────────────────────── */}
       <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
         <Text className="text-xl font-bold tracking-tight text-black">
-          Quick Insights
+          {t('quickInsights')}
         </Text>
       </View>
 
@@ -174,23 +175,23 @@ export default function InsightsScreen() {
         {/* Articles / Videos toggle */}
         <View className="px-4 mb-4">
           <View className="flex-row p-1 bg-white rounded-full border border-slate-200 shadow-sm">
-            {CONTENT_TYPES.map((type) => {
-              const isActive = type === activeContentType;
+            {CONTENT_TYPES_KEYS.map((typeKey) => {
+              const isActive = typeKey === activeContentType;
               return (
                 <TouchableOpacity
-                  key={type}
+                  key={typeKey}
                   className={`flex-1 py-2 px-4 rounded-full items-center justify-center ${
                     isActive ? 'bg-primary' : 'bg-transparent'
                   }`}
                   activeOpacity={0.8}
-                  onPress={() => handleToggle(type)}
+                  onPress={() => handleToggle(typeKey)}
                 >
                   <Text
                     className={`text-sm font-bold ${
                       isActive ? 'text-black' : 'text-slate-500'
                     }`}
                   >
-                    {type}
+                    {t(typeKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -219,12 +220,12 @@ export default function InsightsScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 16 }}
           style={{ flexGrow: 0 }}
         >
-          {CATEGORIES.map((cat) => (
+          {CATEGORIES_KEYS.map((catKey) => (
             <FilterButton
-              key={cat}
-              label={cat}
-              isActive={cat === activeCategory}
-              onPress={() => setActiveCategory(cat)}
+              key={catKey}
+              label={t(catKey)}
+              isActive={catKey === activeCategory}
+              onPress={() => setActiveCategory(catKey)}
             />
           ))}
         </ScrollView>
@@ -257,7 +258,7 @@ export default function InsightsScreen() {
               {loading && !refreshing ? (
                 <View className="py-20 items-center justify-center">
                   <ActivityIndicator size="large" color="#3ce619" />
-                  <Text className="mt-4 text-slate-500 font-medium">Fetching insights...</Text>
+                  <Text className="mt-4 text-slate-500 font-medium">{t('fetchingInsights')}</Text>
                 </View>
               ) : error ? (
                 <View className="py-10 items-center justify-center">
@@ -267,13 +268,13 @@ export default function InsightsScreen() {
                     onPress={() => fetchPosts()}
                     className="mt-6 bg-primary px-8 py-3 rounded-full shadow-sm"
                   >
-                    <Text className="text-black font-bold">Retry</Text>
+                    <Text className="text-black font-bold">{t('retry')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : articles.length === 0 ? (
                 <View className="py-20 items-center justify-center">
                   <MaterialIcons name="article" size={48} color="#94a3b8" />
-                  <Text className="mt-4 text-slate-500 font-medium">No insights found for {languageLabel}</Text>
+                  <Text className="mt-4 text-slate-500 font-medium">{t('noInsightsFound')}{languageLabel}</Text>
                 </View>
               ) : (
                 articles.map((article) => (

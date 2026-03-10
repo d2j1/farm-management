@@ -5,10 +5,12 @@ import { useDatabase } from '../database/DatabaseProvider';
 import { getAllTasks } from '../database/taskService';
 import { getAllReminders } from '../database/reminderService';
 import { useIsFocused } from '@react-navigation/native';
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function TaskSection({ navigation }) {
   const db = useDatabase();
   const isFocused = useIsFocused();
+  const { t } = useLanguageStore();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,27 +23,27 @@ export default function TaskSection({ navigation }) {
 
       const today = new Date().toISOString().split('T')[0];
 
-      const mappedTasks = dbTasks.map(t => {
-        let statusText = t.startDate || 'No date set';
+      const mappedTasks = dbTasks.map(tData => {
+        let statusText = tData.startDate || t('noUpcomingTasks');
         let color = '#3ce619'; // primary
         
-        if (t.startDate === today) {
-          statusText = 'Today';
-        } else if (t.startDate < today) {
-          statusText = 'Overdue';
+        if (tData.startDate === today) {
+          statusText = t('today');
+        } else if (tData.startDate < today) {
+          statusText = t('overdue');
           color = '#ef4444'; // red
         } else {
           color = '#64748b'; // slate
         }
 
         return {
-          id: `t-${t.id}`,
-          rawDate: t.startDate,
-          title: t.taskName,
-          subtitle: t.cropName ? `Crop: ${t.cropName}` : 'General Task',
+          id: `t-${tData.id}`,
+          rawDate: tData.startDate,
+          title: tData.taskName,
+          subtitle: tData.cropName ? `${t('cropPrefix')}${tData.cropName}` : t('generalTask'),
           statusLabel: statusText,
           color,
-          icon: t.startDate === today ? 'radio-button-unchecked' : 'calendar-today',
+          icon: tData.startDate === today ? 'radio-button-unchecked' : 'calendar-today',
         };
       });
 
@@ -49,15 +51,13 @@ export default function TaskSection({ navigation }) {
         id: `r-${r.id}`,
         rawDate: r.reminderDate,
         title: r.details,
-        subtitle: 'Reminder',
-        statusLabel: r.reminderDate === today ? 'Today' : r.reminderDate,
+        subtitle: t('newReminder'),
+        statusLabel: r.reminderDate === today ? t('today') : r.reminderDate,
         color: '#f59e0b', // amber
         icon: 'notifications-none',
       }));
 
       // Combine and sort by date (descending for now to show latest/upcoming)
-      // Actually, for "Upcoming", we usually want ASC, but here we just take the first 4 recorded.
-      // The services already return them ordered by date.
       const combined = [...mappedTasks, ...mappedReminders]
         .sort((a, b) => {
           if (a.rawDate < b.rawDate) return -1;
@@ -72,7 +72,7 @@ export default function TaskSection({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, [db, t]);
 
   useEffect(() => {
     if (isFocused) {
@@ -85,9 +85,13 @@ export default function TaskSection({ navigation }) {
       <View className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-slate-50 dark:border-slate-800">
-          <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Upcoming Tasks</Text>
+          <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+            {t('upcomingTasks')}
+          </Text>
           <View className="bg-primary/20 px-2 py-0.5 rounded-full">
-            <Text className="text-primary text-[10px] font-bold uppercase">Next 24h</Text>
+            <Text className="text-primary text-[10px] font-bold uppercase">
+              {t('next24h')}
+            </Text>
           </View>
         </View>
 
@@ -96,7 +100,9 @@ export default function TaskSection({ navigation }) {
           {loading ? (
             <ActivityIndicator color="#3ce619" />
           ) : items.length === 0 ? (
-            <Text className="text-center text-slate-400 py-4">No upcoming tasks</Text>
+            <Text className="text-center text-slate-400 py-4">
+              {t('noUpcomingTasks')}
+            </Text>
           ) : (
             items.map((item) => (
               <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
@@ -126,11 +132,15 @@ export default function TaskSection({ navigation }) {
               className="flex-row items-center gap-1.5"
             >
               <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">Create Task</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('createTask')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
-              <Text className="text-primary text-sm font-bold">View All Tasks</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('viewAllTasks')}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -140,7 +150,9 @@ export default function TaskSection({ navigation }) {
               className="flex-row items-center gap-1.5"
             >
               <MaterialIcons name="notifications-active" size={17} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">Create Reminder</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('createReminder')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

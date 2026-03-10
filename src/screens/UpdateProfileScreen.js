@@ -1,21 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TextInput,
   TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform,
+  Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import ComingSoonModal from '../components/ComingSoonModal';
+import { useLanguageStore } from '../utils/languageStore';
+import { getUserProfile, saveUserProfile } from '../database/userService';
 
 export default function UpdateProfileScreen({ navigation }) {
+  const { t } = useLanguageStore();
+  const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [villageName, setVillageName] = useState('');
   const [totalAcreage, setTotalAcreage] = useState('');
   const [activeCrops, setActiveCrops] = useState('');
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    // TODO: persist profile data
+  // Toast state
+  const [toastMessage, setToastMessage] = useState('');
+  const toastY = useRef(new Animated.Value(24)).current;
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+
+  const showToast = (message) => {
+    setToastMessage(message);
+    toastY.setValue(24);
+    toastOpacity.setValue(0);
+
+    Animated.parallel([
+      Animated.timing(toastY, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 260,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(toastY, {
+          toValue: 18,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        Animated.timing(toastOpacity, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setToastMessage('');
+      });
+    }, 2100);
+  };
+
+  const loadProfileData = useCallback(async () => {
+    try {
+      const profile = await getUserProfile();
+      if (profile) {
+        setFullName(profile.fullName || '');
+        setVillageName(profile.villageName || '');
+        setTotalAcreage(profile.totalAcreage ? String(profile.totalAcreage) : '');
+        setActiveCrops(profile.activeCrops || '');
+      }
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    
+    try {
+      const profileData = {
+        fullName,
+        villageName,
+        totalAcreage: parseFloat(totalAcreage) || 0,
+        activeCrops,
+      };
+
+      const success = await saveUserProfile(profileData);
+      if (success) {
+        showToast(t('profileSaveSuccess'));
+        setTimeout(() => {
+          navigation.goBack();
+        }, 1200);
+      } else {
+        showToast(t('profileSaveFailed'));
+      }
+    } catch (error) {
+      console.error('Save profile error:', error);
+      showToast(t('profileSaveFailed'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -30,7 +118,7 @@ export default function UpdateProfileScreen({ navigation }) {
           <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
         </TouchableOpacity>
         <Text className="text-xl font-bold tracking-tight text-black">
-          Update Profile
+          {t('updateProfile')}
         </Text>
       </View>
 
@@ -45,37 +133,22 @@ export default function UpdateProfileScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ─── Avatar ─────────────────────────────── */}
-          <View className="items-center justify-center pt-8 pb-2">
-            <View className="w-24 h-24 bg-slate-200 rounded-full items-center justify-center border-4 border-white shadow-sm">
-              <MaterialIcons name="person" size={48} color="#94a3b8" />
-            </View>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              className="mt-3"
-              onPress={() => setShowComingSoon(true)}
-            >
-              <Text className="text-xs font-semibold text-primary uppercase tracking-widest">
-                Change Photo
-              </Text>
-            </TouchableOpacity>
-          </View>
 
           {/* ─── Account form ───────────────────────── */}
           <View className="mt-6 px-4">
             <Text className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-3">
-              Account
+              {t('account')}
             </Text>
 
             <View className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-5 gap-4">
               {/* Full Name */}
               <View>
                 <Text className="text-xs font-semibold text-slate-500 uppercase mb-1.5 ml-0.5">
-                  Full Name
+                  {t('fullName')}
                 </Text>
                 <TextInput
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
-                  placeholder="Enter your full name"
+                  placeholder={t('fullNamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={fullName}
                   onChangeText={setFullName}
@@ -85,11 +158,11 @@ export default function UpdateProfileScreen({ navigation }) {
               {/* Village Name */}
               <View>
                 <Text className="text-xs font-semibold text-slate-500 uppercase mb-1.5 ml-0.5">
-                  Village Name
+                  {t('villageName')}
                 </Text>
                 <TextInput
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
-                  placeholder="Enter village name"
+                  placeholder={t('villageNamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={villageName}
                   onChangeText={setVillageName}
@@ -99,48 +172,49 @@ export default function UpdateProfileScreen({ navigation }) {
               {/* Total Acreage */}
               <View>
                 <Text className="text-xs font-semibold text-slate-500 uppercase mb-1.5 ml-0.5">
-                  Total Acreage
+                  {t('totalAcreage')}
                 </Text>
                 <TextInput
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
-                  placeholder="e.g. 5.5"
+                  placeholder={t('acreagePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   keyboardType="decimal-pad"
                   value={totalAcreage}
                   onChangeText={setTotalAcreage}
                 />
                 <Text className="mt-1.5 text-[10px] text-slate-400 italic px-1">
-                  Hint: Enter numerical value in acres
+                  {t('acreageHint')}
                 </Text>
               </View>
 
               {/* Active Crops */}
               <View>
                 <Text className="text-xs font-semibold text-slate-500 uppercase mb-1.5 ml-0.5">
-                  Active Crops
+                  {t('activeCropsLabel')}
                 </Text>
                 <TextInput
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
-                  placeholder="Wheat, Cotton, Rice..."
+                  placeholder={t('activeCropsPlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={activeCrops}
                   onChangeText={setActiveCrops}
                 />
                 <Text className="mt-1.5 text-[10px] text-slate-400 italic px-1">
-                  Separate crops with a comma (e.g., Wheat, Soy)
+                  {t('activeCropsHint')}
                 </Text>
               </View>
 
               {/* Save button */}
               <View className="pt-2">
                 <TouchableOpacity
-                  className="w-full bg-primary py-4 rounded-xl shadow-md flex-row items-center justify-center gap-2"
+                  className={`w-full ${isSaving ? 'bg-slate-300' : 'bg-primary'} py-4 rounded-xl shadow-md flex-row items-center justify-center gap-2`}
                   activeOpacity={0.85}
                   onPress={handleSave}
+                  disabled={isSaving}
                 >
-                  <MaterialIcons name="save" size={20} color="#000000" />
-                  <Text className="text-black font-bold text-base">
-                    Save Changes
+                  <MaterialIcons name="save" size={20} color={isSaving ? "#64748b" : "#000000"} />
+                  <Text className={`font-bold text-base ${isSaving ? 'text-slate-500' : 'text-black'}`}>
+                    {isSaving ? t('loading') : t('saveChanges')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -149,10 +223,27 @@ export default function UpdateProfileScreen({ navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <ComingSoonModal
-        visible={showComingSoon}
-        onClose={() => setShowComingSoon(false)}
-      />
+      {/* Standardized Toast UI */}
+      {toastMessage ? (
+        <Animated.View
+          style={[
+            styles.toast,
+            {
+              bottom: (insets.bottom || 0) + 24,
+              opacity: toastOpacity,
+              transform: [{ translateY: toastY }],
+            },
+          ]}
+          pointerEvents="none"
+        >
+          <View className="mr-2">
+            <MaterialIcons name="check-circle" size={14} color="#3ce619" />
+          </View>
+          <Text className="text-white text-xs font-medium">{toastMessage}</Text>
+        </Animated.View>
+      ) : null}
+
+      <View />
     </SafeAreaView>
   );
 }
@@ -160,5 +251,18 @@ export default function UpdateProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
+  },
+  toast: {
+    position: 'absolute',
+    alignSelf: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    zIndex: 50,
   },
 });

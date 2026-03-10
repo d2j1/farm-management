@@ -4,22 +4,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
 
-// ─── Language options ─────────────────────────────────────────
+// ─── Language options with native labels ──────────────────────
 const LANGUAGES = [
   { id: 'en', label: 'English' },
-  { id: 'hi', label: 'Hindi' },
-  { id: 'mr', label: 'Marathi' },
+  { id: 'hi', label: 'हिंदी' },
+  { id: 'mr', label: 'मराठी' },
 ];
 
 export default function ProfileScreen({ navigation }) {
-  const { languageCode, setLanguage } = useLanguageStore();
+  const { languageCode, setLanguage, t } = useLanguageStore();
 
   return (
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
       <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
         <Text className="text-xl font-bold tracking-tight text-black">
-          Profile
+          {t('profile')}
         </Text>
       </View>
 
@@ -32,7 +32,7 @@ export default function ProfileScreen({ navigation }) {
         {/* ─── Account section ──────────────────────── */}
         <View className="mt-6">
           <Text className="px-4 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
-            Account
+            {t('account')}
           </Text>
           <View className="bg-white border border-slate-200 rounded-xl mx-4 overflow-hidden shadow-sm">
             <TouchableOpacity
@@ -45,7 +45,7 @@ export default function ProfileScreen({ navigation }) {
                   <MaterialIcons name="person" size={22} color="#3ce619" />
                 </View>
                 <Text className="text-base font-medium text-slate-900">
-                  Manage user profile
+                  {t('manageProfile')}
                 </Text>
               </View>
               <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />
@@ -56,11 +56,12 @@ export default function ProfileScreen({ navigation }) {
         {/* ─── Language section ─────────────────────── */}
         <View className="mt-8">
           <Text className="px-4 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
-            Language
+            {t('language')}
           </Text>
           <View className="bg-white border border-slate-200 rounded-xl mx-4 overflow-hidden shadow-sm">
             {LANGUAGES.map((lang, index) => {
               const isSelected = languageCode === lang.id;
+              const label = lang.label;
               return (
                 <TouchableOpacity
                   key={lang.id}
@@ -75,7 +76,7 @@ export default function ProfileScreen({ navigation }) {
                       <MaterialIcons name="language" size={22} color="#475569" />
                     </View>
                     <Text className="text-base font-medium text-slate-900">
-                      {lang.label}
+                      {label}
                     </Text>
                   </View>
 
@@ -98,7 +99,7 @@ export default function ProfileScreen({ navigation }) {
         {/* ─── Data & Privacy section ──────────────── */}
         <View className="mt-8 px-4 mb-6">
           <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
-            Data & Privacy
+            {t('dataPrivacy')}
           </Text>
 
           {/* Privacy notice card */}
@@ -106,9 +107,7 @@ export default function ProfileScreen({ navigation }) {
             <View className="flex-row gap-3">
               <MaterialIcons name="shield" size={22} color="#3ce619" />
               <Text className="text-sm leading-relaxed text-slate-700 flex-1">
-                Your data is 100% private. All your profile data, crop logs, and
-                financial expenses are stored locally on this device. No data is
-                sent to external servers.
+                {t('privacyNotice')}
               </Text>
             </View>
           </View>
@@ -121,7 +120,7 @@ export default function ProfileScreen({ navigation }) {
             >
               <MaterialIcons name="file-upload" size={22} color="#3ce619" />
               <Text className="text-base font-semibold text-slate-900">
-                Export Crop data as csv
+                {t('exportCsv')}
               </Text>
             </TouchableOpacity>
 
@@ -131,7 +130,7 @@ export default function ProfileScreen({ navigation }) {
             >
               <MaterialIcons name="upload-file" size={22} color="#3ce619" />
               <Text className="text-base font-semibold text-slate-900">
-                Import crop data
+                {t('importData')}
               </Text>
             </TouchableOpacity>
           </View>

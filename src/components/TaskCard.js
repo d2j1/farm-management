@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Visual states a task card can have.
@@ -32,6 +33,7 @@ export default function TaskCard({
   onToggleMenu,
   onMenuAction,
 }) {
+  const { t } = useLanguageStore();
   // ── Derive style tokens from status ───────────────────────
   const isDueToday = status === 'dueToday';
   const isInProgress = status === 'inProgress';
@@ -121,21 +123,21 @@ export default function TaskCard({
                 activeOpacity={0.7}
                 onPress={() => onMenuAction?.(id, 'done')}
               >
-                <Text className="text-sm font-medium text-slate-700">Mark as Done</Text>
+                <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="px-4 py-2"
                 activeOpacity={0.7}
                 onPress={() => onMenuAction?.(id, 'skip')}
               >
-                <Text className="text-sm font-medium text-slate-700">Skip</Text>
+                <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="px-4 py-2"
                 activeOpacity={0.7}
                 onPress={() => onMenuAction?.(id, 'snooze')}
               >
-                <Text className="text-sm font-medium text-slate-700">Snooze</Text>
+                <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
               </TouchableOpacity>
             </View>
           )}

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 const formatDate = (date) =>
   date.toLocaleDateString('en-US', {
@@ -25,25 +26,19 @@ function parseDate(value) {
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
-function parseAmount(value) {
-  const normalized = (value || '').replace(/[^0-9.]/g, '');
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
 /**
  * EditActivityLogModal — pre-filled bottom sheet for editing an existing activity log.
  *
  * Props:
  *   visible   {boolean}
- *   activity  {{ id, title, remarks, amount, date }} — record to edit
+ *   activity  {{ id, title, remarks, date }} — record to edit
  *   onClose   {() => void}
- *   onSave    {(data: { id, activityName, remarks, amount, date }) => void}
+ *   onSave    {(data: { id, activityName, remarks, date }) => void}
  */
 export default function EditActivityLogModal({ visible, activity, onClose, onSave }) {
+  const { t } = useLanguageStore();
   const [activityName, setActivityName] = useState('');
   const [remarks, setRemarks] = useState('');
-  const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -52,7 +47,6 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
     if (activity) {
       setActivityName(activity.title || '');
       setRemarks(activity.remarks || '');
-      setAmount(activity.amount != null ? String(activity.amount) : '');
       setDate(parseDate(activity.dateText || activity.date));
     }
   }, [activity]);
@@ -60,7 +54,6 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
   const resetForm = () => {
     setActivityName('');
     setRemarks('');
-    setAmount('');
     setDate(new Date());
     setShowDatePicker(false);
   };
@@ -75,7 +68,6 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
       id: activity?.id,
       activityName: activityName.trim(),
       remarks: remarks.trim(),
-      amount: parseAmount(amount),
       date,
     });
     resetForm();
@@ -113,16 +105,16 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            Update Activity Log
+            {t('updateActivityLog')}
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Activity Name
+              {t('activityNameLabel')}
             </Text>
             <TextInput
               className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4"
-              placeholder="e.g. Crop Sale"
+              placeholder={t('activityNamePlaceholder')}
               placeholderTextColor="#94a3b8"
               value={activityName}
               onChangeText={setActivityName}
@@ -131,40 +123,24 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Remarks
+              {t('remarksLabel')}
             </Text>
             <TextInput
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-4"
               style={styles.remarksInput}
               multiline
               textAlignVertical="top"
-              placeholder="Details about the activity..."
+              placeholder={t('remarksPlaceholderActivity')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
             />
           </View>
 
-          <View className="flex flex-col gap-2 mb-6">
-            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Amount
-            </Text>
-            <View className="relative flex-row items-center">
-              <Text className="absolute left-4 text-slate-500 dark:text-slate-400 font-medium">₹</Text>
-              <TextInput
-                className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4"
-                placeholder="45.00"
-                placeholderTextColor="#94a3b8"
-                keyboardType="decimal-pad"
-                value={amount}
-                onChangeText={setAmount}
-              />
-            </View>
-          </View>
 
           <View className="flex flex-col gap-2 mb-8">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              Date
+              {t('dateLabel')}
             </Text>
             <TouchableOpacity
               className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 flex-row items-center"
@@ -184,7 +160,7 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">Update Activity Log</Text>
+              <Text className="text-slate-900 font-bold">{t('updateActivityLog')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -193,7 +169,7 @@ export default function EditActivityLogModal({ visible, activity, onClose, onSav
               onPress={handleCancel}
             >
               <Text className="text-slate-500 dark:text-slate-400 font-medium">
-                Cancel
+                {t('cancel')}
               </Text>
             </TouchableOpacity>
           </View>
