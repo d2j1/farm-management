@@ -48,12 +48,39 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS activities (
       id      INTEGER PRIMARY KEY AUTOINCREMENT,
-      cropId  INTEGER NOT NULL REFERENCES crops(id) ON DELETE CASCADE,
+      cropId  INTEGER REFERENCES crops(id) ON DELETE CASCADE,
       title   TEXT    NOT NULL,
       remark  TEXT,
       date    TEXT    NOT NULL
     );
   `);
+
+  // Migration: Allow NULL cropId in activities (transition from older schema)
+  const activitiesInfo = await db.getAllAsync<any>(`PRAGMA table_info(activities);`);
+  const cropIdActivityCol = activitiesInfo.find((c: any) => c.name === 'cropId');
+  if (cropIdActivityCol && cropIdActivityCol.notnull === 1) {
+    console.log('Migrating activities table to allow NULL cropId...');
+    try {
+      await db.execAsync(`
+        PRAGMA foreign_keys = OFF;
+        CREATE TABLE activities_new (
+          id      INTEGER PRIMARY KEY AUTOINCREMENT,
+          cropId  INTEGER REFERENCES crops(id) ON DELETE CASCADE,
+          title   TEXT    NOT NULL,
+          remark  TEXT,
+          date    TEXT    NOT NULL
+        );
+        INSERT INTO activities_new (id, cropId, title, remark, date)
+        SELECT id, cropId, title, remark, date FROM activities;
+        DROP TABLE activities;
+        ALTER TABLE activities_new RENAME TO activities;
+        PRAGMA foreign_keys = ON;
+      `);
+      console.log('Activities migration complete.');
+    } catch (e) {
+      console.error('Failed to migrate activities table:', e);
+    }
+  }
 
   // ── Expenses ───────────────────────────────────────────────
   await db.execAsync(`
@@ -101,6 +128,17 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
       details       TEXT    NOT NULL,
       reminderDate  TEXT    NOT NULL,
       reminderTime  TEXT
+    );
+  `);
+
+  // ── User Profile ────────────────────────────────────────────
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS user_profile (
+      id            INTEGER PRIMARY KEY CHECK (id = 1),
+      fullName      TEXT,
+      villageName   TEXT,
+      totalAcreage  REAL,
+      activeCrops   TEXT
     );
   `);
 

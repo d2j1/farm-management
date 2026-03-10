@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Platform,
   ScrollView,
@@ -19,28 +19,52 @@ const formatDate = (date) =>
     year: 'numeric',
   });
 
+function parseDate(value) {
+  if (!value) return new Date();
+  if (value instanceof Date) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 function parseAmount(value) {
   const normalized = (value || '').replace(/[^0-9.]/g, '');
   const parsed = Number.parseFloat(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export default function CreateEarningsModal({ visible, onClose, onSave }) {
+/**
+ * EditExpenseModal — pre-filled bottom sheet for editing an existing expense.
+ *
+ * Props:
+ *   visible   {boolean}
+ *   expense   {{ id, title, remarks, amount, date }} — record to edit
+ *   onClose   {() => void}
+ *   onSave    {(data: { id, expenseName, remarks, amount, date }) => void}
+ */
+export default function EditExpenseModal({ visible, expense, onClose, onSave }) {
   const { t } = useLanguageStore();
-  const [earningName, setEarningName] = useState('');
+  const [expenseName, setExpenseName] = useState('');
   const [remarks, setRemarks] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [errors, setErrors] = useState({});
+
+  // Populate fields whenever the `expense` prop changes
+  useEffect(() => {
+    if (expense) {
+      setExpenseName(expense.title || '');
+      setRemarks(expense.remarks || '');
+      setAmount(expense.amount != null ? String(expense.amount) : '');
+      setDate(parseDate(expense.dateText || expense.date));
+    }
+  }, [expense]);
 
   const resetForm = () => {
-    setEarningName('');
+    setExpenseName('');
     setRemarks('');
     setAmount('');
     setDate(new Date());
     setShowDatePicker(false);
-    setErrors({});
   };
 
   const handleCancel = () => {
@@ -49,27 +73,13 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
   };
 
   const handleSave = () => {
-    const newErrors = {};
-    if (!earningName.trim()) {
-      newErrors.earningName = t('earningNameRequired');
-    }
-    if (!amount.trim() || parseAmount(amount) <= 0) {
-      newErrors.amount = t('validAmountRequired');
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
-
     onSave?.({
-      earningName: earningName.trim(),
+      id: expense?.id,
+      expenseName: expenseName.trim(),
       remarks: remarks.trim(),
       amount: parseAmount(amount),
       date,
     });
-
     resetForm();
   };
 
@@ -77,7 +87,6 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
-
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -106,28 +115,20 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-            {t('addEarningsTitle')}
+            {t('updateExpense')}
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
             <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
-              {t('earningNameLabel')}
+              {t('expenseNameLabel')}
             </Text>
             <TextInput
-              className={`w-full h-14 rounded-xl border ${
-                errors.earningName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-              } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4`}
-              placeholder={t('earningNamePlaceholder')}
+              className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4"
+              placeholder={t('expenseNamePlaceholder')}
               placeholderTextColor="#94a3b8"
-              value={earningName}
-              onChangeText={(text) => {
-                setEarningName(text);
-                if (errors.earningName) setErrors({ ...errors, earningName: '' });
-              }}
+              value={expenseName}
+              onChangeText={setExpenseName}
             />
-            {errors.earningName ? (
-              <Text className="text-red-500 text-xs font-medium mt-1">{errors.earningName}</Text>
-            ) : null}
           </View>
 
           <View className="flex flex-col gap-2 mb-6">
@@ -139,7 +140,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
               style={styles.remarksInput}
               multiline
               textAlignVertical="top"
-              placeholder={t('remarksPlaceholderEarnings')}
+              placeholder={t('remarksPlaceholderExpenses')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
@@ -153,22 +154,14 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
             <View className="relative flex-row items-center">
               <Text className="absolute left-4 text-slate-500 dark:text-slate-400 font-medium">₹</Text>
               <TextInput
-                className={`w-full h-14 rounded-xl border ${
-                  errors.amount ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-                } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4`}
+                className="w-full h-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-4"
                 placeholder="45.00"
                 placeholderTextColor="#94a3b8"
                 keyboardType="decimal-pad"
                 value={amount}
-                onChangeText={(text) => {
-                  setAmount(text);
-                  if (errors.amount) setErrors({ ...errors, amount: '' });
-                }}
+                onChangeText={setAmount}
               />
             </View>
-            {errors.amount ? (
-              <Text className="text-red-500 text-xs font-medium mt-1">{errors.amount}</Text>
-            ) : null}
           </View>
 
           <View className="flex flex-col gap-2 mb-8">
@@ -193,7 +186,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">{t('saveEarnings')}</Text>
+              <Text className="text-slate-900 font-bold">{t('updateExpense')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

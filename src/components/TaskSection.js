@@ -1,56 +1,127 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useDatabase } from '../database/DatabaseProvider';
+import { getAllTasks } from '../database/taskService';
+import { getAllReminders } from '../database/reminderService';
+import { useIsFocused } from '@react-navigation/native';
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function TaskSection({ navigation }) {
+  const db = useDatabase();
+  const isFocused = useIsFocused();
+  const { t } = useLanguageStore();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [dbTasks, dbReminders] = await Promise.all([
+        getAllTasks(db),
+        getAllReminders(db),
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+
+      const mappedTasks = dbTasks.map(tData => {
+        let statusText = tData.startDate || t('noUpcomingTasks');
+        let color = '#3ce619'; // primary
+        
+        if (tData.startDate === today) {
+          statusText = t('today');
+        } else if (tData.startDate < today) {
+          statusText = t('overdue');
+          color = '#ef4444'; // red
+        } else {
+          color = '#64748b'; // slate
+        }
+
+        return {
+          id: `t-${tData.id}`,
+          rawDate: tData.startDate,
+          title: tData.taskName,
+          subtitle: tData.cropName ? `${t('cropPrefix')}${tData.cropName}` : t('generalTask'),
+          statusLabel: statusText,
+          color,
+          icon: tData.startDate === today ? 'radio-button-unchecked' : 'calendar-today',
+        };
+      });
+
+      const mappedReminders = dbReminders.map(r => ({
+        id: `r-${r.id}`,
+        rawDate: r.reminderDate,
+        title: r.details,
+        subtitle: t('newReminder'),
+        statusLabel: r.reminderDate === today ? t('today') : r.reminderDate,
+        color: '#f59e0b', // amber
+        icon: 'notifications-none',
+      }));
+
+      // Combine and sort by date (descending for now to show latest/upcoming)
+      const combined = [...mappedTasks, ...mappedReminders]
+        .sort((a, b) => {
+          if (a.rawDate < b.rawDate) return -1;
+          if (a.rawDate > b.rawDate) return 1;
+          return 0;
+        })
+        .slice(0, 3);
+
+      setItems(combined);
+    } catch (err) {
+      console.error('Failed to load task section data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [db, t]);
+
+  useEffect(() => {
+    if (isFocused) {
+      loadData();
+    }
+  }, [isFocused, loadData]);
+
   return (
     <View className="p-4">
       <View className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-slate-50 dark:border-slate-800">
-          <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Upcoming Tasks</Text>
+          <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+            {t('upcomingTasks')}
+          </Text>
           <View className="bg-primary/20 px-2 py-0.5 rounded-full">
-            <Text className="text-primary text-[10px] font-bold uppercase">Next 24h</Text>
+            <Text className="text-primary text-[10px] font-bold uppercase">
+              {t('next24h')}
+            </Text>
           </View>
         </View>
 
         {/* Task List */}
         <View className="p-4 gap-4">
-          {/* Task 1 — Water Corn Section B */}
-          <View className="flex-row items-center gap-4 border-l-4 border-primary pl-3">
-            <View className="flex-1">
-              <Text className="text-[10px] font-bold text-primary uppercase">Today • 2:00 PM</Text>
-              <Text className="text-sm font-bold text-slate-900 dark:text-white">Water Corn Section B</Text>
-              <Text className="text-xs text-slate-500">Based on soil moisture sensor #04</Text>
-            </View>
-            <TouchableOpacity className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
-              <MaterialIcons name="radio-button-unchecked" size={18} color="#94a3b8" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Task 2 — Fertilizing Wheat Field (Ongoing) */}
-          <View className="flex-row items-center gap-4 border-l-4 border-amber-500 pl-3">
-            <View className="flex-1">
-              <Text className="text-[10px] font-bold text-amber-500 uppercase">Ongoing</Text>
-              <Text className="text-sm font-bold text-slate-900 dark:text-white">Fertilizing Wheat Field</Text>
-              <Text className="text-xs text-slate-500">65% complete • Estimated 1hr left</Text>
-            </View>
-            <View className="h-8 w-8 rounded-full border-2 border-amber-500 flex items-center justify-center">
-              <Text className="text-[9px] font-bold text-slate-900 dark:text-white">65%</Text>
-            </View>
-          </View>
-
-          {/* Task 3 — Pest Inspection */}
-          <View className="flex-row items-center gap-4 border-l-4 border-slate-300 pl-3">
-            <View className="flex-1">
-              <Text className="text-[10px] font-bold text-slate-400 uppercase">Tomorrow • 8:00 AM</Text>
-              <Text className="text-sm font-bold text-slate-700 dark:text-slate-300">Pest Inspection</Text>
-              <Text className="text-xs text-slate-400">Regular weekly maintenance</Text>
-            </View>
-            <TouchableOpacity className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center">
-              <MaterialIcons name="calendar-today" size={16} color="#cbd5e1" />
-            </TouchableOpacity>
-          </View>
+          {loading ? (
+            <ActivityIndicator color="#3ce619" />
+          ) : items.length === 0 ? (
+            <Text className="text-center text-slate-400 py-4">
+              {t('noUpcomingTasks')}
+            </Text>
+          ) : (
+            items.map((item) => (
+              <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
+                <View className="flex-1">
+                  <Text className="text-[10px] font-bold uppercase" style={{ color: item.color }}>
+                    {item.statusLabel}
+                  </Text>
+                  <Text className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</Text>
+                  <Text className="text-xs text-slate-500">{item.subtitle}</Text>
+                </View>
+                <TouchableOpacity 
+                  className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center"
+                  onPress={() => navigation.navigate('Tasks')}
+                >
+                  <MaterialIcons name={item.icon} size={18} color="#94a3b8" />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
         </View>
 
         {/* Footer */}
@@ -61,11 +132,15 @@ export default function TaskSection({ navigation }) {
               className="flex-row items-center gap-1.5"
             >
               <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">Create Task</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('createTask')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
-              <Text className="text-primary text-sm font-bold">View All Tasks</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('viewAllTasks')}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -75,7 +150,9 @@ export default function TaskSection({ navigation }) {
               className="flex-row items-center gap-1.5"
             >
               <MaterialIcons name="notifications-active" size={17} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">Create Reminder</Text>
+              <Text className="text-primary text-sm font-bold">
+                {t('createReminder')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

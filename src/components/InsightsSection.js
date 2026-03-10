@@ -1,42 +1,49 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-
-const INSIGHTS = [
-  {
-    title: 'Soil Health',
-    description: 'Boost nitrogen with clover.',
-    icon: 'eco',
-    iconColor: '#16a34a',
-    bgClass: 'bg-green-100',
-  },
-  {
-    title: 'Weather Alert',
-    description: 'High humidity Friday.',
-    icon: 'thunderstorm',
-    iconColor: '#2563eb',
-    bgClass: 'bg-blue-100',
-  },
-  {
-    title: 'Market Trend',
-    description: 'Wheat prices up 5%.',
-    icon: 'trending-up',
-    iconColor: '#d97706',
-    bgClass: 'bg-amber-100',
-  },
-];
+import { useLanguageStore } from '../utils/languageStore';
 
 export default function InsightsSection({ navigation }) {
+  const { t } = useLanguageStore();
+
+  const INSIGHTS = [
+    {
+      title: 'Organic',
+      description: 'Boost nitrogen with clover.',
+      icon: 'eco',
+      iconColor: '#16a34a',
+      bgClass: 'bg-green-100',
+    },
+    {
+      title: 'Weather Alert',
+      description: 'High humidity Friday.',
+      icon: 'thunderstorm',
+      iconColor: '#2563eb',
+      bgClass: 'bg-blue-100',
+    },
+    {
+      title: 'Economy',
+      description: 'Wheat prices up 5%.',
+      icon: 'trending-up',
+      iconColor: '#d97706',
+      bgClass: 'bg-amber-100',
+    },
+  ];
+
   return (
     <View className="py-4">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
-        <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Quick Insights</Text>
+        <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+          {t('quickInsights')}
+        </Text>
         <TouchableOpacity
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Insights')}
         >
-          <Text className="text-primary text-sm font-semibold">See All</Text>
+          <Text className="text-primary text-sm font-semibold">
+            {t('seeAll')}
+          </Text>
         </TouchableOpacity>
       </View>
 

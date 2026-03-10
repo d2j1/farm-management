@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 const TABS = [
-  { name: 'Home', icon: 'home', label: 'Home' },
-  { name: 'Crops', icon: 'eco', label: 'Crops' },
-  { name: 'Insights', icon: 'insights', label: 'Insights' },
-  { name: 'Profile', icon: 'person', label: 'Profile' },
+  { name: 'Home', icon: 'home', labelKey: 'home' },
+  { name: 'Crops', icon: 'eco', labelKey: 'crops' },
+  { name: 'Insights', icon: 'insights', labelKey: 'insights' },
+  { name: 'Profile', icon: 'person', labelKey: 'profile' },
 ];
 
 /**
@@ -54,6 +55,7 @@ function shouldHideTabBar(tabState) {
 }
 
 export default function BottomNav({ state, navigation }) {
+  const { t } = useLanguageStore();
   const currentRoute = state?.routes?.[state.index]?.name;
 
   // Hide tab bar on specific nested screens (e.g. UpdateProfile)
@@ -92,7 +94,7 @@ export default function BottomNav({ state, navigation }) {
                 isActive ? 'font-bold text-primary' : 'font-medium text-slate-400'
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         );

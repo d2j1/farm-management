@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
@@ -74,29 +74,45 @@ function DateRangeRow({ startDate, endDate, onStartChange, onEndChange, startLab
 }
 
 // ── Main modal ──────────────────────────────────────────────
-export default function CreateTaskModal({ visible, onClose, onSave }) {
+export default function UpdateTaskModal({ visible, onClose, onSave, taskData }) {
   const { t } = useLanguageStore();
   const [taskName, setTaskName] = useState('');
   const [duration, setDuration] = useState('One-time');
   const [frequency, setFrequency] = useState('Daily');
-  const [repeatInterval, setRepeatInterval] = useState(12);
+  const [repeatInterval, setRepeatInterval] = useState(1);
   const [date, setDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-  );
+  const [endDate, setEndDate] = useState(new Date());
   const [error, setError] = useState('');
 
-  const resetForm = () => {
-    setTaskName('');
-    setDuration('One-time');
-    setFrequency('Daily');
-    setRepeatInterval(12);
-    setDate(new Date());
-    setStartDate(new Date());
-    setEndDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000));
-    setError('');
-  };
+  useEffect(() => {
+    if (visible && taskData) {
+      setTaskName(taskData.taskName || '');
+      
+      const typeMap = {
+        'one_time': 'One-time',
+        'multi_day': 'Multi-day',
+        'recurring': 'Recurring'
+      };
+      const uiDuration = typeMap[taskData.type] || 'One-time';
+      setDuration(uiDuration);
+      
+      if (uiDuration === 'One-time') {
+        const d = taskData.startDate ? new Date(taskData.startDate) : new Date();
+        setDate(d);
+      } else if (uiDuration === 'Multi-day') {
+        setStartDate(taskData.startDate ? new Date(taskData.startDate) : new Date());
+        setEndDate(taskData.endDate ? new Date(taskData.endDate) : new Date());
+      } else {
+        // Recurring
+        setStartDate(taskData.startDate ? new Date(taskData.startDate) : new Date());
+        setEndDate(taskData.endDate ? new Date(taskData.endDate) : new Date());
+        setRepeatInterval(taskData.repeatIntervalDays || 1);
+        // Frequency is not explicitly in DB but we can default it or map it if it was stored
+        setFrequency('Daily'); 
+      }
+    }
+  }, [visible, taskData]);
 
   const handleSave = () => {
     if (!taskName.trim()) {
@@ -118,11 +134,9 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
       task.endDate = endDate;
     }
     onSave?.(task);
-    resetForm();
   };
 
   const handleCancel = () => {
-    resetForm();
     onClose();
   };
 
@@ -132,10 +146,8 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
 
   return (
     <View style={[StyleSheet.absoluteFill, styles.overlay]} className="justify-end bg-black/50" pointerEvents="box-none">
-      {/* Backdrop tap to cancel */}
       <Pressable onPress={handleCancel} style={StyleSheet.absoluteFill} />
       <View className="bg-white dark:bg-slate-900 rounded-t-[32px] overflow-hidden max-h-[88%]">
-          {/* Handle bar */}
           <View className="items-center py-4">
             <View className="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
           </View>
@@ -147,20 +159,18 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Title */}
             <Text className="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight pt-2 pb-6">
-              {t('createNewTask')}
+              {t('updateTask')}
             </Text>
 
-            {/* Task Name */}
             <View className="gap-2 mb-6">
-              <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest">
-                {t('taskNameLabel')}
+              <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-[0.1em]">
+               {t('taskNameLabel')}
               </Text>
               <TextInput
                 className={`rounded-xl border ${
                   error ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-                } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 h-14 px-4`}
+                } bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 h-14 px-4 placeholder:text-slate-400`}
                 placeholder={t('taskNamePlaceholder')}
                 placeholderTextColor="#94a3b8"
                 value={taskName}
@@ -174,9 +184,8 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
               ) : null}
             </View>
 
-            {/* Duration Toggle */}
             <View className="mb-6">
-              <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
+              <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-[0.1em] mb-3 block">
                 {t('duration')}
               </Text>
               <SegmentedControl
@@ -192,14 +201,12 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
               />
             </View>
 
-            {/* ─── One-time fields ─── */}
             {duration === 'One-time' && (
               <View className="mb-8">
                 <DateField label={t('date')} value={date} onChange={setDate} />
               </View>
             )}
 
-            {/* ─── Multi-day fields ─── */}
             {duration === 'Multi-day' && (
               <View className="mb-8">
                 <DateRangeRow
@@ -213,12 +220,10 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
               </View>
             )}
 
-            {/* ─── Recurring fields ─── */}
             {duration === 'Recurring' && (
               <>
-                {/* Frequency */}
                 <View className="mb-6">
-                  <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
+                  <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-[0.1em] mb-3 block">
                     {t('frequency')}
                   </Text>
                   <SegmentedControl
@@ -241,7 +246,6 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                   />
                 </View>
 
-                {/* Date range */}
                 <View className="mb-6">
                   <DateRangeRow
                     startDate={startDate}
@@ -253,7 +257,6 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                   />
                 </View>
 
-                {/* Info banner */}
                 <RecurringInfoBanner
                   interval={repeatInterval}
                   unit={unit}
@@ -263,13 +266,12 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
               </>
             )}
 
-            {/* Buttons */}
-            <View className="gap-3 pb-4">
+            <View className="gap-3 pb-8">
               <Pressable
                 onPress={handleSave}
-                className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
+                className="w-full bg-primary text-slate-900 font-bold py-4 rounded-xl shadow-lg items-center"
               >
-                <Text className="text-slate-900 font-bold text-base">{t('saveTask')}</Text>
+                <Text className="text-slate-900 font-bold text-base">{t('updateTaskBtn')}</Text>
               </Pressable>
               <Pressable
                 onPress={handleCancel}

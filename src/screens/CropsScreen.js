@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { useLanguageStore } from '../utils/languageStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import CropsScreenHeader from '../components/CropsScreenHeader';
@@ -13,7 +14,7 @@ import { getUpcomingTaskByCrop } from '../database/taskService';
 import { getTotalExpensesByCrop } from '../database/expenseService';
 import { getTotalEarningsByCrop } from '../database/earningService';
 
-const FILTER_TABS = ['All', 'Active', 'Inactive'];
+const FILTER_TABS_KEYS = ['all', 'active', 'inactive'];
 
 /**
  * Map icon config based on the crop name for visual variety.
@@ -50,7 +51,7 @@ function mapCropRow(row, latestActivity, upcomingTask, totalExpenses, totalEarni
     dbId: row.id,
     name: row.cropName,
     ...visuals,
-    location: `${row.landNickname} • ${row.totalArea} ${row.areaUnit}`,
+    location: `${row.landNickname} • ${row.totalArea} ${useLanguageStore.getState().t(row.areaUnit.toLowerCase())}`,
     status: row.status || 'active',
     lastActivity: latestActivity
       ? {
@@ -71,9 +72,10 @@ function mapCropRow(row, latestActivity, upcomingTask, totalExpenses, totalEarni
 }
 
 export default function CropsScreen({ navigation }) {
+  const { t } = useLanguageStore();
   const db = useDatabase();
   const [crops, setCrops] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('all');
 
   // Reload crops every time the screen gains focus (e.g. after creating one)
   useFocusEffect(
@@ -103,13 +105,13 @@ export default function CropsScreen({ navigation }) {
       return () => {
         cancelled = true;
       };
-    }, [db]),
+    }, [db, t]),
   );
 
   const filteredCrops = crops.filter((crop) => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Active') return crop.status === 'active';
-    if (activeFilter === 'Inactive') return crop.status === 'inactive';
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'active') return crop.status === 'active';
+    if (activeFilter === 'inactive') return crop.status === 'inactive';
     return true;
   });
 
@@ -120,9 +122,16 @@ export default function CropsScreen({ navigation }) {
       />
 
       <FilterTabs
-        tabs={FILTER_TABS}
-        activeTab={activeFilter}
-        onTabChange={setActiveFilter}
+        tabs={FILTER_TABS_KEYS.map(key => t(key))}
+        activeTab={t(activeFilter)}
+        onTabChange={(val) => {
+          const reverseMap = {
+            [t('all')]: 'all',
+            [t('active')]: 'active',
+            [t('inactive')]: 'inactive',
+          };
+          setActiveFilter(reverseMap[val]);
+        }}
       />
 
       <ScrollView
@@ -133,7 +142,7 @@ export default function CropsScreen({ navigation }) {
         <View className="px-4 gap-5">
           {filteredCrops.length === 0 ? (
             <View className="items-center justify-center py-16">
-              <Text className="text-slate-400 text-sm">No crops yet — tap + to add one.</Text>
+              <Text className="text-slate-400 text-sm">{t('noCropsYet')}</Text>
             </View>
           ) : (
             filteredCrops.map((crop) => (

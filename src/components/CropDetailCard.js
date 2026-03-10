@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Large crop detail card for the Crops screen.
@@ -20,12 +20,34 @@ import { MaterialIcons } from '@expo/vector-icons';
  * @param {string} props.crop.earnings
  */
 export default function CropDetailCard({ crop, onPress }) {
+  const { t } = useLanguageStore();
   return (
     <TouchableOpacity
       activeOpacity={0.88}
       onPress={onPress}
       className="relative overflow-hidden rounded-2xl bg-white shadow-md border border-slate-100"
     >
+      {/* Active / Inactive badge — top-right corner */}
+      <View
+        style={[
+          styles.statusBadge,
+          crop.status === 'inactive' ? styles.statusBadgeInactive : styles.statusBadgeActive,
+        ]}
+      >
+        <View
+          style={[
+            styles.statusDot,
+            { backgroundColor: crop.status === 'inactive' ? '#94a3b8' : '#16a34a' },
+          ]}
+        />
+        <Text style={[
+          styles.statusLabel,
+          { color: crop.status === 'inactive' ? '#64748b' : '#15803d' },
+        ]}>
+          {crop.status === 'inactive' ? t('inactive') : t('active')}
+        </Text>
+      </View>
+
       <View className="p-4">
         {/* Top row — icon + info */}
         <View className="flex-row gap-4 items-center mb-5">
@@ -38,7 +60,7 @@ export default function CropDetailCard({ crop, onPress }) {
 
           {/* Text info */}
           <View className="flex-1">
-            <Text className="text-xl font-black text-slate-900" numberOfLines={1}>
+            <Text className="text-base font-bold text-slate-900" numberOfLines={1}>
               {crop.name}
             </Text>
 
@@ -58,14 +80,14 @@ export default function CropDetailCard({ crop, onPress }) {
                   <Text
                     className={`text-[10px] font-bold uppercase tracking-widest ${crop.lastActivity.colorClass}`}
                   >
-                    LAST ACTIVITY: {crop.lastActivity.label}
+                    {t('latestActivityLabel')}: {crop.lastActivity.label}
                   </Text>
                 </View>
               ) : null}
               <View className="flex-row items-center gap-1">
                 <View className={`w-2 h-2 rounded-full ${crop.upcoming ? 'bg-blue-400' : 'bg-slate-300'}`} />
                 <Text className={`text-[10px] font-bold uppercase tracking-widest ${crop.upcoming ? 'text-blue-400' : 'text-slate-400'}`}>
-                  UPCOMING: {crop.upcoming ? crop.upcoming.label : 'NO UPCOMING TASKS'}
+                  {t('upcomingTaskLabel')}: {crop.upcoming ? crop.upcoming.label : t('noUpcomingTasks')}
                 </Text>
               </View>
             </View>
@@ -79,10 +101,10 @@ export default function CropDetailCard({ crop, onPress }) {
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-downward" size={12} color="#ef4444" />
               <Text className="text-[9px] text-slate-400 uppercase font-black tracking-widest">
-                Expenses
+                {t('expensesLabel')}
               </Text>
             </View>
-            <Text className="text-lg font-black text-slate-800">{crop.expenses}</Text>
+            <Text className="text-base font-bold text-slate-800">{crop.expenses}</Text>
           </View>
 
           {/* Earnings */}
@@ -90,13 +112,45 @@ export default function CropDetailCard({ crop, onPress }) {
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-upward" size={12} color="#3ce619" />
               <Text className="text-[9px] text-primary/70 uppercase font-black tracking-widest">
-                Earnings
+                {t('earningsLabel')}
               </Text>
             </View>
-            <Text className="text-lg font-black text-primary">{crop.earnings}</Text>
+            <Text className="text-base font-bold text-primary">{crop.earnings}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  statusBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    gap: 4,
+  },
+  statusBadgeActive: {
+    backgroundColor: 'rgba(22,163,74,0.1)',
+  },
+  statusBadgeInactive: {
+    backgroundColor: 'rgba(148,163,184,0.15)',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+});

@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView,
   TouchableOpacity, StyleSheet, useWindowDimensions,
+  ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,50 +10,41 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import InsightCard from '../components/InsightCard';
 import VideoCard from '../components/VideoCard';
 import NoInternetView from '../components/NoInternetView';
+import FilterButton from '../components/FilterButton';
+import axios from 'axios';
+import { API_CONFIG } from '../utils/api.config';
+import { useLanguageStore } from '../utils/languageStore';
 
 // ─── Content-type tabs ────────────────────────────────────────
-const CONTENT_TYPES = ['Articles', 'Videos'];
+const CONTENT_TYPES_KEYS = ['articles', 'videos'];
 
 // ─── Category filter pills ───────────────────────────────────
-const CATEGORIES = ['All', 'Organic', 'Fertilizer', 'Economy'];
+const CATEGORIES_KEYS = ['all', 'organic', 'fertilizer', 'economy'];
 
-// ─── Dummy article data ──────────────────────────────────────
-const ARTICLES = [
+const getArticles = (t) => [
   {
-    id: '1',
-    category: 'Soil',
-    readTime: '5 min read',
-    title: 'Optimizing Soil PH for Leafy Greens',
-    description:
-      'Learn how to maintain the perfect balance for your spinach and kale crops using natural amendments.',
-    icon: 'local-florist',
-  },
-  {
-    id: '2',
-    category: 'Pests',
-    readTime: '8 min read',
-    title: 'Natural Pest Control Strategies',
-    description:
-      'Combat aphids and mites without harsh chemicals using these proven organic farming techniques.',
+    id: 'a1',
+    category: t('organic'),
+    readTime: `5 ${t('minRead')}`,
+    title: t('pestControlTitle'),
+    description: t('pestControlDesc'),
     icon: 'bug-report',
   },
   {
-    id: '3',
-    category: 'Economy',
-    readTime: '12 min read',
-    title: 'Market Trends for Organic Produce',
-    description:
-      'Analyzing the rising demand for organic heritage vegetables in urban local markets.',
-    icon: 'trending-up',
+    id: 'a2',
+    category: t('fertilizer'),
+    readTime: `8 ${t('minRead')}`,
+    title: t('soilNutritionTitle'),
+    description: t('soilNutritionDesc'),
+    icon: 'science',
   },
   {
-    id: '4',
-    category: 'Fertilizer',
-    readTime: '4 min read',
-    title: 'Composting for Small Gardens',
-    description:
-      'Turn kitchen waste into black gold with our step-by-step guide to backyard composting.',
-    icon: 'recycling',
+    id: 'a3',
+    category: t('economy'),
+    readTime: `6 ${t('minRead')}`,
+    title: t('marketTrendsTitle'),
+    description: t('marketTrendsDesc'),
+    icon: 'trending-up',
   },
 ];
 
@@ -85,33 +77,87 @@ const VIDEOS = [
 ];
 
 export default function InsightsScreen() {
+  const { t } = useLanguageStore();
   const { width: screenWidth } = useWindowDimensions();
   const pagerRef = useRef(null);
   const netInfo = useNetInfo();
 
   const isOffline = netInfo.isConnected === false;
 
-  const [activeContentType, setActiveContentType] = useState('Articles');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeContentType, setActiveContentType] = useState('articles');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { languageLabel } = useLanguageStore();
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPosts = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+
+    try {
+      // Temporarily disabled fetching from localhost
+      /*
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/posts`, {
+        params: {
+          page: 1,
+          limit: 20,
+          language: languageLabel,
+        },
+        headers: API_CONFIG.HEADERS,
+        timeout: 10000,
+      });
+
+      const posts = Array.isArray(response.data) ? response.data : (response.data.data || []);
+      
+      const mappedPosts = posts.map(post => ({
+        id: post.id || post._id,
+        category: post.category || 'General',
+        readTime: post.readTime || '5 min read',
+        title: post.title,
+        description: post.description,
+        icon: post.icon || 'article',
+      }));
+
+      setArticles(mappedPosts);
+      */
+
+      // Using dummy data for now
+      setArticles(getArticles(t));
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(t('failedLoadInsights'));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [languageLabel]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   // Determine search placeholder based on active content type
   const searchPlaceholder =
-    activeContentType === 'Articles' ? 'Search articles' : 'Search videos';
+    activeContentType === 'articles' ? t('searchArticles') : t('searchVideos');
 
   /** Tap toggle → scroll pager to matching page */
-  const handleToggle = useCallback((type) => {
-    setActiveContentType(type);
-    const pageIndex = CONTENT_TYPES.indexOf(type);
+  const handleToggle = useCallback((typeKey) => {
+    setActiveContentType(typeKey);
+    const pageIndex = CONTENT_TYPES_KEYS.indexOf(typeKey);
     pagerRef.current?.scrollTo({ x: pageIndex * screenWidth, animated: true });
   }, [screenWidth]);
 
   /** Swipe pager → sync toggle state */
   const handlePagerScroll = useCallback((e) => {
     const pageIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-    const type = CONTENT_TYPES[pageIndex];
-    if (type && type !== activeContentType) {
-      setActiveContentType(type);
+    const typeKey = CONTENT_TYPES_KEYS[pageIndex];
+    if (typeKey && typeKey !== activeContentType) {
+      setActiveContentType(typeKey);
     }
   }, [screenWidth, activeContentType]);
 
@@ -120,7 +166,7 @@ export default function InsightsScreen() {
       {/* ─── Header ─────────────────────────────────── */}
       <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
         <Text className="text-xl font-bold tracking-tight text-black">
-          Quick Insights
+          {t('quickInsights')}
         </Text>
       </View>
 
@@ -129,23 +175,23 @@ export default function InsightsScreen() {
         {/* Articles / Videos toggle */}
         <View className="px-4 mb-4">
           <View className="flex-row p-1 bg-white rounded-full border border-slate-200 shadow-sm">
-            {CONTENT_TYPES.map((type) => {
-              const isActive = type === activeContentType;
+            {CONTENT_TYPES_KEYS.map((typeKey) => {
+              const isActive = typeKey === activeContentType;
               return (
                 <TouchableOpacity
-                  key={type}
+                  key={typeKey}
                   className={`flex-1 py-2 px-4 rounded-full items-center justify-center ${
                     isActive ? 'bg-primary' : 'bg-transparent'
                   }`}
                   activeOpacity={0.8}
-                  onPress={() => handleToggle(type)}
+                  onPress={() => handleToggle(typeKey)}
                 >
                   <Text
                     className={`text-sm font-bold ${
                       isActive ? 'text-black' : 'text-slate-500'
                     }`}
                   >
-                    {type}
+                    {t(typeKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -174,29 +220,14 @@ export default function InsightsScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 16 }}
           style={{ flexGrow: 0 }}
         >
-          {CATEGORIES.map((cat) => {
-            const isActive = cat === activeCategory;
-            return (
-              <TouchableOpacity
-                key={cat}
-                className={`h-9 items-center justify-center rounded-full shadow-sm ${
-                  isActive
-                    ? 'bg-primary px-6'
-                    : 'bg-white border border-slate-200 px-5'
-                }`}
-                activeOpacity={0.8}
-                onPress={() => setActiveCategory(cat)}
-              >
-                <Text
-                  className={`text-sm ${
-                    isActive ? 'font-bold text-black' : 'font-medium text-slate-600'
-                  }`}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {CATEGORIES_KEYS.map((catKey) => (
+            <FilterButton
+              key={catKey}
+              label={t(catKey)}
+              isActive={catKey === activeCategory}
+              onPress={() => setActiveCategory(catKey)}
+            />
+          ))}
         </ScrollView>
       </View>
 
@@ -219,18 +250,44 @@ export default function InsightsScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={() => fetchPosts(true)} />
+            }
           >
             <View className="px-4 gap-4">
-              {ARTICLES.map((article) => (
-                <InsightCard
-                  key={article.id}
-                  category={article.category}
-                  readTime={article.readTime}
-                  title={article.title}
-                  description={article.description}
-                  icon={article.icon}
-                />
-              ))}
+              {loading && !refreshing ? (
+                <View className="py-20 items-center justify-center">
+                  <ActivityIndicator size="large" color="#3ce619" />
+                  <Text className="mt-4 text-slate-500 font-medium">{t('fetchingInsights')}</Text>
+                </View>
+              ) : error ? (
+                <View className="py-10 items-center justify-center">
+                  <MaterialIcons name="error-outline" size={48} color="#ef4444" />
+                  <Text className="mt-4 text-slate-600 text-center font-medium px-10">{error}</Text>
+                  <TouchableOpacity 
+                    onPress={() => fetchPosts()}
+                    className="mt-6 bg-primary px-8 py-3 rounded-full shadow-sm"
+                  >
+                    <Text className="text-black font-bold">{t('retry')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : articles.length === 0 ? (
+                <View className="py-20 items-center justify-center">
+                  <MaterialIcons name="article" size={48} color="#94a3b8" />
+                  <Text className="mt-4 text-slate-500 font-medium">{t('noInsightsFound')}{languageLabel}</Text>
+                </View>
+              ) : (
+                articles.map((article) => (
+                  <InsightCard
+                    key={article.id}
+                    category={article.category}
+                    readTime={article.readTime}
+                    title={article.title}
+                    description={article.description}
+                    icon={article.icon}
+                  />
+                ))
+              )}
             </View>
           </ScrollView>
 

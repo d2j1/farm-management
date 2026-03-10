@@ -1,8 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
+import { useLanguageStore } from '../utils/languageStore';
+import { getUserProfile } from '../database/userService';
 
 export default function Header() {
+  const { t } = useLanguageStore();
+  const isFocused = useIsFocused();
+  const [userName, setUserName] = useState('');
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const profile = await getUserProfile();
+      if (profile && profile.fullName) {
+        // Extract the first name
+        const firstName = profile.fullName.trim().split(' ')[0];
+        setUserName(firstName);
+      } else {
+        setUserName('');
+      }
+    } catch (error) {
+      console.error('Error fetching profile for header:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchProfile();
+    }
+  }, [isFocused, fetchProfile]);
+
   return (
     <View className="flex-row items-center bg-white dark:bg-slate-900 p-4 sticky top-0 z-20 shadow-sm justify-between">
       <View className="flex-row items-center gap-3">
@@ -12,8 +40,19 @@ export default function Header() {
           </View>
         </View>
         <View>
-          <Text className="text-slate-900 dark:text-white text-lg font-bold leading-tight">Hello, Farmer!</Text>
-          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Proactive Mode</Text>
+          <Text className="text-slate-900 dark:text-white text-lg font-bold leading-tight">
+            {(() => {
+              const greeting = t('helloFarmer');
+              if (userName && greeting.includes(',')) {
+                const greetingWord = greeting.split(',')[0].trim();
+                return `${greetingWord} ${userName}!`;
+              }
+              return greeting;
+            })()}
+          </Text>
+          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
+            {t('proactiveMode')}
+          </Text>
         </View>
       </View>
       <View className="flex-row items-center gap-2">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import FilterButton from './FilterButton';
 
 /**
  * Reusable horizontal filter pill tabs.
@@ -18,30 +19,14 @@ export default function FilterTabs({ tabs, activeTab, onTabChange }) {
         contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingVertical: 4 }}
         style={{ flexGrow: 0 }}
       >
-        {tabs.map((tab) => {
-          const isActive = tab === activeTab;
-
-          return (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => onTabChange(tab)}
-              activeOpacity={0.8}
-              className={`h-10 rounded-full items-center justify-center border shadow-sm ${
-                isActive
-                  ? 'bg-white border-slate-100 px-1'
-                  : 'bg-white border-slate-100 px-6'
-              }`}
-            >
-              {isActive ? (
-                <View className="bg-primary px-8 h-8 rounded-full items-center justify-center shadow-md">
-                  <Text className="text-sm font-bold text-slate-900">{tab}</Text>
-                </View>
-              ) : (
-                <Text className="text-sm font-bold text-slate-900">{tab}</Text>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+        {tabs.map((tab) => (
+          <FilterButton
+            key={tab}
+            label={tab}
+            isActive={tab === activeTab}
+            onPress={() => onTabChange(tab)}
+          />
+        ))}
       </ScrollView>
     </View>
   );
