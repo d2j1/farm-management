@@ -28,7 +28,7 @@ export default function WeatherWidget() {
             <View>
               <Text className="text-xl font-bold text-slate-900 dark:text-white leading-none">--</Text>
               <View className="mt-1">
-                <Text className="text-primary font-black text-sm uppercase tracking-tight">{t('unavailable')}</Text>
+                <Text className="text-primary font-black text-sm uppercase tracking-widest">{t('unavailable')}</Text>
                 <Text className="text-slate-500 dark:text-slate-400 text-sm leading-tight mt-0.5">{t('checkNetwork')}</Text>
               </View>
             </View>
@@ -47,7 +47,7 @@ export default function WeatherWidget() {
             <View>
               <Text className="text-xl font-bold text-slate-900 dark:text-white leading-none">{data.temperature}°C</Text>
               <View className="mt-1">
-                <Text className="text-primary font-black text-sm uppercase tracking-tight">{data.condition}</Text>
+                <Text className="text-primary font-black text-sm uppercase tracking-widest">{data.condition}</Text>
                 <Text className="text-slate-500 dark:text-slate-400 text-sm leading-tight mt-1">{data.city}</Text>
                 <Text className="text-slate-400 dark:text-slate-500 text-[8px] leading-tight mt-0.5 italic">{t('approxLocation')}</Text>
               </View>

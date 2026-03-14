@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDatabase } from '../database/DatabaseProvider';
@@ -113,6 +113,27 @@ export default function CropSection() {
   const [upcomingTasksMap, setUpcomingTasksMap] = useState({});
   const [lastTasksMap, setLastTasksMap] = useState({});
 
+  const blinkAnim = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(blinkAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [blinkAnim]);
+
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -148,9 +169,17 @@ export default function CropSection() {
     <View className="py-2">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-4">
-        <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-          {t('yourCrops')}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            {t('yourCrops')}
+          </Text>
+          {crops.length > 0 && (
+            <Animated.View style={{ opacity: blinkAnim }} className="flex-row items-center bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+              <MaterialIcons name="arrow-forward" size={12} color="#166534" />
+              <Text className="text-[9px] font-bold text-primary uppercase ml-1">Swipe</Text>
+            </Animated.View>
+          )}
+        </View>
         <TouchableOpacity
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Crops', { screen: 'CropsMain' })}

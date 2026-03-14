@@ -108,10 +108,10 @@ export default function TaskSection() {
             items.map((item) => (
               <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
                 <View className="flex-1">
-                  <Text className="text-sm font-bold uppercase" style={{ color: item.color }}>
+                  <Text className="text-xs font-bold uppercase" style={{ color: item.color }}>
                     {item.statusLabel}
                   </Text>
-                  <Text className="text-base font-bold text-slate-900 dark:text-white">{item.title}</Text>
+                  <Text className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</Text>
                   <Text className="text-xs text-slate-500">{item.subtitle}</Text>
                 </View>
                 <TouchableOpacity 
