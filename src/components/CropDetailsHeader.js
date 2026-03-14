@@ -8,6 +8,8 @@ const DETAIL_TABS = ['Actions', 'Activity Logs', 'Expenses', 'Earnings'];
 export default function CropDetailsHeader({
   cropName,
   cropLocation,
+  totalArea,
+  areaUnit,
   cropStatus,
   activeTab,
   showHeaderMenu,
@@ -47,7 +49,7 @@ export default function CropDetailsHeader({
               {cropName}
             </Text>
             <Text className="text-xs text-slate-500" numberOfLines={1}>
-              {cropLocation}
+              {cropLocation} {totalArea ? `• ${totalArea} ${areaUnit ? t(areaUnit.charAt(0).toLowerCase() + areaUnit.slice(1)) : ''}` : ''}
             </Text>
           </TouchableOpacity>
         </View>

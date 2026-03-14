@@ -100,7 +100,7 @@ export default function ImportModal({
               className="w-full bg-primary py-4 px-6 rounded-xl shadow-lg"
               style={{ shadowColor: '#166534', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}
             >
-              <Text className="text-center text-slate-900 font-bold text-base uppercase tracking-wide">
+              <Text className="text-center text-white font-bold text-base uppercase tracking-wide">
                 {t('done')}
               </Text>
             </TouchableOpacity>

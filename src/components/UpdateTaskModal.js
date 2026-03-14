@@ -269,7 +269,7 @@ export default function UpdateTaskModal({ visible, onClose, onSave, taskData }) 
             <View className="gap-3 pb-8">
               <Pressable
                 onPress={handleSave}
-                className="w-full bg-primary text-slate-900 font-bold py-4 rounded-xl shadow-lg items-center"
+                className="w-full bg-primary font-bold py-4 rounded-xl shadow-lg items-center"
               >
                 <Text className="text-white font-bold text-base">{t('updateTaskBtn')}</Text>
               </Pressable>

@@ -235,7 +235,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
             >
-              <Text className="text-slate-900 font-bold text-base">{t('saveReminder')}</Text>
+              <Text className="text-white font-bold text-base">{t('saveReminder')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleCancel}

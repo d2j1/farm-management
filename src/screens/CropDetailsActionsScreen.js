@@ -528,6 +528,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
       <CropDetailsHeader
         cropName={cropName}
         cropLocation={cropLocation}
+        totalArea={crop?.totalArea}
+        areaUnit={crop?.areaUnit}
         cropStatus={cropStatus}
         activeTab={activeTab}
         showHeaderMenu={showHeaderMenu}
@@ -703,7 +705,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           pointerEvents="none"
         >
           <View className="mr-2">
-            <MaterialIcons name="check-circle" size={14} color="#166534" />
+            <MaterialIcons name="check-circle" size={14} color="#ffffff" />
           </View>
           <Text className="text-white text-xs font-medium">{toastMessage}</Text>
         </Animated.View>
@@ -732,8 +734,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             activeOpacity={0.85}
             onPress={() => setShowCreateReminder(true)}
           >
-            <MaterialIcons name="notification-add" size={24} color="#1a2e05" />
-            <Text className="text-sm font-bold uppercase tracking-widest text-slate-900">
+            <MaterialIcons name="notification-add" size={24} color="#ffffff" />
+            <Text className="text-sm font-bold uppercase tracking-widest text-white">
               {t('createReminder')}
             </Text>
           </TouchableOpacity>
@@ -752,8 +754,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateActivity(true);
             }}
           >
-            <MaterialIcons name="add" size={24} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">{t('addActivity')}</Text>
+            <MaterialIcons name="add" size={24} color="#ffffff" />
+            <Text className="font-bold text-white">{t('addActivity')}</Text>
           </TouchableOpacity>
         </View>
       ) : activeTab === 'Expenses' ? (
@@ -770,8 +772,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateExpense(true);
             }}
           >
-            <MaterialIcons name="add" size={24} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">{t('addExpense')}</Text>
+            <MaterialIcons name="add" size={24} color="#ffffff" />
+            <Text className="font-bold text-white">{t('addExpense')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -788,8 +790,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateEarnings(true);
             }}
           >
-            <MaterialIcons name="add" size={24} color="#1a2e05" />
-            <Text className="font-bold text-slate-900">{t('addEarnings')}</Text>
+            <MaterialIcons name="add" size={24} color="#ffffff" />
+            <Text className="font-bold text-white">{t('addEarnings')}</Text>
           </TouchableOpacity>
         </View>
       )}

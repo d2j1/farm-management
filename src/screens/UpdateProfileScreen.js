@@ -237,7 +237,7 @@ export default function UpdateProfileScreen({ navigation }) {
           pointerEvents="none"
         >
           <View className="mr-2">
-            <MaterialIcons name="check-circle" size={14} color="#166534" />
+            <MaterialIcons name="check-circle" size={14} color="#ffffff" />
           </View>
           <Text className="text-white text-xs font-medium">{toastMessage}</Text>
         </Animated.View>

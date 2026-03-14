@@ -95,7 +95,7 @@ export default function ExportModal({
               className="w-full bg-primary py-4 px-6 rounded-xl shadow-lg mb-4"
               style={{ shadowColor: '#166534', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 5 }}
             >
-              <Text className="text-center text-slate-900 font-bold text-base">
+              <Text className="text-center text-white font-bold text-base">
                 {t('downloadData')}
               </Text>
             </TouchableOpacity>

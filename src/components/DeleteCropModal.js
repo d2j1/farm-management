@@ -108,7 +108,7 @@ export function DeleteCropSuccessModal({ visible, onDismiss }) {
               elevation: 8,
             }}
           >
-            <Text className="text-base font-bold text-black">{t('gotIt')}</Text>
+            <Text className="text-base font-bold text-white">{t('gotIt')}</Text>
           </TouchableOpacity>
         </View>
       </View>
