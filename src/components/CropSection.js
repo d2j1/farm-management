@@ -58,15 +58,15 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
 
       {/* Icon circle */}
       <View
-        className="h-16 w-16 rounded-full items-center justify-center mb-3"
+        className="h-20 w-20 rounded-full items-center justify-center mb-4"
         style={{ backgroundColor: iconBg, marginTop: 18 }}
       >
-        <MaterialIcons name={icon} size={26} color={iconColor} />
+        <MaterialIcons name={icon} size={32} color={iconColor} />
       </View>
 
       {/* Crop name */}
       <Text
-        className="text-slate-900 font-bold text-sm text-center"
+        className="text-slate-900 font-bold text-base text-center"
         numberOfLines={1}
       >
         {crop.cropName}
@@ -84,7 +84,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
       <View style={styles.upcomingRow}>
         <MaterialIcons
           name={upcomingTask ? 'event' : lastTask ? 'history' : 'check-circle'}
-          size={14}
+          size={16}
           color={upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a'}
         />
         <Text
@@ -205,11 +205,11 @@ export default function CropSection() {
 
 const styles = StyleSheet.create({
   card: {
-    width: 140,
+    width: 160,
     backgroundColor: '#ffffff',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#f1f5f9',
     alignItems: 'center',
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   upcomingText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     flex: 1,
   },

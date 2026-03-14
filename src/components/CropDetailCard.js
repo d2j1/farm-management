@@ -86,7 +86,7 @@ export default function CropDetailCard({ crop, onPress }) {
               ) : null}
               <View className="flex-row items-center gap-1">
                 <View className={`w-2 h-2 rounded-full ${crop.upcoming ? 'bg-blue-400' : 'bg-slate-300'}`} />
-                <Text className={`text-[10px] font-bold uppercase tracking-widest ${crop.upcoming ? 'text-blue-400' : 'text-slate-400'}`}>
+                <Text className={`text-[10px] font-bold uppercase tracking-widest ${crop.upcoming ? 'text-blue-600' : 'text-slate-500'}`}>
                   {t('upcomingTaskLabel')}: {crop.upcoming ? crop.upcoming.label : t('noUpcomingTasks')}
                 </Text>
               </View>
@@ -100,7 +100,7 @@ export default function CropDetailCard({ crop, onPress }) {
           <View className="flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-downward" size={14} color="#ef4444" />
-              <Text className="text-xs text-slate-400 uppercase font-black tracking-widest">
+              <Text className="text-xs text-slate-600 uppercase font-black tracking-widest">
                 {t('expensesLabel')}
               </Text>
             </View>
@@ -111,7 +111,7 @@ export default function CropDetailCard({ crop, onPress }) {
           <View className="flex-1 bg-primary/5 p-3 rounded-xl border border-primary/10">
             <View className="flex-row items-center gap-1.5 mb-1">
               <MaterialIcons name="arrow-upward" size={14} color="#166534" />
-              <Text className="text-xs text-primary/70 uppercase font-black tracking-widest">
+              <Text className="text-xs text-primary/90 uppercase font-black tracking-widest">
                 {t('earningsLabel')}
               </Text>
             </View>
