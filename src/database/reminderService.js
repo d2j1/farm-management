@@ -58,3 +58,4 @@ export async function getAllReminders(db) {
 export async function deleteReminder(db, id) {
   return db.runAsync('DELETE FROM reminders WHERE id = ?', [id]);
 }
+

@@ -13,9 +13,9 @@ export default function HomeScreen({ navigation }) {
       <Header />
       <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <WeatherWidget />
-        <TaskSection navigation={navigation} />
-        <CropSection navigation={navigation} />
-        <InsightsSection navigation={navigation} />
+        <TaskSection />
+        <CropSection />
+        <InsightsSection />
       </ScrollView>
     </SafeAreaView>
   );
@@ -26,3 +26,4 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 });
+

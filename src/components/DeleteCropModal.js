@@ -86,7 +86,7 @@ export function DeleteCropSuccessModal({ visible, onDismiss }) {
       <View className="flex-1 items-center justify-center bg-background-dark/60 px-4">
         <View className="w-full max-w-sm items-center overflow-hidden rounded-2xl border border-primary/10 bg-white p-8 shadow-2xl">
           <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-            <MaterialIcons name="check-circle" size={52} color="#3ce619" />
+            <MaterialIcons name="check-circle" size={52} color="#166534" />
           </View>
 
           <Text className="mb-2 text-center text-2xl font-bold text-slate-900">
@@ -101,7 +101,7 @@ export function DeleteCropSuccessModal({ visible, onDismiss }) {
             activeOpacity={0.9}
             onPress={onDismiss}
             style={{
-              shadowColor: '#3ce619',
+              shadowColor: '#166534',
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.2,
               shadowRadius: 14,
@@ -142,3 +142,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 });
+
+

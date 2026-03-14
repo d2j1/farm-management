@@ -42,9 +42,13 @@ export default function InsightCard({ category, readTime, title, description, ic
         </View>
 
         <View className="w-20 h-20 rounded-lg bg-primary/5 items-center justify-center shrink-0 border border-primary/10">
-          <MaterialIcons name={icon} size={30} color="#3ce619" style={{ opacity: 0.5 }} />
+          <MaterialIcons name={icon} size={26} color="#166534" style={{ opacity: 0.5 }} />
         </View>
       </View>
     </View>
   );
 }
+
+
+
+

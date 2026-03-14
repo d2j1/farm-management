@@ -13,7 +13,7 @@ export default function NoInternetView({ onRetry }) {
     <View className="flex-1 px-6 py-12 items-center justify-center">
       {/* Icon circle */}
       <View className="w-24 h-24 mb-6 rounded-full bg-primary/10 items-center justify-center">
-        <MaterialIcons name="cloud-off" size={48} color="#3ce619" />
+        <MaterialIcons name="cloud-off" size={48} color="#166534" />
       </View>
 
       {/* Heading */}
@@ -38,3 +38,5 @@ export default function NoInternetView({ onRetry }) {
     </View>
   );
 }
+
+

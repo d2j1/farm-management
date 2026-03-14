@@ -144,3 +144,4 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
 
   return db;
 }
+

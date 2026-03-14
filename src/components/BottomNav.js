@@ -72,27 +72,26 @@ export default function BottomNav({ state, navigation }) {
             className="flex-col items-center gap-1"
             activeOpacity={0.7}
             onPress={() => {
-                if (!navigation) return;
+              if (!navigation) return;
 
-                if (tab.name === 'Crops') {
-                  navigation.navigate('Crops', { screen: 'CropsMain' });
-                  return;
-                }
+              if (tab.name === 'Crops') {
+                navigation.navigate('Crops', { screen: 'CropsMain' });
+                return;
+              }
 
-                if (!isActive) {
-                  navigation.navigate(tab.name);
+              if (!isActive) {
+                navigation.navigate(tab.name);
               }
             }}
           >
             <MaterialIcons
               name={tab.icon}
-              size={24}
-              color={isActive ? '#3ce619' : '#94a3b8'}
+              size={22}
+              color={isActive ? '#166534' : '#94a3b8'}
             />
             <Text
-              className={`text-[10px] ${
-                isActive ? 'font-bold text-primary' : 'font-medium text-slate-400'
-              }`}
+              className={`text-xs ${isActive ? 'font-bold text-primary' : 'font-medium text-slate-400'
+                }`}
             >
               {t(tab.labelKey)}
             </Text>
@@ -102,3 +101,6 @@ export default function BottomNav({ state, navigation }) {
     </View>
   );
 }
+
+
+

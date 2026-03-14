@@ -41,7 +41,7 @@ function DateTimeField({ label, value, icon, onPress }) {
         <Text className="flex-1 text-sm font-medium text-slate-900 dark:text-slate-100">
           {value}
         </Text>
-        <MaterialIcons name={icon} size={20} color="#94a3b8" />
+        <MaterialIcons name={icon} size={24} color="#94a3b8" />
       </TouchableOpacity>
     </View>
   );
@@ -224,7 +224,7 @@ export default function CreateReminderModal({ visible, onClose, onSave }) {
                 />
               ))}
             </ScrollView>
-            <Text className="text-[11px] text-slate-400 mt-2 italic">
+            <Text className="text-sm text-slate-400 mt-2 italic">
               {t('quickRemindNote')}
             </Text>
           </View>
@@ -284,3 +284,6 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
 });
+
+
+

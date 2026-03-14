@@ -62,8 +62,8 @@ function TaskCard({
     ? 'bg-blue-100 flex-row items-center gap-1 px-1.5 py-0.5 rounded'
     : 'bg-slate-100 flex-row items-center gap-1 px-1.5 py-0.5 rounded';
   const tagTextClass = isInProgress
-    ? 'text-[10px] text-blue-700'
-    : 'text-[10px] text-slate-500';
+    ? 'text-sm text-blue-700'
+    : 'text-sm text-slate-500';
 
   return (
     <View
@@ -77,9 +77,9 @@ function TaskCard({
             {isInProgress ? (
               <SpinningIcon />
             ) : isSnoozed ? (
-              <MaterialIcons name="bedtime" size={24} color="#fb923c" />
+              <MaterialIcons name="bedtime" size={26} color="#fb923c" />
             ) : status === 'multi_day' ? (
-              <MaterialIcons name="sync" size={24} color="#3b82f6" />
+              <MaterialIcons name="sync" size={26} color="#3b82f6" />
             ) : (
               <View
                 className={`h-6 w-6 rounded-md border-2 items-center justify-center ${isDueToday ? 'border-primary/30' : 'border-slate-200'
@@ -95,7 +95,7 @@ function TaskCard({
               <View className={tagBgClass}>
                 <MaterialIcons
                   name={categoryIcon}
-                  size={12}
+                  size={14}
                   color={isInProgress ? '#1d4ed8' : '#64748b'}
                 />
                 <Text className={tagTextClass}>{categoryLabel}</Text>
@@ -112,7 +112,7 @@ function TaskCard({
             activeOpacity={0.6}
             onPress={() => onToggleMenu?.(id)}
           >
-            <MaterialIcons name="more-vert" size={22} color="#94a3b8" />
+            <MaterialIcons name="more-vert" size={24} color="#94a3b8" />
           </TouchableOpacity>
 
           {isMenuOpen && (
@@ -192,7 +192,11 @@ function SpinningIcon() {
 
   return (
     <Animated.View style={{ transform: [{ rotate }] }}>
-      <MaterialIcons name="autorenew" size={24} color="#3b82f6" />
+      <MaterialIcons name="autorenew" size={26} color="#3b82f6" />
     </Animated.View>
   );
 }
+
+
+
+

@@ -28,7 +28,7 @@ export default function CropResultModal({
   const isSuccess = type === 'success';
 
   const iconName = isSuccess ? 'check-circle' : 'error';
-  const iconColor = isSuccess ? '#3ce619' : '#ef4444';
+  const iconColor = isSuccess ? '#166534' : '#ef4444';
   const iconBg = isSuccess ? (variant === 'bottom' ? 'bg-primary/10' : 'bg-primary/20') : 'bg-red-100';
 
   const title = titleOverride || (isSuccess ? t('cropCreated') : t('cropCreationFailed'));
@@ -65,14 +65,14 @@ export default function CropResultModal({
                 activeOpacity={0.9}
                 className="w-full h-14 bg-primary items-center justify-center rounded-xl shadow-lg"
                 style={{
-                  shadowColor: '#3ce619',
+                  shadowColor: '#166534',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.2,
                   shadowRadius: 8,
                   elevation: 5,
                 }}
               >
-                <Text className="text-slate-950 text-lg font-bold">{btnText}</Text>
+                <Text className="text-white text-xl font-bold">{btnText}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -103,17 +103,18 @@ export default function CropResultModal({
             activeOpacity={0.9}
             className="h-14 w-full items-center justify-center rounded-xl bg-primary shadow-lg"
             style={{
-              shadowColor: '#3ce619',
+              shadowColor: '#166534',
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.2,
               shadowRadius: 8,
               elevation: 5,
             }}
           >
-            <Text className="text-base font-bold text-slate-900">{btnText}</Text>
+            <Text className="text-white text-xl font-bold">{btnText}</Text>
           </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 }
+

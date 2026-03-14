@@ -50,7 +50,7 @@ export default function VideoCard({ category, duration, title, icon, url, onWatc
         {/* Overlay with play button */}
         <View className="absolute inset-0 bg-black/10 items-center justify-center">
           <View className="w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg">
-            <MaterialIcons name="play-arrow" size={30} color="#000" />
+            <MaterialIcons name="play-arrow" size={26} color="#000" />
           </View>
         </View>
       </TouchableOpacity>
@@ -72,7 +72,7 @@ export default function VideoCard({ category, duration, title, icon, url, onWatc
         </View>
 
         {/* Title */}
-        <Text className="text-slate-900 font-bold text-lg leading-snug">{title}</Text>
+        <Text className="text-slate-900 font-bold text-base leading-snug">{title}</Text>
 
         {/* Watch button */}
         <TouchableOpacity
@@ -80,11 +80,15 @@ export default function VideoCard({ category, duration, title, icon, url, onWatc
           activeOpacity={0.85}
           onPress={onWatch}
         >
-          <MaterialIcons name="play-arrow" size={20} color="#000" />
-          <Text className="text-black font-bold text-sm">{t('watchVideo')}</Text>
+          <MaterialIcons name="play-arrow" size={24} color="#ffffff" />
+          <Text className="text-white font-bold text-xs uppercase tracking-widest">{t('watchVideo')}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+
+
+
 

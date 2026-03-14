@@ -23,3 +23,4 @@ export const useLanguageStore = create((set, get) => ({
     return translations[languageCode]?.[key] || translations['en'][key] || key;
   },
 }));
+

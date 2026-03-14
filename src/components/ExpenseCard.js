@@ -17,7 +17,7 @@ export default function ExpenseCard({ expense, isMenuOpen, onToggleMenu, onMenuA
         activeOpacity={0.75}
         onPress={() => onToggleMenu(expense.id)}
       >
-        <MaterialIcons name="more-vert" size={20} color="#94a3b8" />
+        <MaterialIcons name="more-vert" size={24} color="#94a3b8" />
       </TouchableOpacity>
 
       {isMenuOpen ? (
@@ -42,7 +42,7 @@ export default function ExpenseCard({ expense, isMenuOpen, onToggleMenu, onMenuA
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
           <View className="bg-primary/20 p-2 rounded-lg">
-            <MaterialIcons name={expense.icon} size={20} color="#3ce619" />
+            <MaterialIcons name={expense.icon} size={24} color="#166534" />
           </View>
 
           <View className="flex-1">
@@ -85,3 +85,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
 });
+
+
+

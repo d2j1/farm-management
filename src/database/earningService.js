@@ -70,3 +70,4 @@ export async function getTotalEarningsByCrop(db, cropId) {
   );
   return row?.total ?? 0;
 }
+

@@ -561,7 +561,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               <View className="px-4 pt-4 gap-4">
                 <View className="bg-primary/10 border border-primary/20 rounded-2xl p-5">
                   <View className="flex-row items-center justify-between mb-4">
-                    <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">
                       {t('actionCenter')}
                     </Text>
                     <View className="bg-primary/20 px-2 py-0.5 rounded">
@@ -572,10 +572,10 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                   <View className="flex-row gap-3">
                     <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
                       <View className="flex-row items-center gap-2 mb-1">
-                        <MaterialIcons name="task-alt" size={14} color="#3ce619" />
-                        <Text className="text-[10px] text-slate-500 font-bold uppercase">{t('pendingTasks')}</Text>
+                        <MaterialIcons name="task-alt" size={14} color="#166534" />
+                        <Text className="text-xs text-slate-500 font-bold uppercase">{t('pendingTasks')}</Text>
                       </View>
-                      <Text className="text-2xl font-bold text-slate-900">
+                      <Text className="text-xl font-bold text-slate-900">
                         {formatCount(pendingTaskCount)}
                       </Text>
                     </View>
@@ -583,9 +583,9 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                     <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
                       <View className="flex-row items-center gap-2 mb-1">
                         <MaterialIcons name="notifications-active" size={14} color="#f97316" />
-                        <Text className="text-[10px] text-slate-500 font-bold uppercase">{t('reminders')}</Text>
+                        <Text className="text-xs text-slate-500 font-bold uppercase">{t('reminders')}</Text>
                       </View>
-                      <Text className="text-2xl font-bold text-slate-900">{formatCount(reminderCount)}</Text>
+                      <Text className="text-xl font-bold text-slate-900">{formatCount(reminderCount)}</Text>
                     </View>
                   </View>
                 </View>
@@ -629,8 +629,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                 ))}
 
                 <View className="flex-col items-center justify-center py-8 opacity-40">
-                  <MaterialIcons name="history" size={30} color="#64748b" />
-                  <Text className="text-[10px] mt-1 font-medium uppercase tracking-widest text-slate-500">
+                  <MaterialIcons name="history" size={26} color="#64748b" />
+                  <Text className="text-sm mt-1 font-medium uppercase tracking-widest text-slate-500">
                     {t('endOfRecentActivities')}
                   </Text>
                 </View>
@@ -703,7 +703,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           pointerEvents="none"
         >
           <View className="mr-2">
-            <MaterialIcons name="check-circle" size={14} color="#3ce619" />
+            <MaterialIcons name="check-circle" size={14} color="#166534" />
           </View>
           <Text className="text-white text-xs font-medium">{toastMessage}</Text>
         </Animated.View>
@@ -720,8 +720,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             activeOpacity={0.85}
             onPress={() => setShowCreateTask(true)}
           >
-            <MaterialIcons name="add-task" size={20} color="#3ce619" />
-            <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+            <MaterialIcons name="add-task" size={24} color="#166534" />
+            <Text className="text-sm font-bold uppercase tracking-widest text-slate-900">
               {t('addTask')}
             </Text>
           </TouchableOpacity>
@@ -732,8 +732,8 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
             activeOpacity={0.85}
             onPress={() => setShowCreateReminder(true)}
           >
-            <MaterialIcons name="notification-add" size={20} color="#1a2e05" />
-            <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+            <MaterialIcons name="notification-add" size={24} color="#1a2e05" />
+            <Text className="text-sm font-bold uppercase tracking-widest text-slate-900">
               {t('createReminder')}
             </Text>
           </TouchableOpacity>
@@ -752,7 +752,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateActivity(true);
             }}
           >
-            <MaterialIcons name="add" size={20} color="#1a2e05" />
+            <MaterialIcons name="add" size={24} color="#1a2e05" />
             <Text className="font-bold text-slate-900">{t('addActivity')}</Text>
           </TouchableOpacity>
         </View>
@@ -770,7 +770,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateExpense(true);
             }}
           >
-            <MaterialIcons name="add" size={20} color="#1a2e05" />
+            <MaterialIcons name="add" size={24} color="#1a2e05" />
             <Text className="font-bold text-slate-900">{t('addExpense')}</Text>
           </TouchableOpacity>
         </View>
@@ -788,7 +788,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
               setShowCreateEarnings(true);
             }}
           >
-            <MaterialIcons name="add" size={20} color="#1a2e05" />
+            <MaterialIcons name="add" size={24} color="#1a2e05" />
             <Text className="font-bold text-slate-900">{t('addEarnings')}</Text>
           </TouchableOpacity>
         </View>
@@ -1073,10 +1073,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   primaryFabShadow: {
-    shadowColor: '#3ce619',
+    shadowColor: '#166534',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 9,
     elevation: 8,
   },
 });
+
+
+
+

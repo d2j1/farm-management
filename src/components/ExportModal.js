@@ -37,7 +37,7 @@ export default function ExportModal({
         return (
           <View className="items-center p-8">
             <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <MaterialIcons name="cloud-upload" size={48} color="#3ce619" />
+              <MaterialIcons name="cloud-upload" size={48} color="#166534" />
             </View>
             <Text className="text-2xl font-bold text-slate-900 mb-3">
               {t('exportingData')}
@@ -80,7 +80,7 @@ export default function ExportModal({
         return (
           <View className="items-center p-8">
             <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <MaterialIcons name="check-circle" size={48} color="#3ce619" />
+              <MaterialIcons name="check-circle" size={48} color="#166534" />
             </View>
             <Text className="text-2xl font-bold text-slate-900 mb-3 text-center px-4 leading-tight">
               {t('exportSuccessTitle')}
@@ -93,7 +93,7 @@ export default function ExportModal({
               onPress={onDownload}
               activeOpacity={0.8}
               className="w-full bg-primary py-4 px-6 rounded-xl shadow-lg mb-4"
-              style={{ shadowColor: '#3ce619', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 5 }}
+              style={{ shadowColor: '#166534', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 5 }}
             >
               <Text className="text-center text-slate-900 font-bold text-base">
                 {t('downloadData')}
@@ -166,3 +166,5 @@ export default function ExportModal({
     </Modal>
   );
 }
+
+

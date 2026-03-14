@@ -31,7 +31,7 @@ export default function ComingSoonModal({
         <View className="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden items-center p-8 border border-primary/10">
           {/* Icon */}
           <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-            <MaterialIcons name="auto-awesome" size={44} color="#3ce619" />
+            <MaterialIcons name="auto-awesome" size={44} color="#166534" />
           </View>
 
           {/* Title */}
@@ -50,10 +50,12 @@ export default function ComingSoonModal({
             activeOpacity={0.85}
             onPress={onClose}
           >
-            <Text className="text-black font-bold text-base">Got it</Text>
+            <Text className="text-white font-bold text-base">Got it</Text>
           </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 }
+
+

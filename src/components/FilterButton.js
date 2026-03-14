@@ -22,7 +22,7 @@ export default function FilterButton({ label, isActive, onPress }) {
     >
       {isActive ? (
         <View className="bg-primary px-8 h-8 rounded-full items-center justify-center shadow-md">
-          <Text className="text-sm font-bold text-slate-900">{label}</Text>
+          <Text className="text-white text-sm font-bold">{label}</Text>
         </View>
       ) : (
         <Text className="text-sm font-bold text-slate-900">{label}</Text>
@@ -30,3 +30,4 @@ export default function FilterButton({ label, isActive, onPress }) {
     </TouchableOpacity>
   );
 }
+

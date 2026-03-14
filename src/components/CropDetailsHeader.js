@@ -35,7 +35,7 @@ export default function CropDetailsHeader({
             activeOpacity={0.75}
             onPress={onBack}
           >
-            <MaterialIcons name="arrow-back" size={22} color="#0f172a" />
+            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -58,14 +58,14 @@ export default function CropDetailsHeader({
             activeOpacity={0.75}
             onPress={onCalendarPress}
           >
-            <MaterialIcons name="calendar-today" size={18} color="#475569" />
+            <MaterialIcons name="calendar-today" size={20} color="#475569" />
           </TouchableOpacity>
           <TouchableOpacity
             className="h-10 w-10 rounded-full items-center justify-center"
             activeOpacity={0.75}
             onPress={onMenuToggle}
           >
-            <MaterialIcons name="more-vert" size={20} color="#475569" />
+            <MaterialIcons name="more-vert" size={24} color="#475569" />
           </TouchableOpacity>
         </View>
       </View>
@@ -77,7 +77,7 @@ export default function CropDetailsHeader({
             activeOpacity={0.7}
             onPress={() => onMenuAction('edit')}
           >
-            <MaterialIcons name="edit" size={18} color="#475569" />
+            <MaterialIcons name="edit" size={20} color="#475569" />
             <Text className="ml-3 text-sm text-slate-700">{t('editCropDetails')}</Text>
           </TouchableOpacity>
 
@@ -88,7 +88,7 @@ export default function CropDetailsHeader({
           >
             <MaterialIcons
               name={cropStatus === 'active' ? 'pause-circle' : 'play-circle'}
-              size={18}
+              size={20}
               color="#475569"
             />
             <Text className="ml-3 text-sm text-slate-700">
@@ -101,7 +101,7 @@ export default function CropDetailsHeader({
             activeOpacity={0.7}
             onPress={() => onMenuAction('delete')}
           >
-            <MaterialIcons name="delete" size={18} color="#dc2626" />
+            <MaterialIcons name="delete" size={20} color="#dc2626" />
             <Text className="ml-3 text-sm text-red-600">{t('deleteCrop')}</Text>
           </TouchableOpacity>
         </View>
@@ -118,12 +118,12 @@ export default function CropDetailsHeader({
             <TouchableOpacity
               key={tab.key}
               className="px-4 py-3 border-b-2"
-              style={{ borderBottomColor: isActive ? '#3ce619' : 'transparent' }}
+              style={{ borderBottomColor: isActive ? '#166534' : 'transparent' }}
               onPress={() => onTabPress(tab.key)}
               activeOpacity={0.75}
             >
               <Text
-                className={`text-sm font-bold ${
+                className={`text-xs font-bold ${
                   isActive ? 'text-slate-900' : 'text-slate-500'
                 }`}
               >
@@ -159,3 +159,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
 });
+
+
+
+

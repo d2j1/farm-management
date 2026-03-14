@@ -261,3 +261,4 @@ export async function getPaginatedTasksAndReminders(db, { limit = 20, offset = 0
 
   return rows;
 }
+

@@ -66,7 +66,7 @@ export default function CropDetailCard({ crop, onPress }) {
 
             {/* Location */}
             <View className="flex-row items-center gap-1 mt-0.5">
-              <MaterialIcons name="location-on" size={12} color="#94a3b8" />
+              <MaterialIcons name="location-on" size={14} color="#94a3b8" />
               <Text className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 {crop.location}
               </Text>
@@ -99,8 +99,8 @@ export default function CropDetailCard({ crop, onPress }) {
           {/* Expenses */}
           <View className="flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <MaterialIcons name="arrow-downward" size={12} color="#ef4444" />
-              <Text className="text-[9px] text-slate-400 uppercase font-black tracking-widest">
+              <MaterialIcons name="arrow-downward" size={14} color="#ef4444" />
+              <Text className="text-xs text-slate-400 uppercase font-black tracking-widest">
                 {t('expensesLabel')}
               </Text>
             </View>
@@ -110,8 +110,8 @@ export default function CropDetailCard({ crop, onPress }) {
           {/* Earnings */}
           <View className="flex-1 bg-primary/5 p-3 rounded-xl border border-primary/10">
             <View className="flex-row items-center gap-1.5 mb-1">
-              <MaterialIcons name="arrow-upward" size={12} color="#3ce619" />
-              <Text className="text-[9px] text-primary/70 uppercase font-black tracking-widest">
+              <MaterialIcons name="arrow-upward" size={14} color="#166534" />
+              <Text className="text-xs text-primary/70 uppercase font-black tracking-widest">
                 {t('earningsLabel')}
               </Text>
             </View>
@@ -148,9 +148,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
 });
+
+
+
+

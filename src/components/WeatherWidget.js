@@ -13,7 +13,7 @@ export default function WeatherWidget() {
     return (
       <View className="px-4 pt-4">
         <View className="flex-row items-center justify-center gap-4 rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm border border-primary/5 w-full min-h-[100px]">
-          <ActivityIndicator size="small" color="#3ce619" />
+          <ActivityIndicator size="small" color="#166534" />
         </View>
       </View>
     );
@@ -26,10 +26,10 @@ export default function WeatherWidget() {
           <View className="flex-row items-center gap-4">
             <MaterialIcons name="cloud-off" size={36} color="#94a3b8" />
             <View>
-              <Text className="text-2xl font-bold text-slate-900 dark:text-white leading-none">--</Text>
+              <Text className="text-xl font-bold text-slate-900 dark:text-white leading-none">--</Text>
               <View className="mt-1">
-                <Text className="text-primary font-black text-base uppercase tracking-tight">{t('unavailable')}</Text>
-                <Text className="text-slate-500 dark:text-slate-400 text-[10px] leading-tight mt-0.5">{t('checkNetwork')}</Text>
+                <Text className="text-primary font-black text-sm uppercase tracking-tight">{t('unavailable')}</Text>
+                <Text className="text-slate-500 dark:text-slate-400 text-sm leading-tight mt-0.5">{t('checkNetwork')}</Text>
               </View>
             </View>
           </View>
@@ -45,16 +45,16 @@ export default function WeatherWidget() {
           <View className="flex-row items-center gap-4">
             <MaterialIcons name={data.isSunny ? (data.isDay ? "wb-sunny" : "nightlight-round") : "cloud"} size={36} color={data.isSunny ? (data.isDay ? "#eab308" : "#94a3b8") : "#94a3b8"} />
             <View>
-              <Text className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{data.temperature}°C</Text>
+              <Text className="text-xl font-bold text-slate-900 dark:text-white leading-none">{data.temperature}°C</Text>
               <View className="mt-1">
-                <Text className="text-primary font-black text-base uppercase tracking-tight">{data.condition}</Text>
-                <Text className="text-slate-500 dark:text-slate-400 text-[10px] leading-tight mt-0.5">{data.city}</Text>
+                <Text className="text-primary font-black text-sm uppercase tracking-tight">{data.condition}</Text>
+                <Text className="text-slate-500 dark:text-slate-400 text-sm leading-tight mt-1">{data.city}</Text>
                 <Text className="text-slate-400 dark:text-slate-500 text-[8px] leading-tight mt-0.5 italic">{t('approxLocation')}</Text>
               </View>
             </View>
           </View>
           <View className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-            <MaterialIcons name="water-drop" size={24} color="#3ce619" />
+            <MaterialIcons name="water-drop" size={26} color="#166534" />
           </View>
         </View>
 
@@ -76,3 +76,7 @@ export default function WeatherWidget() {
     </View>
   );
 }
+
+
+
+

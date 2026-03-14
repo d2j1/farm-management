@@ -291,15 +291,15 @@ export default function TasksScreen({ navigation, route }) {
     if (loadingMore) {
       return (
         <View className="py-4 items-center">
-          <ActivityIndicator size="small" color="#3ce619" />
+          <ActivityIndicator size="small" color="#166534" />
         </View>
       );
     }
     if (!hasMore && timelineItems.length > 0) {
       return (
         <View className="py-10 items-center justify-center">
-          <MaterialIcons name="done-all" size={24} color="#3ce619" />
-          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">
+          <MaterialIcons name="done-all" size={26} color="#166534" />
+          <Text className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">
             {t('allCaughtUp') || 'End of records'}
           </Text>
           <View style={{ height: 160 }} />
@@ -313,7 +313,7 @@ export default function TasksScreen({ navigation, route }) {
     if (loading) {
       return (
         <View className="py-20 items-center justify-center">
-          <ActivityIndicator size="large" color="#3ce619" />
+          <ActivityIndicator size="large" color="#166534" />
           <Text className="text-slate-400 text-xs mt-2">{t('loading') || 'Loading...'}</Text>
         </View>
       );
@@ -364,11 +364,11 @@ export default function TasksScreen({ navigation, route }) {
             activeOpacity={0.7}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+            <MaterialIcons name="arrow-back" size={26} color="#0f172a" />
           </TouchableOpacity>
 
           <View className="items-center">
-            <Text className="text-xl font-bold tracking-tight text-primary">
+            <Text className="text-lg font-bold tracking-tight text-primary">
               {t('myTasks')}
             </Text>
             <Text className="text-xs text-slate-500">{t('farmPersonal')}</Text>
@@ -405,8 +405,8 @@ export default function TasksScreen({ navigation, route }) {
           style={styles.fabShadow}
           onPress={() => setShowCreateTask(true)}
         >
-          <MaterialIcons name="add-task" size={20} color="#3ce619" />
-          <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+          <MaterialIcons name="add-task" size={24} color="#166534" />
+          <Text className="text-xs font-bold uppercase tracking-widest text-slate-900">
             {t('newTask')}
           </Text>
         </TouchableOpacity>
@@ -417,8 +417,8 @@ export default function TasksScreen({ navigation, route }) {
           style={styles.primaryFabShadow}
           onPress={() => setShowCreateReminder(true)}
         >
-          <MaterialIcons name="notification-add" size={20} color="#1a2e05" />
-          <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+          <MaterialIcons name="notification-add" size={24} color="#ffffff" />
+          <Text className="text-xs font-bold uppercase tracking-widest text-white">
             {t('newReminder')}
           </Text>
         </TouchableOpacity>
@@ -494,7 +494,7 @@ export default function TasksScreen({ navigation, route }) {
           pointerEvents="none"
         >
           <View className="mr-2">
-            <MaterialIcons name="check-circle" size={14} color="#3ce619" />
+            <MaterialIcons name="check-circle" size={14} color="#166534" />
           </View>
           <Text className="text-white text-xs font-medium">{toastMessage}</Text>
         </Animated.View>
@@ -525,10 +525,14 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   primaryFabShadow: {
-    shadowColor: '#3ce619',
+    shadowColor: '#166534',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
 });
+
+
+
+

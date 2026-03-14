@@ -26,7 +26,7 @@ export default function DateField({ label, value, onChange, minimumDate, maximum
         <Text className="flex-1 text-slate-900 dark:text-slate-100 text-sm font-medium">
           {formatDate(value)}
         </Text>
-        <MaterialIcons name="calendar-today" size={20} color="#94a3b8" />
+        <MaterialIcons name="calendar-today" size={24} color="#94a3b8" />
       </Pressable>
 
       {showPicker && (
@@ -42,3 +42,6 @@ export default function DateField({ label, value, onChange, minimumDate, maximum
     </View>
   );
 }
+
+
+

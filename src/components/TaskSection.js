@@ -4,10 +4,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useDatabase } from '../database/DatabaseProvider';
 import { getAllTasks } from '../database/taskService';
 import { getAllReminders } from '../database/reminderService';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useLanguageStore } from '../utils/languageStore';
 
-export default function TaskSection({ navigation }) {
+export default function TaskSection() {
+  const navigation = useNavigation();
   const db = useDatabase();
   const isFocused = useIsFocused();
   const { t } = useLanguageStore();
@@ -25,7 +26,7 @@ export default function TaskSection({ navigation }) {
 
       const mappedTasks = dbTasks.map(tData => {
         let statusText = tData.startDate || t('noUpcomingTasks');
-        let color = '#3ce619'; // primary
+        let color = '#166534'; // primary
         
         if (tData.startDate === today) {
           statusText = t('today');
@@ -85,7 +86,7 @@ export default function TaskSection({ navigation }) {
       <View className="bg-white dark:bg-slate-900 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Header */}
         <View className="flex-row items-center justify-between p-4 border-b border-slate-50 dark:border-slate-800">
-          <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+          <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             {t('upcomingTasks')}
           </Text>
           <View className="bg-primary/20 px-2 py-0.5 rounded-full">
@@ -98,7 +99,7 @@ export default function TaskSection({ navigation }) {
         {/* Task List */}
         <View className="p-4 gap-4">
           {loading ? (
-            <ActivityIndicator color="#3ce619" />
+            <ActivityIndicator color="#166534" />
           ) : items.length === 0 ? (
             <Text className="text-center text-slate-400 py-4">
               {t('noUpcomingTasks')}
@@ -107,17 +108,17 @@ export default function TaskSection({ navigation }) {
             items.map((item) => (
               <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
                 <View className="flex-1">
-                  <Text className="text-[10px] font-bold uppercase" style={{ color: item.color }}>
+                  <Text className="text-sm font-bold uppercase" style={{ color: item.color }}>
                     {item.statusLabel}
                   </Text>
-                  <Text className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</Text>
+                  <Text className="text-base font-bold text-slate-900 dark:text-white">{item.title}</Text>
                   <Text className="text-xs text-slate-500">{item.subtitle}</Text>
                 </View>
                 <TouchableOpacity 
                   className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center"
                   onPress={() => navigation.navigate('Tasks')}
                 >
-                  <MaterialIcons name={item.icon} size={18} color="#94a3b8" />
+                  <MaterialIcons name={item.icon} size={20} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
             ))
@@ -131,14 +132,14 @@ export default function TaskSection({ navigation }) {
               onPress={() => navigation.navigate('Tasks', { openCreateTask: true })}
               className="flex-row items-center gap-1.5"
             >
-              <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">
+              <MaterialIcons name="add-circle" size={20} color="#166534" />
+              <Text className="text-primary text-xs font-bold uppercase tracking-wider">
                 {t('createTask')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => navigation.navigate('Tasks')}>
-              <Text className="text-primary text-sm font-bold">
+              <Text className="text-primary text-xs font-bold uppercase tracking-wider">
                 {t('viewAllTasks')}
               </Text>
             </TouchableOpacity>
@@ -149,8 +150,8 @@ export default function TaskSection({ navigation }) {
               onPress={() => navigation.navigate('Tasks', { openCreateReminder: true })}
               className="flex-row items-center gap-1.5"
             >
-              <MaterialIcons name="notifications-active" size={17} color="#3ce619" />
-              <Text className="text-primary text-sm font-bold">
+              <MaterialIcons name="notifications-active" size={23} color="#166534" />
+              <Text className="text-primary text-xs font-bold uppercase tracking-wider">
                 {t('createReminder')}
               </Text>
             </TouchableOpacity>
@@ -160,3 +161,7 @@ export default function TaskSection({ navigation }) {
     </View>
   );
 }
+
+
+
+

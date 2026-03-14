@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useLanguageStore } from '../utils/languageStore';
 
-export default function InsightsSection({ navigation }) {
+export default function InsightsSection() {
+  const navigation = useNavigation();
   const { t } = useLanguageStore();
 
   const INSIGHTS = [
@@ -34,14 +36,14 @@ export default function InsightsSection({ navigation }) {
     <View className="py-4">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
-        <Text className="text-slate-900 dark:text-white text-lg font-bold tracking-tight">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
           {t('quickInsights')}
         </Text>
         <TouchableOpacity
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Insights')}
         >
-          <Text className="text-primary text-sm font-semibold">
+          <Text className="text-primary text-xs font-bold uppercase tracking-wider">
             {t('seeAll')}
           </Text>
         </TouchableOpacity>
@@ -59,11 +61,11 @@ export default function InsightsSection({ navigation }) {
             className="w-[220px] bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex-row gap-3"
           >
             <View className={`h-7 w-7 rounded-lg ${insight.bgClass} flex items-center justify-center`}>
-              <MaterialIcons name={insight.icon} size={16} color={insight.iconColor} />
+              <MaterialIcons name={insight.icon} size={18} color={insight.iconColor} />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{insight.title}</Text>
-              <Text className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed" numberOfLines={1}>
+              <Text className="text-base font-bold text-slate-900 dark:text-white leading-tight">{insight.title}</Text>
+              <Text className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed" numberOfLines={1}>
                 {insight.description}
               </Text>
             </View>
@@ -73,3 +75,6 @@ export default function InsightsSection({ navigation }) {
     </View>
   );
 }
+
+
+

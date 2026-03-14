@@ -77,3 +77,4 @@ export const useAgriWeather = () => {
 
     return { data: translatedData, loading, error };
 };
+

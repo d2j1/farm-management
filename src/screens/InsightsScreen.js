@@ -165,7 +165,7 @@ export default function InsightsScreen() {
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
       <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
-        <Text className="text-xl font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black">
           {t('quickInsights')}
         </Text>
       </View>
@@ -188,7 +188,7 @@ export default function InsightsScreen() {
                 >
                   <Text
                     className={`text-sm font-bold ${
-                      isActive ? 'text-black' : 'text-slate-500'
+                      isActive ? 'text-white' : 'text-slate-500'
                     }`}
                   >
                     {t(typeKey)}
@@ -202,7 +202,7 @@ export default function InsightsScreen() {
         {/* Search bar */}
         <View className="px-4 mb-4">
           <View className="flex-row items-center h-12 bg-white rounded-xl border border-slate-200 shadow-sm px-4 gap-2">
-            <MaterialIcons name="search" size={22} color="#94a3b8" />
+            <MaterialIcons name="search" size={24} color="#94a3b8" />
             <TextInput
               className="flex-1 text-base text-slate-900"
               placeholder={searchPlaceholder}
@@ -257,7 +257,7 @@ export default function InsightsScreen() {
             <View className="px-4 gap-4">
               {loading && !refreshing ? (
                 <View className="py-20 items-center justify-center">
-                  <ActivityIndicator size="large" color="#3ce619" />
+                  <ActivityIndicator size="large" color="#166534" />
                   <Text className="mt-4 text-slate-500 font-medium">{t('fetchingInsights')}</Text>
                 </View>
               ) : error ? (
@@ -324,3 +324,7 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 });
+
+
+
+

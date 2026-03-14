@@ -110,7 +110,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
           </Text>
 
           <View className="flex flex-col gap-2 mb-6">
-            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
+            <Text className="text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-widest">
               {t('earningNameLabel')}
             </Text>
             <TextInput
@@ -131,7 +131,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
           </View>
 
           <View className="flex flex-col gap-2 mb-6">
-            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
+            <Text className="text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-widest">
               {t('remarksLabel')}
             </Text>
             <TextInput
@@ -147,7 +147,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
           </View>
 
           <View className="flex flex-col gap-2 mb-6">
-            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
+            <Text className="text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-widest">
               {t('amountLabel')}
             </Text>
             <View className="relative flex-row items-center">
@@ -172,7 +172,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
           </View>
 
           <View className="flex flex-col gap-2 mb-8">
-            <Text className="text-slate-700 dark:text-slate-300 text-[11px] font-bold uppercase tracking-widest">
+            <Text className="text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-widest">
               {t('dateLabel')}
             </Text>
             <TouchableOpacity
@@ -183,7 +183,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
               <Text className="flex-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                 {formatDate(date)}
               </Text>
-              <MaterialIcons name="calendar-today" size={20} color="#94a3b8" />
+              <MaterialIcons name="calendar-today" size={24} color="#94a3b8" />
             </TouchableOpacity>
           </View>
 
@@ -193,7 +193,7 @@ export default function CreateEarningsModal({ visible, onClose, onSave }) {
               activeOpacity={0.85}
               onPress={handleSave}
             >
-              <Text className="text-slate-900 font-bold">{t('saveEarnings')}</Text>
+              <Text className="text-white font-bold text-base">{t('saveEarnings')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -237,3 +237,6 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
 });
+
+
+

@@ -12,7 +12,7 @@ export default function CropsScreenHeader({ onNotificationPress }) {
 
       {/* Center — Title */}
       <View className="flex-1 items-center">
-        <Text className="text-xl font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black">
           {t('yourCrops')}
         </Text>
       </View>
@@ -24,9 +24,12 @@ export default function CropsScreenHeader({ onNotificationPress }) {
           onPress={onNotificationPress}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="notifications" size={20} color="#3ce619" />
+          <MaterialIcons name="notifications" size={20} color="#166534" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+
+

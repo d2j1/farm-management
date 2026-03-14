@@ -115,9 +115,9 @@ export default function UpdateProfileScreen({ navigation }) {
           activeOpacity={0.7}
           onPress={() => navigation.goBack()}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={26} color="#0f172a" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black">
           {t('updateProfile')}
         </Text>
       </View>
@@ -182,7 +182,7 @@ export default function UpdateProfileScreen({ navigation }) {
                   value={totalAcreage}
                   onChangeText={setTotalAcreage}
                 />
-                <Text className="mt-1.5 text-[10px] text-slate-400 italic px-1">
+                <Text className="mt-1.5 text-sm text-slate-400 italic px-1">
                   {t('acreageHint')}
                 </Text>
               </View>
@@ -199,7 +199,7 @@ export default function UpdateProfileScreen({ navigation }) {
                   value={activeCrops}
                   onChangeText={setActiveCrops}
                 />
-                <Text className="mt-1.5 text-[10px] text-slate-400 italic px-1">
+                <Text className="mt-1.5 text-sm text-slate-400 italic px-1">
                   {t('activeCropsHint')}
                 </Text>
               </View>
@@ -212,8 +212,8 @@ export default function UpdateProfileScreen({ navigation }) {
                   onPress={handleSave}
                   disabled={isSaving}
                 >
-                  <MaterialIcons name="save" size={20} color={isSaving ? "#64748b" : "#000000"} />
-                  <Text className={`font-bold text-base ${isSaving ? 'text-slate-500' : 'text-black'}`}>
+                  <MaterialIcons name="save" size={24} color={isSaving ? "#64748b" : "#ffffff"} />
+                  <Text className={`font-bold text-base ${isSaving ? 'text-slate-500' : 'text-white'}`}>
                     {isSaving ? t('loading') : t('saveChanges')}
                   </Text>
                 </TouchableOpacity>
@@ -237,7 +237,7 @@ export default function UpdateProfileScreen({ navigation }) {
           pointerEvents="none"
         >
           <View className="mr-2">
-            <MaterialIcons name="check-circle" size={14} color="#3ce619" />
+            <MaterialIcons name="check-circle" size={14} color="#166534" />
           </View>
           <Text className="text-white text-xs font-medium">{toastMessage}</Text>
         </Animated.View>
@@ -266,3 +266,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
 });
+
+
+
+

@@ -45,3 +45,4 @@ export function getEarningIcon(earningName) {
   if (normalized.includes('sale') || normalized.includes('crop') || normalized.includes('mandi')) return 'payments';
   return 'payments';
 }
+

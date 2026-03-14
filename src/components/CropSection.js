@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDatabase } from '../database/DatabaseProvider';
 import { getAllCrops } from '../database/cropService';
 import { getNextUpcomingTaskPerCrop, getLastTaskPerCrop } from '../database/taskService';
@@ -61,7 +61,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
         className="h-16 w-16 rounded-full items-center justify-center mb-3"
         style={{ backgroundColor: iconBg, marginTop: 18 }}
       >
-        <MaterialIcons name={icon} size={30} color={iconColor} />
+        <MaterialIcons name={icon} size={26} color={iconColor} />
       </View>
 
       {/* Crop name */}
@@ -74,7 +74,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
 
       {/* Land nickname */}
       <Text
-        className="text-[11px] mt-0.5 text-slate-400 text-center"
+        className="text-sm mt-0.5 text-slate-400 text-center"
         numberOfLines={1}
       >
         {crop.landNickname}
@@ -84,7 +84,7 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
       <View style={styles.upcomingRow}>
         <MaterialIcons
           name={upcomingTask ? 'event' : lastTask ? 'history' : 'check-circle'}
-          size={10}
+          size={14}
           color={upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a'}
         />
         <Text
@@ -105,7 +105,8 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
   );
 }
 
-export default function CropSection({ navigation }) {
+export default function CropSection() {
+  const navigation = useNavigation();
   const db = useDatabase();
   const { t } = useLanguageStore();
   const [crops, setCrops] = useState([]);
@@ -147,14 +148,14 @@ export default function CropSection({ navigation }) {
     <View className="py-2">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-4">
-        <Text className="text-slate-900 text-lg font-bold tracking-tight">
+        <Text className="text-xs font-semibold uppercase tracking-widest text-slate-500">
           {t('yourCrops')}
         </Text>
         <TouchableOpacity
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Crops', { screen: 'CropsMain' })}
         >
-          <Text className="text-primary text-sm font-semibold">
+          <Text className="text-primary text-xs font-bold uppercase tracking-wider">
             {t('viewAll')}
           </Text>
         </TouchableOpacity>
@@ -192,8 +193,8 @@ export default function CropSection({ navigation }) {
           activeOpacity={0.75}
           onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
         >
-          <MaterialIcons name="add-circle" size={18} color="#3ce619" />
-          <Text className="text-primary text-sm font-semibold opacity-80">
+          <MaterialIcons name="add-circle" size={20} color="#166534" />
+          <Text className="text-primary text-xs font-bold uppercase tracking-wider opacity-80">
             {t('addNewCropOrField')}
           </Text>
         </TouchableOpacity>
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statusText: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
@@ -256,8 +257,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   upcomingText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     flex: 1,
   },
 });
+
+
+
+

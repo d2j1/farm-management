@@ -215,7 +215,7 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
       <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
-        <Text className="text-xl font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black">
           {t('profile')}
         </Text>
       </View>
@@ -239,13 +239,13 @@ export default function ProfileScreen({ navigation }) {
             >
               <View className="flex-row items-center gap-4">
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/20">
-                  <MaterialIcons name="person" size={22} color="#3ce619" />
+                  <MaterialIcons name="person" size={24} color="#166534" />
                 </View>
                 <Text className="text-base font-medium text-slate-900">
                   {t('manageProfile')}
                 </Text>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />
+              <MaterialIcons name="chevron-right" size={26} color="#94a3b8" />
             </TouchableOpacity>
           </View>
         </View>
@@ -270,7 +270,7 @@ export default function ProfileScreen({ navigation }) {
                 >
                   <View className="flex-row items-center gap-4">
                     <View className="h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-                      <MaterialIcons name="language" size={22} color="#475569" />
+                      <MaterialIcons name="language" size={24} color="#475569" />
                     </View>
                     <Text className="text-base font-medium text-slate-900">
                       {label}
@@ -302,7 +302,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Privacy notice card */}
           <View className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-4">
             <View className="flex-row gap-3">
-              <MaterialIcons name="shield" size={22} color="#3ce619" />
+              <MaterialIcons name="shield" size={24} color="#166534" />
               <Text className="text-sm leading-relaxed text-slate-700 flex-1">
                 {t('privacyNotice')}
               </Text>
@@ -316,7 +316,7 @@ export default function ProfileScreen({ navigation }) {
               activeOpacity={0.7}
               onPress={handleExport}
             >
-              <MaterialIcons name="file-upload" size={22} color="#3ce619" />
+              <MaterialIcons name="file-upload" size={24} color="#166534" />
               <Text className="text-base font-semibold text-slate-900">
                 {t('exportCsv')}
               </Text>
@@ -327,7 +327,7 @@ export default function ProfileScreen({ navigation }) {
               activeOpacity={0.7}
               onPress={handleImport}
             >
-              <MaterialIcons name="upload-file" size={22} color="#3ce619" />
+              <MaterialIcons name="upload-file" size={24} color="#166534" />
               <Text className="text-base font-semibold text-slate-900">
                 {t('importData')}
               </Text>
@@ -363,3 +363,7 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
 });
+
+
+
+

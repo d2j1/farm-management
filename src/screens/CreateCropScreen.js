@@ -51,7 +51,7 @@ function SectionLabel({ children, required = false }) {
         {children}
       </Text>
       {required ? (
-        <Text className="text-[10px] font-bold text-primary uppercase">{useLanguageStore.getState().t('required')}</Text>
+        <Text className="text-sm font-bold text-primary uppercase">{useLanguageStore.getState().t('required')}</Text>
       ) : null}
     </View>
   );
@@ -103,7 +103,7 @@ function DateInput({
         </Text>
         <MaterialIcons
           name={iconName}
-          size={20}
+          size={24}
           color="#94a3b8"
         />
       </Pressable>
@@ -158,7 +158,7 @@ function SelectInput({
 
         <MaterialIcons
           name="keyboard-arrow-down"
-          size={20}
+          size={24}
           color="#94a3b8"
           style={styles.selectIcon}
           pointerEvents="none"
@@ -199,7 +199,7 @@ function SelectInput({
                     </Text>
 
                     {isActive ? (
-                      <MaterialIcons name="check" size={20} color="#3ce619" />
+                      <MaterialIcons name="check" size={24} color="#166534" />
                     ) : null}
                   </TouchableOpacity>
                 );
@@ -316,9 +316,9 @@ export default function CreateCropScreen({ navigation, route }) {
               activeOpacity={0.75}
               className="h-8 w-8 items-center justify-center"
             >
-              <MaterialIcons name="arrow-back" size={22} color="#64748b" />
+              <MaterialIcons name="arrow-back" size={24} color="#64748b" />
             </TouchableOpacity>
-            <Text className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <Text className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
               {t('createCropHeader')}
             </Text>
             <View className="w-8" />
@@ -452,8 +452,9 @@ export default function CreateCropScreen({ navigation, route }) {
               className="h-14 w-full flex-row items-center justify-center gap-2 rounded-xl bg-primary shadow-lg"
               style={styles.createButton}
             >
-              <MaterialIcons name="task-alt" size={22} color="#0f172a" />
-              <Text className="text-base font-bold text-slate-900">{t('createCropBtn')}</Text>
+              <MaterialIcons name="check-circle" size={24} color="#ffffff" />
+              <Text className="text-white text-lg font-bold uppercase tracking-widest">
+{t('createCropBtn')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -488,10 +489,14 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   createButton: {
-    shadowColor: '#3ce619',
+    shadowColor: '#166534',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.28,
     shadowRadius: 8,
     elevation: 5,
   },
 });
+
+
+
+

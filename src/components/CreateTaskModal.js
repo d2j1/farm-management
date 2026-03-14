@@ -26,7 +26,7 @@ function RepeatStepper({ value, onDecrement, onIncrement, unit, t }) {
           onPress={onDecrement}
           className="w-10 h-10 items-center justify-center rounded-lg bg-white dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600"
         >
-          <MaterialIcons name="remove" size={20} color="#475569" />
+          <MaterialIcons name="remove" size={24} color="#475569" />
         </Pressable>
         <View className="w-12 items-center">
           <Text className="text-slate-900 dark:text-slate-100 font-bold text-lg">{value}</Text>
@@ -35,7 +35,7 @@ function RepeatStepper({ value, onDecrement, onIncrement, unit, t }) {
           onPress={onIncrement}
           className="w-10 h-10 items-center justify-center rounded-lg bg-white dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600"
         >
-          <MaterialIcons name="add" size={20} color="#475569" />
+          <MaterialIcons name="add" size={24} color="#475569" />
         </Pressable>
       </View>
     </View>
@@ -47,7 +47,7 @@ function RecurringInfoBanner({ interval, unit, endDate, t }) {
   return (
     <View className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-8">
       <View className="flex-row items-start gap-3">
-        <MaterialIcons name="info" size={20} color="#3ce619" style={{ marginTop: 2 }} />
+        <MaterialIcons name="info" size={24} color="#166534" style={{ marginTop: 2 }} />
         <Text className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed font-medium flex-1">
           {t('repeatInfo')
             .replace('{interval}', interval)
@@ -269,7 +269,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
                 onPress={handleSave}
                 className="w-full bg-primary py-4 rounded-xl shadow-lg items-center"
               >
-                <Text className="text-slate-900 font-bold text-base">{t('saveTask')}</Text>
+                <Text className="text-white font-bold text-base">{t('saveTask')}</Text>
               </Pressable>
               <Pressable
                 onPress={handleCancel}
@@ -295,3 +295,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
 });
+
+
+

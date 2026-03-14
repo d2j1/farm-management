@@ -35,7 +35,7 @@ export default function ImportModal({
         return (
           <View className="items-center p-8">
             <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <MaterialIcons name="cloud-download" size={48} color="#3ce619" />
+              <MaterialIcons name="cloud-download" size={48} color="#166534" />
             </View>
             <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-3 text-center">
               {t('importingData')}
@@ -59,7 +59,7 @@ export default function ImportModal({
                   className="h-full bg-primary rounded-full" 
                   style={{ 
                     width: `${progress}%`,
-                    shadowColor: '#3ce619',
+                    shadowColor: '#166534',
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.4,
                     shadowRadius: 12,
@@ -85,7 +85,7 @@ export default function ImportModal({
         return (
           <View className="items-center p-8">
             <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <MaterialIcons name="check-circle" size={48} color="#3ce619" />
+              <MaterialIcons name="check-circle" size={48} color="#166534" />
             </View>
             <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-3 text-center leading-tight">
               {t('importSuccessTitle')}
@@ -98,7 +98,7 @@ export default function ImportModal({
               onPress={onClose}
               activeOpacity={0.98}
               className="w-full bg-primary py-4 px-6 rounded-xl shadow-lg"
-              style={{ shadowColor: '#3ce619', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}
+              style={{ shadowColor: '#166534', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}
             >
               <Text className="text-center text-slate-900 font-bold text-base uppercase tracking-wide">
                 {t('done')}
@@ -153,3 +153,5 @@ export default function ImportModal({
     </Modal>
   );
 }
+
+

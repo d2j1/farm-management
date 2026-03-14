@@ -18,7 +18,7 @@ export default function ActionCenter({ pendingCount = 12, reminderCount = 5 }) {
     <View className="bg-primary/10 border border-primary/20 rounded-2xl p-5">
       {/* Header row */}
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+        <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">
           {t('actionCenter')}
         </Text>
         <View className="bg-primary/20 px-2 py-0.5 rounded">
@@ -33,25 +33,29 @@ export default function ActionCenter({ pendingCount = 12, reminderCount = 5 }) {
         {/* Pending */}
         <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
           <View className="flex-row items-center gap-2 mb-1">
-            <MaterialIcons name="assignment-turned-in" size={14} color="#3ce619" />
-            <Text className="text-[10px] text-slate-500 font-bold uppercase">
+            <MaterialIcons name="assignment-turned-in" size={14} color="#166534" />
+            <Text className="text-xs text-slate-500 font-bold uppercase">
               {t('pending')}
             </Text>
           </View>
-          <Text className="text-2xl font-bold text-slate-900">{pad(pendingCount)}</Text>
+          <Text className="text-xl font-bold text-slate-900">{pad(pendingCount)}</Text>
         </View>
 
         {/* Reminders */}
         <View className="flex-1 bg-white/40 p-3 rounded-xl border border-white/50">
           <View className="flex-row items-center gap-2 mb-1">
             <MaterialIcons name="notifications-active" size={14} color="#f97316" />
-            <Text className="text-[10px] text-slate-500 font-bold uppercase">
+            <Text className="text-xs text-slate-500 font-bold uppercase">
               {t('reminders')}
             </Text>
           </View>
-          <Text className="text-2xl font-bold text-slate-900">{pad(reminderCount)}</Text>
+          <Text className="text-xl font-bold text-slate-900">{pad(reminderCount)}</Text>
         </View>
       </View>
     </View>
   );
 }
+
+
+
+

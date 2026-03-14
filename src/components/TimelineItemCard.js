@@ -25,7 +25,7 @@ function SpinningIcon() {
 
   return (
     <Animated.View style={{ transform: [{ rotate }] }}>
-      <MaterialIcons name="autorenew" size={22} color="#3b82f6" />
+      <MaterialIcons name="autorenew" size={24} color="#3b82f6" />
     </Animated.View>
   );
 }
@@ -42,7 +42,7 @@ function TimelineTaskIcon({ taskState }) {
   if (taskState === 'snoozed') {
     return (
       <View className="h-6 w-6 items-center justify-center">
-        <MaterialIcons name="bedtime" size={20} color="#fb923c" />
+        <MaterialIcons name="bedtime" size={24} color="#fb923c" />
       </View>
     );
   }
@@ -50,7 +50,7 @@ function TimelineTaskIcon({ taskState }) {
   if (taskState === 'multi_day') {
     return (
       <View className="h-6 w-6 items-center justify-center">
-        <MaterialIcons name="sync" size={24} color="#3b82f6" />
+        <MaterialIcons name="sync" size={26} color="#3b82f6" />
       </View>
     );
   }
@@ -94,7 +94,7 @@ function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAct
         <View className="flex-row items-start gap-3 flex-1">
           {isReminder ? (
             <View className={`mt-1 h-6 w-6 rounded items-center justify-center ${item.iconBgClass}`}>
-              <MaterialIcons name={item.icon} size={18} color={item.iconColor} />
+              <MaterialIcons name={item.icon} size={20} color={item.iconColor} />
             </View>
           ) : (
             <View className="mt-1">
@@ -119,7 +119,7 @@ function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAct
             onPress={() => onDismiss(item.id)}
             className="p-1 rounded-full"
           >
-            <MaterialIcons name="close" size={18} color="#94a3b8" />
+            <MaterialIcons name="close" size={20} color="#94a3b8" />
           </TouchableOpacity>
         ) : (
           <View className="relative">
@@ -128,7 +128,7 @@ function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAct
               onPress={() => onToggleMenu(item.id)}
               className="p-1 rounded-full"
             >
-              <MaterialIcons name="more-vert" size={18} color="#94a3b8" />
+              <MaterialIcons name="more-vert" size={20} color="#94a3b8" />
             </TouchableOpacity>
 
             {isMenuOpen ? (
@@ -184,3 +184,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
 });
+
+
+
+

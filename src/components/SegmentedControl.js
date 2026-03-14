@@ -32,7 +32,7 @@ export default function SegmentedControl({ options, selected, onSelect }) {
               style={[
                 styles.optionText,
                 {
-                  color: isActive ? '#3ce619' : isDark ? '#94a3b8' : '#64748b',
+                  color: isActive ? '#166534' : isDark ? '#94a3b8' : '#64748b',
                   fontWeight: isActive ? '700' : '500',
                 },
               ]}
@@ -69,6 +69,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionText: {
-    fontSize: 14,
+    fontSize: 15,
   },
 });
+
+
+
+

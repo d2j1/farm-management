@@ -17,7 +17,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
         activeOpacity={0.75}
         onPress={() => onToggleMenu(earning.id)}
       >
-        <MaterialIcons name="more-vert" size={20} color="#94a3b8" />
+        <MaterialIcons name="more-vert" size={24} color="#94a3b8" />
       </TouchableOpacity>
 
       {isMenuOpen ? (
@@ -27,7 +27,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
             activeOpacity={0.7}
             onPress={() => onMenuAction(earning.id, 'edit')}
           >
-            <MaterialIcons name="edit" size={16} color="#334155" />
+            <MaterialIcons name="edit" size={18} color="#334155" />
             <Text className="ml-2 text-sm font-medium text-slate-700">{t('editEarning')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -35,7 +35,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
             activeOpacity={0.7}
             onPress={() => onMenuAction(earning.id, 'delete')}
           >
-            <MaterialIcons name="delete" size={16} color="#dc2626" />
+            <MaterialIcons name="delete" size={18} color="#dc2626" />
             <Text className="ml-2 text-sm font-medium text-red-600">{t('deleteEarning')}</Text>
           </TouchableOpacity>
         </View>
@@ -44,7 +44,7 @@ export default function EarningCard({ earning, isMenuOpen, onToggleMenu, onMenuA
       <View className="flex-row items-center justify-between pr-8">
         <View className="flex-row items-center gap-3 flex-1">
           <View className="bg-primary/20 p-2 rounded-lg">
-            <MaterialIcons name={earning.icon} size={20} color="#3ce619" />
+            <MaterialIcons name={earning.icon} size={24} color="#166534" />
           </View>
 
           <View className="flex-1">
@@ -85,3 +85,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
 });
+
+
+
+

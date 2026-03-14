@@ -51,7 +51,7 @@ export function DatabaseProvider({ children }) {
   if (error) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: '#ef4444', fontSize: 14 }}>
+        <Text style={{ color: '#ef4444', fontSize: 15 }}>
           Database error — please restart the app.
         </Text>
       </View>
@@ -61,7 +61,7 @@ export function DatabaseProvider({ children }) {
   if (!db) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-        <ActivityIndicator size="large" color="#3ce619" />
+        <ActivityIndicator size="large" color="#166534" />
       </View>
     );
   }
@@ -72,3 +72,7 @@ export function DatabaseProvider({ children }) {
     </DatabaseContext.Provider>
   );
 }
+
+
+
+
