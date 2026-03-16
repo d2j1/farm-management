@@ -1,3 +1,4 @@
+import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,6 +13,7 @@ import EditCropScreen from './src/screens/EditCropScreen';
 import InsightsScreen from './src/screens/InsightsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
+import SplashScreen from './src/screens/SplashScreen';
 import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
 import './global.css';
@@ -63,6 +65,25 @@ function CropsStackScreen() {
 }
 
 export default function App() {
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Simulate a loading time for the splash screen
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <SafeAreaProvider>
+        <SplashScreen />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <DatabaseProvider>
