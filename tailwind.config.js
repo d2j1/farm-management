@@ -8,7 +8,9 @@ module.exports = {
         primary: "#166534",
         destructive: "#ef4444",
         "background-light": "#f6f8f6",
-        "background-dark": "#142111"
+        "background-dark": "#142111",
+        "apar-primary": "#44E51C",
+        "apar-dark-green": "#166534"
       },
       fontSize: {
         'xs': ['12.5px', '18px'],
