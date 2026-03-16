@@ -14,6 +14,7 @@ import InsightsScreen from './src/screens/InsightsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
 import SplashScreen from './src/screens/SplashScreen';
+import LanguageSelectionScreen from './src/screens/LanguageSelectionScreen';
 import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
 import './global.css';
@@ -22,6 +23,7 @@ const Tab = createBottomTabNavigator();
 const ProfileStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const CropsStack = createNativeStackNavigator();
+const OnboardingStack = createNativeStackNavigator();
 
 /**
  * Stack navigator for the Profile tab.
@@ -66,6 +68,7 @@ function CropsStackScreen() {
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isOnboarding, setIsOnboarding] = React.useState(true);
 
   React.useEffect(() => {
     // Simulate a loading time for the splash screen
@@ -80,6 +83,23 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <SplashScreen />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (isOnboarding) {
+    return (
+      <SafeAreaProvider>
+        <DatabaseProvider>
+          <StatusBar style="dark" />
+          <NavigationContainer>
+            <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+              <OnboardingStack.Screen name="LanguageSelection">
+                {(props) => <LanguageSelectionScreen {...props} onContinue={() => setIsOnboarding(false)} />}
+              </OnboardingStack.Screen>
+            </OnboardingStack.Navigator>
+          </NavigationContainer>
+        </DatabaseProvider>
       </SafeAreaProvider>
     );
   }
