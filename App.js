@@ -16,6 +16,7 @@ import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import LanguageSelectionScreen from './src/screens/LanguageSelectionScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
 import { initDatabase } from './src/database/initDb';
 import './global.css';
