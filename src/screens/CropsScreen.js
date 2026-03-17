@@ -29,7 +29,7 @@ function getCropVisuals(cropName) {
     return { icon: 'grass', iconColor: '#ca8a04', iconBgClass: 'bg-yellow-50', blobBgClass: 'bg-yellow-400', ringClass: 'ring-yellow-100' };
   }
   if (name.includes('rice') || name.includes('paddy')) {
-    return { icon: 'grass', iconColor: '#16a34a', iconBgClass: 'bg-green-50', blobBgClass: 'bg-green-400', ringClass: 'ring-green-100' };
+    return { icon: 'grass', iconColor: '#166534', iconBgClass: 'bg-green-50', blobBgClass: 'bg-green-400', ringClass: 'ring-green-100' };
   }
   // default
   return { icon: 'agriculture', iconColor: '#ea580c', iconBgClass: 'bg-orange-50', blobBgClass: 'bg-orange-400', ringClass: 'ring-orange-100' };

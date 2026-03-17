@@ -13,7 +13,7 @@ export default function InsightsSection() {
       title: 'Organic',
       description: 'Boost nitrogen with clover.',
       icon: 'eco',
-      iconColor: '#16a34a',
+      iconColor: '#166534',
       bgClass: 'bg-green-100',
     },
     {

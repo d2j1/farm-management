@@ -37,12 +37,12 @@ export default function CropDetailCard({ crop, onPress }) {
         <View
           style={[
             styles.statusDot,
-            { backgroundColor: crop.status === 'inactive' ? '#94a3b8' : '#16a34a' },
+            { backgroundColor: crop.status === 'inactive' ? '#94a3b8' : '#166534' },
           ]}
         />
         <Text style={[
           styles.statusLabel,
-          { color: crop.status === 'inactive' ? '#64748b' : '#15803d' },
+          { color: crop.status === 'inactive' ? '#64748b' : '#166534' },
         ]}>
           {crop.status === 'inactive' ? t('inactive') : t('active')}
         </Text>

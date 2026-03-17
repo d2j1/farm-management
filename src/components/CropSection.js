@@ -49,9 +49,9 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
         ]}
       >
         <View
-          style={[styles.statusDot, { backgroundColor: isActive ? '#16a34a' : '#94a3b8' }]}
+          style={[styles.statusDot, { backgroundColor: isActive ? '#166534' : '#94a3b8' }]}
         />
-        <Text style={[styles.statusText, { color: isActive ? '#16a34a' : '#94a3b8' }]}>
+        <Text style={[styles.statusText, { color: isActive ? '#166534' : '#94a3b8' }]}>
           {isActive ? t('active') : t('inactive')}
         </Text>
       </View>
@@ -85,12 +85,12 @@ function CropCard({ crop, upcomingTask, lastTask, onPress, t }) {
         <MaterialIcons
           name={upcomingTask ? 'event' : lastTask ? 'history' : 'check-circle'}
           size={16}
-          color={upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a'}
+          color={upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#166534'}
         />
         <Text
           style={[
             styles.upcomingText,
-            { color: upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#16a34a' },
+            { color: upcomingTask ? '#3b82f6' : lastTask ? '#94a3b8' : '#166534' },
           ]}
           numberOfLines={1}
         >
