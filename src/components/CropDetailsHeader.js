@@ -125,7 +125,7 @@ export default function CropDetailsHeader({
               activeOpacity={0.75}
             >
               <Text
-                className={`text-xs font-bold ${
+                className={`text-sm font-bold ${
                   isActive ? 'text-slate-900' : 'text-slate-500'
                 }`}
               >
