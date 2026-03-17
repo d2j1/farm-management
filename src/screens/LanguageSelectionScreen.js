@@ -9,13 +9,13 @@ const languages = [
   { id: 'en', label: 'English', subLabel: 'English' },
 ];
 
-const LanguageSelectionScreen = ({ onContinue }) => {
+const LanguageSelectionScreen = ({ navigation }) => {
   const { languageCode, setLanguage } = useLanguageStore();
   const [selectedLanguage, setSelectedLanguage] = useState(languageCode);
 
   const handleContinue = () => {
     setLanguage(selectedLanguage);
-    if (onContinue) onContinue();
+    navigation.navigate('Welcome');
   };
 
   return (
@@ -28,14 +28,14 @@ const LanguageSelectionScreen = ({ onContinue }) => {
             Apar
           </Text>
           <Text className="text-apar-dark-green text-[11px] font-bold tracking-[0.25em] uppercase">
-            Precision Farming
+            {t('precisionFarming')}
           </Text>
         </View>
 
         {/* Welcome Section */}
         <View className="items-center mb-10">
           <Text className="text-3xl font-bold text-slate-900 mb-3 text-center">
-            Welcome to Apar!
+            {t('welcomeToApar')}!
           </Text>
           <Text className="text-slate-500 text-base font-medium text-center">
             Please select your preferred language:

@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
 import { initDatabase } from './initDb';
+import SplashScreen from '../screens/SplashScreen';
 
 const DatabaseContext = createContext(null);
 
@@ -59,11 +60,7 @@ export function DatabaseProvider({ children }) {
   }
 
   if (!db) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-        <ActivityIndicator size="large" color="#166534" />
-      </View>
-    );
+    return <SplashScreen progress={0.85} />;
   }
 
   return (

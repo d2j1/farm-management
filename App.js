@@ -15,6 +15,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import LanguageSelectionScreen from './src/screens/LanguageSelectionScreen';
+import WelcomeScreen from './src/screens/WelcomeScreen';
 import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
 import './global.css';
@@ -67,22 +68,35 @@ function CropsStackScreen() {
 }
 
 export default function App() {
+  const [progress, setProgress] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isOnboarding, setIsOnboarding] = React.useState(true);
 
   React.useEffect(() => {
-    // Simulate a loading time for the splash screen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    // Increment progress to 70% over 3 seconds
+    const duration = 3000;
+    const intervalTime = 100;
+    const steps = duration / intervalTime;
+    const increment = 0.7 / steps;
 
-    return () => clearTimeout(timer);
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 0.7) {
+          clearInterval(timer);
+          setIsLoading(false);
+          return 0.7;
+        }
+        return prev + increment;
+      });
+    }, intervalTime);
+
+    return () => clearInterval(timer);
   }, []);
 
   if (isLoading) {
     return (
       <SafeAreaProvider>
-        <SplashScreen />
+        <SplashScreen progress={progress} />
       </SafeAreaProvider>
     );
   }
@@ -94,8 +108,9 @@ export default function App() {
           <StatusBar style="dark" />
           <NavigationContainer>
             <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
-              <OnboardingStack.Screen name="LanguageSelection">
-                {(props) => <LanguageSelectionScreen {...props} onContinue={() => setIsOnboarding(false)} />}
+              <OnboardingStack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
+              <OnboardingStack.Screen name="Welcome">
+                {(props) => <WelcomeScreen {...props} onGetStarted={() => setIsOnboarding(false)} />}
               </OnboardingStack.Screen>
             </OnboardingStack.Navigator>
           </NavigationContainer>

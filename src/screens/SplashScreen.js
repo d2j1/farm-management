@@ -4,16 +4,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-const SplashScreen = () => {
+const SplashScreen = ({ progress: externalProgress }) => {
   const [progress] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: 2000,
-      useNativeDriver: false,
-    }).start();
-  }, [progress]);
+    if (externalProgress !== undefined) {
+      Animated.timing(progress, {
+        toValue: externalProgress,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      // Fallback: Automatic animation for backward compatibility if no progress prop
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [externalProgress, progress]);
 
   const progressBarWidth = progress.interpolate({
     inputRange: [0, 1],
