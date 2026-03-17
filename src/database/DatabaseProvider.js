@@ -8,7 +8,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
 import { initDatabase } from './initDb';
-import SplashScreen from '../screens/SplashScreen';
 
 const DatabaseContext = createContext(null);
 
@@ -28,12 +27,14 @@ export function useDatabase() {
  * Provider component — call initDatabase() once, then hand
  * the db instance to the rest of the tree via context.
  */
-export function DatabaseProvider({ children }) {
-  const [db, setDb] = useState(null);
+export function DatabaseProvider({ children, initialDb = null }) {
+  const [db, setDb] = useState(initialDb);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (db) return; // Already initialized in App.js
 
     initDatabase()
       .then((database) => {
@@ -47,7 +48,7 @@ export function DatabaseProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [db]);
 
   if (error) {
     return (
@@ -60,7 +61,7 @@ export function DatabaseProvider({ children }) {
   }
 
   if (!db) {
-    return <SplashScreen progress={0.85} />;
+    return null; // App.js handles the loading splash
   }
 
   return (

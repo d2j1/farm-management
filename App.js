@@ -16,8 +16,8 @@ import UpdateProfileScreen from './src/screens/UpdateProfileScreen';
 import SplashScreen from './src/screens/SplashScreen';
 import LanguageSelectionScreen from './src/screens/LanguageSelectionScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
-import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
+import { initDatabase } from './src/database/initDb';
 import './global.css';
 
 const Tab = createBottomTabNavigator();
@@ -71,24 +71,43 @@ export default function App() {
   const [progress, setProgress] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isOnboarding, setIsOnboarding] = React.useState(true);
+  const [db, setDb] = React.useState(null);
 
   React.useEffect(() => {
-    // Increment progress to 70% over 3 seconds
-    const duration = 3000;
-    const intervalTime = 100;
-    const steps = duration / intervalTime;
-    const increment = 0.7 / steps;
+    let dbReady = false;
 
+    // Phase 1: Initialize Database
+    initDatabase()
+      .then((instance) => {
+        setDb(instance);
+        dbReady = true;
+      })
+      .catch((err) => {
+        console.error('App: DB init failed', err);
+        // We still mark as ready to avoid blocking splash forever, 
+        // DatabaseProvider will show its own error state.
+        dbReady = true;
+      });
+
+    // Phase 2: Progress Animation (Smooth 0 to 0.9, then jump to 1.0 when DB ready)
     const timer = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 0.7) {
-          clearInterval(timer);
-          setIsLoading(false);
-          return 0.7;
+        if (prev < 0.9) {
+          return prev + 0.05; // Quick initial progress
         }
-        return prev + increment;
+        
+        if (dbReady) {
+          if (prev >= 1) {
+            clearInterval(timer);
+            setTimeout(() => setIsLoading(false), 200); // Small pause at 100%
+            return 1;
+          }
+          return prev + 0.1; // Fast finish
+        }
+
+        return 0.9; // Wait for DB at 90%
       });
-    }, intervalTime);
+    }, 100);
 
     return () => clearInterval(timer);
   }, []);
@@ -104,7 +123,7 @@ export default function App() {
   if (isOnboarding) {
     return (
       <SafeAreaProvider>
-        <DatabaseProvider>
+        <DatabaseProvider initialDb={db}>
           <StatusBar style="dark" />
           <NavigationContainer>
             <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
@@ -121,7 +140,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <DatabaseProvider>
+      <DatabaseProvider initialDb={db}>
         <StatusBar style="auto" />
         <NavigationContainer>
           <Tab.Navigator

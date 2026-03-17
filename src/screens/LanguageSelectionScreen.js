@@ -10,7 +10,7 @@ const languages = [
 ];
 
 const LanguageSelectionScreen = ({ navigation }) => {
-  const { languageCode, setLanguage } = useLanguageStore();
+  const { languageCode, setLanguage, t } = useLanguageStore();
   const [selectedLanguage, setSelectedLanguage] = useState(languageCode);
 
   const handleContinue = () => {
