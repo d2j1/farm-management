@@ -50,8 +50,8 @@ export default function Header() {
               return greeting;
             })()}
           </Text>
-          <Text className="text-xs text-slate-500 font-medium uppercase tracking-wider">
-            {t('proactiveMode')}
+          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
+            {t('gettingStarted')}
           </Text>
         </View>
       </View>

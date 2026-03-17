@@ -191,10 +191,26 @@ export default function CropSection() {
       </View>
 
       {crops.length === 0 ? (
-        <View className="px-4 py-6 items-center">
-          <Text className="text-slate-400 text-sm">
-            {t('noCrops')}
-          </Text>
+        <View className="px-4">
+          <TouchableOpacity 
+            className="w-full bg-white dark:bg-slate-900 border-2 border-dashed border-primary/30 rounded-2xl p-8 items-center justify-center"
+            activeOpacity={0.7}
+            onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
+          >
+            <View className="h-16 w-16 rounded-full bg-primary/10 items-center justify-center mb-4">
+              <MaterialIcons name="local-florist" size={40} color="#166534" />
+            </View>
+            <Text className="text-base font-bold text-slate-900 dark:text-white mb-1">
+              {t('addFirstCrop')}
+            </Text>
+            <Text className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              {t('addFirstCropDesc')}
+            </Text>
+            <View className="mt-4 flex-row items-center gap-1.5">
+              <MaterialIcons name="add-circle" size={18} color="#166534" />
+              <Text className="text-primary text-sm font-bold">{t('createCrop')}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
@@ -215,19 +231,21 @@ export default function CropSection() {
         </ScrollView>
       )}
 
-      {/* Add Button */}
-      <View className="px-4 mt-2">
-        <TouchableOpacity
-          className="flex-row items-center gap-2"
-          activeOpacity={0.75}
-          onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
-        >
-          <MaterialIcons name="add-circle" size={20} color="#166534" />
-          <Text className="text-primary text-xs font-bold uppercase tracking-wider opacity-80">
-            {t('addNewCropOrField')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Add Button - Only show if crops exist, otherwise empty state handle it */}
+      {crops.length > 0 && (
+        <View className="px-4 mt-2">
+          <TouchableOpacity
+            className="flex-row items-center gap-2"
+            activeOpacity={0.75}
+            onPress={() => navigation?.navigate('Crops', { screen: 'CreateCrop', initial: false })}
+          >
+            <MaterialIcons name="add-circle" size={20} color="#166534" />
+            <Text className="text-primary text-xs font-bold uppercase tracking-wider opacity-80">
+              {t('addNewCropOrField')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

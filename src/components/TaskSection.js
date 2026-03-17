@@ -97,31 +97,48 @@ export default function TaskSection() {
         </View>
 
         {/* Task List */}
-        <View className="p-4 gap-4">
+        <View className="p-4">
           {loading ? (
             <ActivityIndicator color="#166534" />
           ) : items.length === 0 ? (
-            <Text className="text-center text-slate-400 py-4">
-              {t('noUpcomingTasks')}
-            </Text>
-          ) : (
-            items.map((item) => (
-              <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
-                <View className="flex-1">
-                  <Text className="text-xs font-bold uppercase" style={{ color: item.color }}>
-                    {item.statusLabel}
-                  </Text>
-                  <Text className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</Text>
-                  <Text className="text-xs text-slate-500">{item.subtitle}</Text>
-                </View>
-                <TouchableOpacity 
-                  className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center"
-                  onPress={() => navigation.navigate('Tasks')}
-                >
-                  <MaterialIcons name={item.icon} size={20} color="#94a3b8" />
-                </TouchableOpacity>
+            <View className="p-8 items-center text-center">
+              <View className="h-16 w-16 rounded-full bg-slate-50 dark:bg-slate-800 items-center justify-center mb-4">
+                <MaterialIcons name="assignment-late" size={36} color="#cbd5e1" />
               </View>
-            ))
+              <Text className="text-base font-bold text-slate-900 dark:text-white mb-2">
+                {t('noTasksScheduled')}
+              </Text>
+              <Text className="text-xs text-slate-500 dark:text-slate-400 mb-6 text-center max-w-[200px]">
+                {t('noTasksDesc')}
+              </Text>
+              <TouchableOpacity 
+                className="w-full max-w-xs bg-primary py-3 rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                onPress={() => navigation.navigate('Tasks', { openCreateTask: true })}
+              >
+                <MaterialIcons name="add-circle" size={20} color="white" />
+                <Text className="text-white font-bold">{t('createFirstTask')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="gap-4">
+              {items.map((item) => (
+                <View key={item.id} className="flex-row items-center gap-4 border-l-4 pl-3" style={{ borderLeftColor: item.color }}>
+                  <View className="flex-1">
+                    <Text className="text-xs font-bold uppercase" style={{ color: item.color }}>
+                      {item.statusLabel}
+                    </Text>
+                    <Text className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</Text>
+                    <Text className="text-xs text-slate-500">{item.subtitle}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center"
+                    onPress={() => navigation.navigate('Tasks')}
+                  >
+                    <MaterialIcons name={item.icon} size={20} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
           )}
         </View>
 
