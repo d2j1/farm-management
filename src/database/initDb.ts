@@ -142,6 +142,14 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     );
   `);
 
+  // ── Settings ────────────────────────────────────────────────
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT
+    );
+  `);
+
   return db;
 }
 

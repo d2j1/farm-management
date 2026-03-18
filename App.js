@@ -19,6 +19,8 @@ import WelcomeScreen from './src/screens/WelcomeScreen';
 import BottomNav from './src/components/BottomNav';
 import { DatabaseProvider } from './src/database/DatabaseProvider';
 import { initDatabase } from './src/database/initDb';
+import { getSetting, saveSetting } from './src/database/settingsService';
+import { useLanguageStore } from './src/utils/languageStore';
 import './global.css';
 
 const Tab = createBottomTabNavigator();
@@ -73,14 +75,31 @@ export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isOnboarding, setIsOnboarding] = React.useState(true);
   const [db, setDb] = React.useState(null);
+  const { setLanguage } = useLanguageStore();
 
   React.useEffect(() => {
     let dbReady = false;
 
     // Phase 1: Initialize Database
     initDatabase()
-      .then((instance) => {
+      .then(async (instance) => {
         setDb(instance);
+        
+        // Load initial settings
+        try {
+          const onboardingDone = await getSetting('onboarding_completed');
+          if (onboardingDone === 'true') {
+            setIsOnboarding(false);
+          }
+          
+          const savedLang = await getSetting('preferred_language');
+          if (savedLang) {
+            setLanguage(savedLang);
+          }
+        } catch (err) {
+          console.error('App: Failed to load settings', err);
+        }
+
         dbReady = true;
       })
       .catch((err) => {
@@ -130,7 +149,15 @@ export default function App() {
             <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
               <OnboardingStack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
               <OnboardingStack.Screen name="Welcome">
-                {(props) => <WelcomeScreen {...props} onGetStarted={() => setIsOnboarding(false)} />}
+                {(props) => (
+                  <WelcomeScreen 
+                    {...props} 
+                    onGetStarted={() => {
+                      setIsOnboarding(false);
+                      saveSetting('onboarding_completed', 'true');
+                    }} 
+                  />
+                )}
               </OnboardingStack.Screen>
             </OnboardingStack.Navigator>
           </NavigationContainer>

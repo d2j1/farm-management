@@ -20,10 +20,16 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.d2j1.farmerapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f7d1400b-11cc-4d1f-8649-d3d4a37f2981"
+      }
     }
   }
 }

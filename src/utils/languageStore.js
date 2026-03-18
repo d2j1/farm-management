@@ -11,13 +11,19 @@ const LANGUAGE_MAP = {
   mr: 'Marathi',
 };
 
+import { saveSetting } from '../database/settingsService';
+
 export const useLanguageStore = create((set, get) => ({
   languageCode: 'en',
   languageLabel: 'English',
-  setLanguage: (code) => set({ 
-    languageCode: code, 
-    languageLabel: LANGUAGE_MAP[code] || 'English' 
-  }),
+  setLanguage: (code) => {
+    set({ 
+      languageCode: code, 
+      languageLabel: LANGUAGE_MAP[code] || 'English' 
+    });
+    // Persist to database
+    saveSetting('preferred_language', code);
+  },
   t: (key) => {
     const { languageCode } = get();
     return translations[languageCode]?.[key] || translations['en'][key] || key;
