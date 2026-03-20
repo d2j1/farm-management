@@ -321,12 +321,14 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
     if (item?.dbId) {
       try {
         if (action === 'done') {
-          await insertActivity(db, {
-            cropId,
-            title: item.title,
-            remark: t('taskMarkedDone'),
-            date: new Date(),
-          });
+          if (cropId) {
+            await insertActivity(db, {
+              cropId,
+              title: item.title,
+              remark: t('taskMarkedDone'),
+              date: new Date(),
+            });
+          }
         }
         await deleteTask(db, item.dbId);
         loadAllData();

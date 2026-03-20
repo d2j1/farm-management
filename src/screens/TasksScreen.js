@@ -220,12 +220,14 @@ export default function TasksScreen({ navigation, route }) {
 
     try {
       if (action === 'done') {
-        await insertActivity(db, {
-          cropId: task.cropId || null,
-          title: task.title,
-          remark: t('taskCompletedFromMyTasks'),
-          date: new Date(),
-        });
+        if (task.cropId) {
+          await insertActivity(db, {
+            cropId: task.cropId || null,
+            title: task.title,
+            remark: t('taskCompletedFromMyTasks'),
+            date: new Date(),
+          });
+        }
         await deleteTask(db, id);
         showToast(t('taskDoneToast'));
       } else if (action === 'skip') {

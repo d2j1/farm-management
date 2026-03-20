@@ -150,6 +150,11 @@ export async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
     );
   `);
 
+  // ── Cleanup ────────────────────────────────────────────────
+  // Cleanup standalone completed tasks (activities with no cropId)
+  // as per user request to delete them from the database.
+  await db.execAsync(`DELETE FROM activities WHERE cropId IS NULL;`);
+
   return db;
 }
 
