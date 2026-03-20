@@ -140,6 +140,8 @@ export default function TasksScreen({ navigation, route }) {
         icon: 'notifications',
         iconBgClass: 'bg-orange-100',
         iconColor: '#ea580c',
+        categoryLabel: item.cropName || null,
+        categoryIcon: 'eco',
       };
     }
   }, [t]);

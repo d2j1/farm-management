@@ -103,11 +103,23 @@ function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAct
           )}
 
           <View className="flex-1">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-2 flex-wrap">
               {!isReminder && (
                 <MaterialIcons name="list-alt" size={14} color="#94a3b8" />
               )}
               <Text className="text-sm font-bold text-slate-900">{item.title}</Text>
+              {item.categoryLabel && (
+                <View className="bg-slate-100 flex-row items-center gap-1 px-1.5 py-0.5 rounded ml-1">
+                  <MaterialIcons
+                    name={item.categoryIcon || 'eco'}
+                    size={12}
+                    color="#64748b"
+                  />
+                  <Text className="text-[10px] font-medium text-slate-500 uppercase tracking-tight">
+                    {item.categoryLabel}
+                  </Text>
+                </View>
+              )}
             </View>
             <Text className={statusClass}>{item.statusText}</Text>
           </View>
