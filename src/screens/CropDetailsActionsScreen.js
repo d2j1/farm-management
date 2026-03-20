@@ -42,6 +42,7 @@ import {
   getActivityIcon,
   getExpenseIcon,
   getEarningIcon,
+  getTimeElapsed,
 } from '../utils/cropDetailsUtils';
 import { useLanguageStore } from '../utils/languageStore';
 
@@ -167,6 +168,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
           title: a.title,
           icon: getActivityIcon(a.title),
           dateText: a.date,
+          timeElapsed: getTimeElapsed(a.date, t),
           remarks: a.remark || t('noRemarks'),
         })),
       );

@@ -46,3 +46,46 @@ export function getEarningIcon(earningName) {
   return 'payments';
 }
 
+export function getTimeElapsed(dateString, t) {
+  if (!dateString) return '';
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const past = new Date(dateString);
+  past.setHours(0, 0, 0, 0);
+  
+  if (isNaN(past.getTime())) return '';
+
+  let diffYears = today.getFullYear() - past.getFullYear();
+  let diffMonths = today.getMonth() - past.getMonth();
+  let diffDays = today.getDate() - past.getDate();
+
+  if (diffDays < 0) {
+    diffMonths -= 1;
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    diffDays += lastDayOfMonth;
+  }
+
+  if (diffMonths < 0) {
+    diffYears -= 1;
+    diffMonths += 12;
+  }
+
+  const parts = [];
+  if (diffYears > 0) {
+    parts.push(`${diffYears} ${t(diffYears === 1 ? 'year' : 'years')}`);
+  }
+  if (diffMonths > 0) {
+    parts.push(`${diffMonths} ${t(diffMonths === 1 ? 'month' : 'months')}`);
+  }
+  if (diffDays > 0 || (diffYears === 0 && diffMonths === 0)) {
+    parts.push(`${diffDays} ${t(diffDays === 1 ? 'day' : 'days')}`);
+  }
+
+  if (parts.length === 0) return '';
+
+  return `${parts.join(' ')} ${t('ago')}`;
+}
+
+

@@ -45,7 +45,9 @@ export default function ActivityLogCard({ log, isMenuOpen, onToggleMenu, onMenuA
 
         <View className="flex-1">
           <Text className="font-bold text-slate-900">{log.title}</Text>
-          <Text className="text-xs text-slate-500">{log.dateText}</Text>
+          <Text className="text-xs text-slate-500">
+            {log.dateText}{log.timeElapsed ? ` • ${log.timeElapsed}` : ''}
+          </Text>
         </View>
       </View>
 
