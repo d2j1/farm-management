@@ -14,16 +14,16 @@ export default function FloatingActionButton({ onPress, icon = 'add' }) {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.85}
-      className="absolute bottom-4 right-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary z-30 shadow-xl"
+      className="absolute bottom-4 right-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary z-30 shadow-2xl"
       style={{
         shadowColor: '#166534',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 10,
       }}
     >
-      <MaterialIcons name="add" size={24} color="#ffffff" />
+      <MaterialIcons name="add" size={32} color="#ffffff" />
     </TouchableOpacity>
   );
 }

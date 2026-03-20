@@ -453,8 +453,9 @@ export default function CreateCropScreen({ navigation, route }) {
               style={styles.createButton}
             >
               <MaterialIcons name="check-circle" size={24} color="#ffffff" />
-              <Text className="text-white text-lg font-bold uppercase tracking-widest">
-{t('createCropBtn')}</Text>
+              <Text className="text-white text-base font-bold">
+                {t('createCropBtn')}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
