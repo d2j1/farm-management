@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useLanguageStore } from '../utils/languageStore';
+import ComingSoonModal from './ComingSoonModal';
 
 export default function InsightsSection() {
-  const navigation = useNavigation();
   const { t } = useLanguageStore();
   const netInfo = useNetInfo();
   const isOffline = netInfo.isConnected === false;
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const INSIGHTS = [
     {
@@ -44,7 +44,7 @@ export default function InsightsSection() {
         </Text>
         <TouchableOpacity
           activeOpacity={0.75}
-          onPress={() => navigation?.navigate('Insights')}
+          onPress={() => setShowComingSoon(true)}
         >
           <Text className="text-primary text-xs font-bold uppercase tracking-wider">
             {t('seeAll')}
@@ -99,6 +99,11 @@ export default function InsightsSection() {
           ))}
         </ScrollView>
       )}
+
+      <ComingSoonModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+      />
     </View>
   );
 }
