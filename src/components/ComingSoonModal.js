@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useLanguageStore } from '../utils/languageStore';
 
 /**
  * Reusable "Coming Soon" popup modal.
@@ -8,15 +9,20 @@ import { MaterialIcons } from '@expo/vector-icons';
  * @param {Object}   props
  * @param {boolean}  props.visible    – Whether the modal is visible
  * @param {Function} props.onClose    – Called when the user taps "Got it"
- * @param {string}   [props.title]    – Optional custom title  (default: "Feature Coming Soon!")
+ * @param {string}   [props.title]    – Optional custom title
  * @param {string}   [props.message]  – Optional custom message
  */
 export default function ComingSoonModal({
   visible,
   onClose,
-  title = 'Feature Coming Soon!',
-  message = "We're constantly improving our app! This feature is under development and will be available soon. Stay tuned for updates!",
+  title,
+  message,
 }) {
+  const { t } = useLanguageStore();
+
+  const displayTitle = title || t('comingSoonTitle');
+  const displayMessage = message || t('comingSoonMessage');
+
   return (
     <Modal
       visible={visible}
@@ -36,12 +42,12 @@ export default function ComingSoonModal({
 
           {/* Title */}
           <Text className="text-2xl font-bold text-slate-900 mb-4 text-center">
-            {title}
+            {displayTitle}
           </Text>
 
           {/* Description */}
           <Text className="text-base leading-relaxed text-slate-600 mb-8 px-2 text-center">
-            {message}
+            {displayMessage}
           </Text>
 
           {/* CTA */}
@@ -50,7 +56,7 @@ export default function ComingSoonModal({
             activeOpacity={0.85}
             onPress={onClose}
           >
-            <Text className="text-white font-bold text-base">Got it</Text>
+            <Text className="text-white font-bold text-base">{t('gotIt')}</Text>
           </TouchableOpacity>
         </View>
       </View>

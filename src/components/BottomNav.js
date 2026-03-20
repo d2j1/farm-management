@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
+import ComingSoonModal from './ComingSoonModal';
 
 const TABS = [
   { name: 'Home', icon: 'home', labelKey: 'home' },
@@ -56,6 +57,7 @@ function shouldHideTabBar(tabState) {
 
 export default function BottomNav({ state, navigation }) {
   const { t } = useLanguageStore();
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const currentRoute = state?.routes?.[state.index]?.name;
 
   // Hide tab bar on specific nested screens (e.g. UpdateProfile)
@@ -73,6 +75,11 @@ export default function BottomNav({ state, navigation }) {
             activeOpacity={0.7}
             onPress={() => {
               if (!navigation) return;
+
+              if (tab.name === 'Insights') {
+                setShowComingSoon(true);
+                return;
+              }
 
               if (tab.name === 'Crops') {
                 navigation.navigate('Crops', { screen: 'CropsMain' });
@@ -98,6 +105,11 @@ export default function BottomNav({ state, navigation }) {
           </TouchableOpacity>
         );
       })}
+
+      <ComingSoonModal
+        visible={showComingSoon}
+        onClose={() => setShowComingSoon(false)}
+      />
     </View>
   );
 }
