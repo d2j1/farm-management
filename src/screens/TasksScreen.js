@@ -258,7 +258,7 @@ export default function TasksScreen({ navigation, route }) {
   }, [timelineItems, db, t, loadData]);
 
   const renderHeader = () => (
-    <View>
+    <View style={{ zIndex: 0, elevation: 0 }}>
       {/* Action Center */}
       <View className="px-4 pt-4">
         <ActionCenter pendingCount={pendingCount} reminderCount={reminderCount} />
@@ -290,14 +290,14 @@ export default function TasksScreen({ navigation, route }) {
   const renderFooter = () => {
     if (loadingMore) {
       return (
-        <View className="py-4 items-center">
+        <View className="py-4 items-center" style={{ zIndex: 0, elevation: 0 }}>
           <ActivityIndicator size="small" color="#166534" />
         </View>
       );
     }
     if (!hasMore && timelineItems.length > 0) {
       return (
-        <View className="py-10 items-center justify-center">
+        <View className="py-10 items-center justify-center" style={{ zIndex: 0, elevation: 0 }}>
           <MaterialIcons name="done-all" size={26} color="#166534" />
           <Text className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-2">
             {t('allCaughtUp') || 'End of records'}
@@ -306,7 +306,7 @@ export default function TasksScreen({ navigation, route }) {
         </View>
       );
     }
-    return <View style={{ height: 160 }} />;
+    return <View style={{ height: 160, zIndex: 0, elevation: 0 }} />;
   };
 
   const renderEmpty = () => {
@@ -329,7 +329,11 @@ export default function TasksScreen({ navigation, route }) {
   const renderItem = useCallback(({ item }) => {
     if (item.kind === 'reminder') {
       return (
-        <View className="px-4 mb-3">
+        <View 
+          className="px-4 mb-3"
+          collapsable={false}
+          style={{ zIndex: 1, elevation: 1 }}
+        >
           <TimelineItemCard
             item={item}
             onDismiss={handleDismissReminder}
@@ -366,7 +370,7 @@ export default function TasksScreen({ navigation, route }) {
           >
             <MaterialIcons name="arrow-back" size={26} color="#0f172a" />
           </TouchableOpacity>
-
+ 
           <View className="items-center">
             <Text className="text-lg font-bold tracking-tight text-primary">
               {t('myTasks')}
@@ -374,7 +378,7 @@ export default function TasksScreen({ navigation, route }) {
             <Text className="text-xs text-slate-500">{t('farmPersonal')}</Text>
           </View>
         </View>
-
+ 
         {/* ─── FlatList content ──────────────────────── */}
         <FlatList
           data={timelineItems}
@@ -383,6 +387,7 @@ export default function TasksScreen({ navigation, route }) {
           ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={renderEmpty}
+          contentContainerStyle={{ overflow: 'visible' }}
           onEndReached={() => {
             if (hasMore && !loadingMore && !loading) {
               loadData(false);
@@ -390,7 +395,7 @@ export default function TasksScreen({ navigation, route }) {
           }}
           onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={true}
+          removeClippedSubviews={false}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={10}

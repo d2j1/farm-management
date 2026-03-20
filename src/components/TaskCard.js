@@ -1,7 +1,9 @@
-import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
+import React, { memo, useRef, useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet, Modal, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLanguageStore } from '../utils/languageStore';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /**
  * Visual states a task card can have.
@@ -34,6 +36,9 @@ function TaskCard({
   onMenuAction,
 }) {
   const { t } = useLanguageStore();
+  const menuButtonRef = useRef(null);
+  const [menuLayout, setMenuLayout] = useState(null);
+
   // ── Derive style tokens from status ───────────────────────
   const isDueToday = status === 'dueToday';
   const isInProgress = status === 'inProgress';
@@ -65,11 +70,25 @@ function TaskCard({
     ? 'text-sm text-blue-700'
     : 'text-sm text-slate-500';
 
+  useEffect(() => {
+    if (isMenuOpen && menuButtonRef.current) {
+      menuButtonRef.current.measure((fx, fy, width, height, px, py) => {
+        // Handle edge case where menu opens near bottom edge of screen
+        const menuHeight = 120; // approximate height of the dropdown
+        const wouldOverflowBottom = py + height + menuHeight > SCREEN_HEIGHT;
+        
+        setMenuLayout({
+          top: wouldOverflowBottom ? py - menuHeight : py + height,
+          right: 20, // fixed distance from right edge is more reliable than px based due to padding
+        });
+      });
+    } else if (!isMenuOpen) {
+      setMenuLayout(null);
+    }
+  }, [isMenuOpen]);
+
   return (
-    <View
-      className={cardClass}
-      style={isMenuOpen ? { zIndex: 50, elevation: 10 } : { zIndex: 1, elevation: 1 }}
-    >
+    <View className={cardClass}>
       <View className="flex-row justify-between items-start">
         <View className="flex-row items-start gap-3 flex-1">
           {/* Leading icon / checkbox */}
@@ -106,67 +125,98 @@ function TaskCard({
         </View>
 
         {/* 3-dot menu */}
-        <View className="relative">
+        <View>
           <TouchableOpacity
+            ref={menuButtonRef}
             className="p-1 rounded-full"
             activeOpacity={0.6}
             onPress={() => onToggleMenu?.(id)}
           >
             <MaterialIcons name="more-vert" size={24} color="#94a3b8" />
           </TouchableOpacity>
-
-          {isMenuOpen && (
-            <View style={styles.dropdownMenu}>
-              <TouchableOpacity
-                className="px-4 py-2"
-                activeOpacity={0.7}
-                onPress={() => onMenuAction?.(id, 'done')}
-              >
-                <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="px-4 py-2"
-                activeOpacity={0.7}
-                onPress={() => onMenuAction?.(id, 'skip')}
-              >
-                <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="px-4 py-2"
-                activeOpacity={0.7}
-                onPress={() => onMenuAction?.(id, 'snooze')}
-              >
-                <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </View>
+
+      {/* Dropdown Modal Overlay */}
+      {isMenuOpen && (
+        <Modal
+          transparent={true}
+          visible={isMenuOpen}
+          animationType="fade"
+          onRequestClose={() => onToggleMenu?.(null)}
+        >
+          <TouchableWithoutFeedback onPress={() => onToggleMenu?.(null)}>
+            <View style={styles.modalOverlay}>
+              {menuLayout && (
+                <View 
+                  style={[
+                    styles.dropdownMenu, 
+                    { top: menuLayout.top, right: menuLayout.right }
+                  ]}
+                >
+                  <TouchableOpacity
+                    className="px-4 py-2"
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      // Close menu then fire action to avoid state updates on unmounted modal
+                      onToggleMenu?.(null);
+                      setTimeout(() => onMenuAction?.(id, 'done'), 10);
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-slate-700">{t('markAsDone')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="px-4 py-2"
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      onToggleMenu?.(null);
+                      setTimeout(() => onMenuAction?.(id, 'skip'), 10);
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-slate-700">{t('skip')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="px-4 py-2"
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      onToggleMenu?.(null);
+                      setTimeout(() => onMenuAction?.(id, 'snooze'), 10);
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-slate-700">{t('snooze')}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
     </View>
   );
 }
 
 export default memo(TaskCard);
 
-const styles = {
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   dropdownMenu: {
     position: 'absolute',
-    top: 30,
-    right: 0,
     width: 150,
     backgroundColor: '#ffffff',
     borderColor: '#e2e8f0',
     borderWidth: 1,
     borderRadius: 12,
     overflow: 'hidden',
-    zIndex: 100, // Higher zIndex for better visibility
-    elevation: 8,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
     shadowRadius: 8,
+    elevation: 20, // Kept high just to be safe over other modals if any
   },
-};
+});
 
 // ── Spinning progress icon (replaces CSS animate-spin-slow) ──
 function SpinningIcon() {
