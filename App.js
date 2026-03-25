@@ -21,7 +21,12 @@ import { DatabaseProvider } from './src/database/DatabaseProvider';
 import { initDatabase } from './src/database/initDb';
 import { getSetting, saveSetting } from './src/database/settingsService';
 import { useLanguageStore } from './src/utils/languageStore';
+import { initResponsiveFontScaling } from './src/utils/responsive';
 import './global.css';
+
+// Scale rem-based font sizes to match the device screen width.
+// Must run before the first render.
+initResponsiveFontScaling();
 
 const Tab = createBottomTabNavigator();
 const ProfileStack = createNativeStackNavigator();

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "farmer-app",
-    "slug": "farmer-app",
+    "name": "Apar",
+    "slug": "apar",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -21,14 +21,14 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.d2j1.farmerapp"
+      "package": "com.d2j1.apar"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "f7d1400b-11cc-4d1f-8649-d3d4a37f2981"
+        "projectId": "f9277b3c-b5cd-4771-beef-0044257f6ea7"
       }
     },
     "plugins": [
@@ -41,6 +41,7 @@
           }
         }
       ]
-    ]
+    ],
+    "owner": "d2j1"
   }
 }

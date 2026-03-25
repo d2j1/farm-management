@@ -24,10 +24,10 @@ const LanguageSelectionScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 48 }}>
         {/* Header Section */}
         <View className="items-center mb-12">
-          <Text className="text-[42px] font-bold tracking-tight text-black leading-none mb-1">
+          <Text className="text-[3rem] font-bold tracking-tight text-black leading-none mb-1">
             Apar
           </Text>
-          <Text className="text-apar-dark-green text-[11px] font-bold tracking-[0.25em] uppercase">
+          <Text className="text-apar-dark-green text-[0.786rem] font-bold tracking-[0.25em] uppercase">
             {t('precisionFarming')}
           </Text>
         </View>
@@ -98,7 +98,7 @@ const LanguageSelectionScreen = ({ navigation }) => {
             <MaterialIcons name="arrow-forward" size={24} color="white" />
           </TouchableOpacity>
           
-          <Text className="text-center text-[10px] text-slate-400 mt-6 uppercase tracking-[0.2em]">
+          <Text className="text-center text-[0.714rem] text-slate-400 mt-6 uppercase tracking-[0.2em]">
             By continuing you agree to our Terms
           </Text>
         </View>

@@ -49,7 +49,7 @@ export default function WeatherWidget() {
               <View className="mt-1">
                 <Text className="text-primary font-black text-sm uppercase tracking-widest">{data.condition}</Text>
                 <Text className="text-slate-500 dark:text-slate-400 text-sm leading-tight mt-1">{data.city}</Text>
-                <Text className="text-slate-400 dark:text-slate-500 text-[8px] leading-tight mt-0.5 italic">{t('approxLocation')}</Text>
+                <Text className="text-slate-400 dark:text-slate-500 text-[0.571rem] leading-tight mt-0.5 italic">{t('approxLocation')}</Text>
               </View>
             </View>
           </View>

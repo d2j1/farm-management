@@ -13,13 +13,13 @@ module.exports = {
         "apar-dark-green": "#166534"
       },
       fontSize: {
-        'xs': ['12.5px', '18px'],
-        'sm': ['14.5px', '22px'],
-        'base': ['16.5px', '26px'],
-        'lg': ['18.5px', '30px'],
-        'xl': ['21px', '32px'],
-        '2xl': ['25px', '34px'],
-        '3xl': ['30px', '38px'],
+        'xs': ['0.893rem', '1.286rem'],
+        'sm': ['1.036rem', '1.571rem'],
+        'base': ['1.179rem', '1.857rem'],
+        'lg': ['1.321rem', '2.143rem'],
+        'xl': ['1.5rem', '2.286rem'],
+        '2xl': ['1.786rem', '2.429rem'],
+        '3xl': ['2.143rem', '2.714rem'],
       },
       fontFamily: {
         display: ["Inter", "sans-serif"],

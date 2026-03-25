@@ -90,7 +90,7 @@ export default function TaskSection() {
             {t('upcomingTasks')}
           </Text>
           <View className="bg-primary/20 px-2 py-0.5 rounded-full">
-            <Text className="text-primary text-[10px] font-bold uppercase">
+            <Text className="text-primary text-[0.714rem] font-bold uppercase">
               {t('next24h')}
             </Text>
           </View>

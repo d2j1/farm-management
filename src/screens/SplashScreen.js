@@ -33,10 +33,10 @@ const SplashScreen = ({ progress: externalProgress }) => {
     <SafeAreaView className="flex-1 bg-white items-center justify-center relative">
       <View className="flex-grow items-center justify-center w-full">
         <View className="items-center">
-          <Text className="text-[64px] font-bold tracking-tight mb-2 text-black leading-none">
+          <Text className="text-[4.571rem] font-bold tracking-tight mb-2 text-black leading-none">
             Apar
           </Text>
-          <Text className="text-black text-[13px] font-medium tracking-[0.25em] uppercase opacity-80">
+          <Text className="text-black text-[0.929rem] font-medium tracking-[0.25em] uppercase opacity-80">
             Precision Farming
           </Text>
         </View>
@@ -53,7 +53,7 @@ const SplashScreen = ({ progress: externalProgress }) => {
             }} 
           />
         </View>
-        <Text className="text-black text-[11px] font-bold uppercase tracking-[0.3em]">
+        <Text className="text-black text-[0.786rem] font-bold uppercase tracking-[0.3em]">
           Loading Insights
         </Text>
       </View>

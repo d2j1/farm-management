@@ -571,7 +571,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
                       {t('actionCenter')}
                     </Text>
                     <View className="bg-primary/20 px-2 py-0.5 rounded">
-                      <Text className="text-[10px] font-bold uppercase text-primary">{t('updatesToday')}</Text>
+                      <Text className="text-[0.714rem] font-bold uppercase text-primary">{t('updatesToday')}</Text>
                     </View>
                   </View>
 

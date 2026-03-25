@@ -18,7 +18,7 @@ export default function InsightCard({ category, readTime, title, description, ic
       {/* Top row — category badge + read time */}
       <View className="flex-row items-center justify-between">
         <View className="px-2 py-0.5 bg-primary/10 rounded">
-          <Text className="text-primary text-[10px] font-bold uppercase tracking-widest">
+          <Text className="text-primary text-[0.714rem] font-bold uppercase tracking-widest">
             {category}
           </Text>
         </View>

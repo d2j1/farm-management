@@ -50,7 +50,7 @@ export default function Header() {
               return greeting;
             })()}
           </Text>
-          <Text className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">
+          <Text className="text-[0.714rem] text-slate-500 font-medium uppercase tracking-widest">
             {t('gettingStarted')}
           </Text>
         </View>

@@ -115,7 +115,7 @@ function TimelineItemCard({ item, isMenuOpen, onToggleMenu, onDismiss, onMenuAct
                     size={12}
                     color="#64748b"
                   />
-                  <Text className="text-[10px] font-medium text-slate-500 uppercase tracking-tight">
+                  <Text className="text-[0.714rem] font-medium text-slate-500 uppercase tracking-tight">
                     {item.categoryLabel}
                   </Text>
                 </View>

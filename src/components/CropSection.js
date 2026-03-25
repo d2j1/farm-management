@@ -176,7 +176,7 @@ export default function CropSection() {
           {crops.length > 0 && (
             <Animated.View style={{ opacity: blinkAnim }} className="flex-row items-center bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
               <MaterialIcons name="arrow-forward" size={12} color="#166534" />
-              <Text className="text-[9px] font-bold text-primary uppercase ml-1">Swipe</Text>
+              <Text className="text-[0.643rem] font-bold text-primary uppercase ml-1">Swipe</Text>
             </Animated.View>
           )}
         </View>

@@ -16,10 +16,10 @@ const WelcomeScreen = ({ onGetStarted }) => {
       >
         {/* Header Section */}
         <View className="items-center mb-4">
-          <Text className="text-[44px] font-bold tracking-tight text-black leading-none mb-1">
+          <Text className="text-[3.143rem] font-bold tracking-tight text-black leading-none mb-1">
             Apar
           </Text>
-          <Text className="text-apar-dark-green text-[11px] font-bold tracking-[0.3em] uppercase mb-6">
+          <Text className="text-apar-dark-green text-[0.786rem] font-bold tracking-[0.3em] uppercase mb-6">
             {t('precisionFarming')}
           </Text>
           <Text className="text-2xl font-bold text-slate-900">
@@ -37,17 +37,17 @@ const WelcomeScreen = ({ onGetStarted }) => {
             </View>
             
             <View className="space-y-3">
-              <Text className="text-slate-700 text-[17px] leading-snug text-center font-medium">
+              <Text className="text-slate-700 text-[1.214rem] leading-snug text-center font-medium">
                 {t('welcomeDesc1')}
               </Text>
               
               <View className="h-px bg-slate-200 w-12 mx-auto my-3" />
               
-              <Text className="text-slate-600 text-[15px] leading-relaxed text-center">
+              <Text className="text-slate-600 text-[1.071rem] leading-relaxed text-center">
                 {t('welcomeDesc2')}
               </Text>
               
-              <Text className="text-slate-500 text-[14px] leading-relaxed text-center mt-2">
+              <Text className="text-slate-500 text-[1rem] leading-relaxed text-center mt-2">
                 {t('welcomeDesc3')}
               </Text>
             </View>
@@ -68,7 +68,7 @@ const WelcomeScreen = ({ onGetStarted }) => {
             <MaterialIcons name="arrow-forward" size={24} color="white" />
           </TouchableOpacity>
           
-          <Text className="text-center text-[10px] text-slate-400 mt-4 uppercase tracking-[0.15em] leading-relaxed">
+          <Text className="text-center text-[0.714rem] text-slate-400 mt-4 uppercase tracking-[0.15em] leading-relaxed">
             {t('termsNotice')}
           </Text>
         </View>
