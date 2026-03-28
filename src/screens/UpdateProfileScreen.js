@@ -107,9 +107,9 @@ export default function UpdateProfileScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
-      <View className="bg-white flex-row items-center justify-center py-5 border-b border-slate-100 relative">
+      <View className="bg-white dark:bg-slate-900 flex-row items-center justify-center py-5 border-b border-slate-100 dark:border-slate-800 relative">
         <TouchableOpacity
           className="absolute left-4"
           activeOpacity={0.7}
@@ -117,7 +117,7 @@ export default function UpdateProfileScreen({ navigation }) {
         >
           <MaterialIcons name="arrow-back" size={26} color="#0f172a" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black dark:text-white">
           {t('updateProfile')}
         </Text>
       </View>
@@ -140,14 +140,14 @@ export default function UpdateProfileScreen({ navigation }) {
               {t('account')}
             </Text>
 
-            <View className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-5 gap-4">
+            <View className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm p-5 gap-4">
               {/* Full Name */}
               <View>
                 <Text className="text-xs font-semibold text-slate-500 uppercase mb-1.5 ml-0.5">
                   {t('fullName')}
                 </Text>
                 <TextInput
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-base text-slate-900 dark:text-slate-100"
                   placeholder={t('fullNamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={fullName}
@@ -161,7 +161,7 @@ export default function UpdateProfileScreen({ navigation }) {
                   {t('villageName')}
                 </Text>
                 <TextInput
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-base text-slate-900 dark:text-slate-100"
                   placeholder={t('villageNamePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={villageName}
@@ -175,7 +175,7 @@ export default function UpdateProfileScreen({ navigation }) {
                   {t('totalAcreage')}
                 </Text>
                 <TextInput
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-base text-slate-900 dark:text-slate-100"
                   placeholder={t('acreagePlaceholder')}
                   placeholderTextColor="#94a3b8"
                   keyboardType="decimal-pad"
@@ -193,7 +193,7 @@ export default function UpdateProfileScreen({ navigation }) {
                   {t('activeCropsLabel')}
                 </Text>
                 <TextInput
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-base text-slate-900"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-3 px-4 text-base text-slate-900 dark:text-slate-100"
                   placeholder={t('activeCropsPlaceholder')}
                   placeholderTextColor="#94a3b8"
                   value={activeCrops}

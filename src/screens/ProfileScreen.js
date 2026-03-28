@@ -212,10 +212,10 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
-      <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
-        <Text className="text-lg font-bold tracking-tight text-black">
+      <View className="bg-white dark:bg-slate-900 items-center justify-center py-5 border-b border-slate-100 dark:border-slate-800">
+        <Text className="text-lg font-bold tracking-tight text-black dark:text-white">
           {t('profile')}
         </Text>
       </View>
@@ -231,7 +231,7 @@ export default function ProfileScreen({ navigation }) {
           <Text className="px-4 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
             {t('account')}
           </Text>
-          <View className="bg-white border border-slate-200 rounded-xl mx-4 overflow-hidden shadow-sm">
+          <View className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mx-4 overflow-hidden shadow-sm">
             <TouchableOpacity
               className="w-full flex-row items-center justify-between px-4 py-4"
               activeOpacity={0.7}
@@ -255,7 +255,7 @@ export default function ProfileScreen({ navigation }) {
           <Text className="px-4 text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">
             {t('language')}
           </Text>
-          <View className="bg-white border border-slate-200 rounded-xl mx-4 overflow-hidden shadow-sm">
+          <View className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mx-4 overflow-hidden shadow-sm">
             {LANGUAGES.map((lang, index) => {
               const isSelected = languageCode === lang.id;
               const label = lang.label;
@@ -312,7 +312,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Action buttons */}
           <View className="gap-3">
             <TouchableOpacity
-              className="w-full flex-row items-center justify-center gap-2 bg-white border border-slate-200 py-3.5 rounded-xl shadow-sm"
+              className="w-full flex-row items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-3.5 rounded-xl shadow-sm"
               activeOpacity={0.7}
               onPress={handleExport}
             >
@@ -323,7 +323,7 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="w-full flex-row items-center justify-center gap-2 bg-white border border-slate-200 py-3.5 rounded-xl shadow-sm"
+              className="w-full flex-row items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-3.5 rounded-xl shadow-sm"
               activeOpacity={0.7}
               onPress={handleImport}
             >

@@ -6,13 +6,13 @@ import { useLanguageStore } from '../utils/languageStore';
 export default function CropsScreenHeader({ onNotificationPress }) {
   const { t } = useLanguageStore();
   return (
-    <View className="flex-row items-center bg-white px-4 py-4 border-b border-slate-100">
+    <View className="flex-row items-center bg-white dark:bg-slate-900 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
       {/* Left — Spacer */}
       <View className="w-10" />
 
       {/* Center — Title */}
       <View className="flex-1 items-center">
-        <Text className="text-lg font-bold tracking-tight text-black">
+        <Text className="text-lg font-bold tracking-tight text-black dark:text-white">
           {t('yourCrops')}
         </Text>
       </View>

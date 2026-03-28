@@ -528,7 +528,7 @@ export default function CropDetailsActionsScreen({ navigation, route }) {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       <CropDetailsHeader
         cropName={cropName}
         cropLocation={cropLocation}

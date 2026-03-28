@@ -29,7 +29,7 @@ export default function CropDetailsHeader({
     { key: 'Earnings', label: t('earnings') },
   ];
   return (
-    <View className="bg-background-light border-b border-primary/10 relative z-30">
+    <View className="bg-background-light dark:bg-background-dark border-b border-primary/10 relative z-30">
       <View className="flex-row items-center justify-between px-4 py-3">
         <View className="flex-row items-center gap-3 flex-1">
           <TouchableOpacity

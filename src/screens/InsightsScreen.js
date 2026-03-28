@@ -162,19 +162,19 @@ export default function InsightsScreen() {
   }, [screenWidth, activeContentType]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       {/* ─── Header ─────────────────────────────────── */}
-      <View className="bg-white items-center justify-center py-5 border-b border-slate-100">
-        <Text className="text-lg font-bold tracking-tight text-black">
+      <View className="bg-white dark:bg-slate-900 items-center justify-center py-5 border-b border-slate-100 dark:border-slate-800">
+        <Text className="text-lg font-bold tracking-tight text-black dark:text-white">
           {t('quickInsights')}
         </Text>
       </View>
 
       {/* ─── Sticky controls area ──────────────────── */}
-      <View className="pt-4 bg-background-light">
+      <View className="pt-4 bg-background-light dark:bg-background-dark">
         {/* Articles / Videos toggle */}
         <View className="px-4 mb-4">
-          <View className="flex-row p-1 bg-white rounded-full border border-slate-200 shadow-sm">
+          <View className="flex-row p-1 bg-white dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm">
             {CONTENT_TYPES_KEYS.map((typeKey) => {
               const isActive = typeKey === activeContentType;
               return (
@@ -201,7 +201,7 @@ export default function InsightsScreen() {
 
         {/* Search bar */}
         <View className="px-4 mb-4">
-          <View className="flex-row items-center h-12 bg-white rounded-xl border border-slate-200 shadow-sm px-4 gap-2">
+          <View className="flex-row items-center h-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-4 gap-2">
             <MaterialIcons name="search" size={24} color="#94a3b8" />
             <TextInput
               className="flex-1 text-base text-slate-900"

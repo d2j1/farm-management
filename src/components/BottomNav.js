@@ -64,7 +64,7 @@ export default function BottomNav({ state, navigation }) {
   if (shouldHideTabBar(state)) return null;
 
   return (
-    <View className="flex-row justify-between items-center bg-white/95 border-t border-slate-100 px-6 py-3 pb-6">
+    <View className="flex-row justify-between items-center bg-white/95 dark:bg-slate-900/95 border-t border-slate-100 dark:border-slate-800 px-6 py-3 pb-6">
       {TABS.map((tab) => {
         const isActive = currentRoute === tab.name;
 

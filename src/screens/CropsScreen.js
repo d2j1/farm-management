@@ -116,7 +116,7 @@ export default function CropsScreen({ navigation }) {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       <CropsScreenHeader
         onNotificationPress={() => {}}
       />

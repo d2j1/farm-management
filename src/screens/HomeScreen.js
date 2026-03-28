@@ -9,7 +9,7 @@ import InsightsSection from '../components/InsightsSection';
 
 export default function HomeScreen({ navigation }) {
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       <Header />
       <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <WeatherWidget />

@@ -112,9 +112,20 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
       task.startDate = startDate;
       task.endDate = endDate;
     } else {
+      // Recurring logic
+      let intervalDays = repeatInterval;
+      if (frequency === 'Weekly') intervalDays *= 7;
+      else if (frequency === 'Monthly') intervalDays *= 30;
+
+      // The user wants the date of the task to be of the recurring day (e.g. 5th day),
+      // not the day it was created.
+      const firstDueDate = new Date();
+      firstDueDate.setDate(firstDueDate.getDate() + intervalDays);
+      firstDueDate.setHours(0, 0, 0, 0);
+
       task.frequency = frequency;
-      task.repeatInterval = repeatInterval;
-      task.startDate = startDate;
+      task.repeatInterval = intervalDays;
+      task.startDate = firstDueDate;
       task.endDate = endDate;
     }
     onSave?.(task);

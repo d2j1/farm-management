@@ -230,7 +230,21 @@ export default function TasksScreen({ navigation, route }) {
             date: new Date(),
           });
         }
-        await deleteTask(db, id);
+        if (task.type === 'recurring' && task.repeatIntervalDays > 0) {
+          // Recycle: move to next date
+          const nextDate = new Date(task.rawDate + 'T00:00:00');
+          nextDate.setDate(nextDate.getDate() + task.repeatIntervalDays);
+          
+          await updateTask(db, id, {
+            taskName: task.title,
+            duration: 'Recurring',
+            startDate: nextDate,
+            repeatInterval: task.repeatIntervalDays,
+            endDate: task.endDate
+          });
+        } else {
+          await deleteTask(db, id);
+        }
         showToast(t('taskDoneToast'));
       } else if (action === 'skip') {
         await deleteTask(db, id);
@@ -323,7 +337,7 @@ export default function TasksScreen({ navigation, route }) {
       );
     }
     return (
-      <View className="mx-4 py-10 items-center justify-center bg-white rounded-2xl border border-slate-100">
+      <View className="mx-4 py-10 items-center justify-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
         <MaterialIcons name="assignment-late" size={48} color="#cbd5e1" />
         <Text className="text-slate-500 font-medium mt-2">{t('noTasksFound') || 'No tasks found'}</Text>
       </View>
@@ -363,10 +377,10 @@ export default function TasksScreen({ navigation, route }) {
   }, [openMenuId, handleDismissReminder, handleMenuAction]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       <Pressable className="flex-1" onPress={() => setOpenMenuId(null)}>
         {/* ─── Header ──────────────────────────────────── */}
-        <View className="bg-white flex-row items-center justify-center py-4 border-b border-slate-100 relative">
+        <View className="bg-white dark:bg-slate-900 flex-row items-center justify-center py-4 border-b border-slate-100 dark:border-slate-800 relative">
           <TouchableOpacity
             className="absolute left-4"
             activeOpacity={0.7}
@@ -409,7 +423,7 @@ export default function TasksScreen({ navigation, route }) {
       {/* ─── Floating action buttons ─────────────────── */}
       <View className="absolute bottom-6 right-6 items-end gap-3">
         <TouchableOpacity
-          className="flex-row items-center gap-2 bg-white border border-primary/20 py-2.5 px-5 rounded-full shadow-lg"
+          className="flex-row items-center gap-2 bg-white dark:bg-slate-900 border border-primary/20 py-2.5 px-5 rounded-full shadow-lg"
           activeOpacity={0.85}
           style={styles.fabShadow}
           onPress={() => setShowCreateTask(true)}

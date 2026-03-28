@@ -170,7 +170,7 @@ function SelectInput({
         <View className="flex-1 justify-end bg-black/40">
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setIsOpen(false)} />
 
-          <View className="rounded-t-3xl border border-slate-200 bg-background-light px-4 pb-8 pt-4">
+          <View className="rounded-t-3xl border border-slate-200 dark:border-slate-800 bg-background-light dark:bg-slate-900 px-4 pb-8 pt-4">
             <View className="mb-4 items-center">
               <View className="h-1.5 w-12 rounded-full bg-slate-300" />
               <Text className="mt-3 text-base font-bold text-slate-900">
@@ -333,19 +333,19 @@ export default function EditCropScreen({ navigation, route }) {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background-light items-center justify-center" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark items-center justify-center" edges={['top']}>
         <Text className="text-slate-400">{t('loading')}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark" edges={['top']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View className="border-b border-slate-200 bg-white px-4 py-4">
+        <View className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4">
           <View className="relative flex-row items-center justify-between">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
@@ -369,7 +369,7 @@ export default function EditCropScreen({ navigation, route }) {
         >
           <View className="mt-8 px-4">
             <SectionLabel required>{t('essentialCropData')}</SectionLabel>
-            <View className="gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <View className="gap-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
               <View>
                 <FieldLabel htmlRequired>{t('landNickname')}</FieldLabel>
                 <TextInput
@@ -435,7 +435,7 @@ export default function EditCropScreen({ navigation, route }) {
 
           <View className="mt-8 px-4">
             <SectionLabel>{t('optionalDetails')}</SectionLabel>
-            <View className="gap-5 rounded-xl border border-slate-200 bg-white/70 p-5 shadow-sm">
+            <View className="gap-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-5 shadow-sm">
               <View>
                 <FieldLabel>{t('seedVarietyLabel')}</FieldLabel>
                 <TextInput

@@ -202,10 +202,10 @@ export async function getPaginatedTasksAndReminders(db, { limit = 20, offset = 0
 
   if (filter === 'dueToday') {
     whereClause = 'WHERE rawDate = ?';
-    params.push(today, today); // One for task UNION, one for reminder UNION
+    params.push(today);
   } else if (filter === 'upcoming') {
     whereClause = 'WHERE rawDate > ?';
-    params.push(today, today);
+    params.push(today);
   } else if (filter === 'general') {
     whereClause = 'WHERE cropId IS NULL';
   } else if (filter === 'cropRelated') {
@@ -222,6 +222,7 @@ export async function getPaginatedTasksAndReminders(db, { limit = 20, offset = 0
         startDate as rawDate, 
         type, 
         endDate, 
+        repeatIntervalDays,
         'task' as kind,
         NULL as reminderTime
       FROM tasks
@@ -233,6 +234,7 @@ export async function getPaginatedTasksAndReminders(db, { limit = 20, offset = 0
         reminderDate as rawDate, 
         NULL as type, 
         NULL as endDate, 
+        NULL as repeatIntervalDays,
         'reminder' as kind,
         reminderTime
       FROM reminders
@@ -242,14 +244,8 @@ export async function getPaginatedTasksAndReminders(db, { limit = 20, offset = 0
     LIMIT ? OFFSET ?
   `;
 
-  // We need to double the params if we used today (one for each side of UNION)
-  // But wait, the whereClause is applied to the WRAPPED query, so we only need it once.
-  const finalParams = [];
-  if (filter === 'dueToday' || filter === 'upcoming') {
-    finalParams.push(today);
-  }
-  finalParams.push(limit, offset);
-
+  const finalParams = [...params, limit, offset];
+  
   // We also need crop name for tasks
   const rows = await db.getAllAsync(
     `SELECT combined.*, c.cropName 

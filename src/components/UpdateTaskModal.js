@@ -128,8 +128,13 @@ export default function UpdateTaskModal({ visible, onClose, onSave, taskData }) 
       task.startDate = startDate;
       task.endDate = endDate;
     } else {
+      // Recurring logic
+      let intervalDays = repeatInterval;
+      if (frequency === 'Weekly') intervalDays *= 7;
+      else if (frequency === 'Monthly') intervalDays *= 30;
+
       task.frequency = frequency;
-      task.repeatInterval = repeatInterval;
+      task.repeatInterval = intervalDays;
       task.startDate = startDate;
       task.endDate = endDate;
     }
