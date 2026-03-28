@@ -6,10 +6,9 @@ import SegmentedControl from './SegmentedControl';
 import DateField from './DateField';
 
 const DURATION_OPTIONS = ['One-time', 'Multi-day', 'Recurring'];
-const FREQUENCY_OPTIONS = ['Daily', 'Weekly', 'Monthly'];
+const FREQUENCY_OPTIONS = ['Daily'];
 
-const getFrequencyUnitKey = (freq) =>
-  freq === 'Daily' ? 'days' : freq === 'Weekly' ? 'weeks' : 'months';
+const getFrequencyUnitKey = () => 'days';
 
 const formatEndLabel = (date) =>
   date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -19,7 +18,7 @@ function RepeatStepper({ value, onDecrement, onIncrement, unit, t }) {
   return (
     <View className="flex-row items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 mt-4">
       <Text className="text-slate-700 dark:text-slate-300 text-sm font-medium ml-1">
-        {t('repeatEvery').replace('X', '')} {t(unit)}
+        {t('repeatEvery').replace('X', value.toString())} {t(unit)}
       </Text>
       <View className="flex-row items-center gap-1">
         <Pressable
@@ -112,10 +111,8 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
       task.startDate = startDate;
       task.endDate = endDate;
     } else {
-      // Recurring logic
+      // Recurring logic (Daily only)
       let intervalDays = repeatInterval;
-      if (frequency === 'Weekly') intervalDays *= 7;
-      else if (frequency === 'Monthly') intervalDays *= 30;
 
       // The user wants the date of the task to be of the recurring day (e.g. 5th day),
       // not the day it was created.
@@ -123,7 +120,7 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
       firstDueDate.setDate(firstDueDate.getDate() + intervalDays);
       firstDueDate.setHours(0, 0, 0, 0);
 
-      task.frequency = frequency;
+      task.frequency = 'Daily';
       task.repeatInterval = intervalDays;
       task.startDate = firstDueDate;
       task.endDate = endDate;
@@ -227,22 +224,11 @@ export default function CreateTaskModal({ visible, onClose, onSave }) {
             {/* ─── Recurring fields ─── */}
             {duration === 'Recurring' && (
               <>
-                {/* Frequency */}
+                {/* Repeat Interval */}
                 <View className="mb-6">
                   <Text className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest mb-3">
                     {t('frequency')}
                   </Text>
-                  <SegmentedControl
-                    options={FREQUENCY_OPTIONS.map(opt => {
-                      const map = { 'Daily': 'daily', 'Weekly': 'weekly', 'Monthly': 'monthly' };
-                      return t(map[opt]);
-                    })}
-                    selected={t({ 'Daily': 'daily', 'Weekly': 'weekly', 'Monthly': 'monthly' }[frequency])}
-                    onSelect={(val) => {
-                      const reverseMap = { [t('daily')]: 'Daily', [t('weekly')]: 'Weekly', [t('monthly')]: 'Monthly' };
-                      setFrequency(reverseMap[val]);
-                    }}
-                  />
                   <RepeatStepper
                     value={repeatInterval}
                     unit={unit}
