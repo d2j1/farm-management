@@ -1,7 +1,9 @@
 import React from 'react';
+import { Appearance } from 'react-native';
+import { colorScheme } from 'nativewind';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
@@ -23,6 +25,10 @@ import { getSetting, saveSetting } from './src/database/settingsService';
 import { useLanguageStore } from './src/utils/languageStore';
 import { initResponsiveFontScaling } from './src/utils/responsive';
 import './global.css';
+
+// Enforce light mode at runtime so relaunches never switch to dark mode.
+Appearance.setColorScheme('light');
+colorScheme.set('light');
 
 // Scale rem-based font sizes to match the device screen width.
 // Must run before the first render.
@@ -150,7 +156,7 @@ export default function App() {
       <SafeAreaProvider>
         <DatabaseProvider initialDb={db}>
           <StatusBar style="dark" />
-          <NavigationContainer>
+          <NavigationContainer theme={DefaultTheme}>
             <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
               <OnboardingStack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
               <OnboardingStack.Screen name="Welcome">
@@ -174,8 +180,8 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <DatabaseProvider initialDb={db}>
-        <StatusBar style="auto" />
-        <NavigationContainer>
+        <StatusBar style="dark" />
+        <NavigationContainer theme={DefaultTheme}>
           <Tab.Navigator
             tabBar={(props) => <BottomNav {...props} />}
             screenOptions={{ headerShown: false }}

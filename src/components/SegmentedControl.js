@@ -1,16 +1,15 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource react */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SegmentedControl({ options, selected, onSelect }) {
-  const isDark = useColorScheme() === 'dark';
 
   return (
     <View
       style={[
         styles.container,
-        { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' },
+        { backgroundColor: '#f1f5f9' },
       ]}
     >
       {options.map((option) => {
@@ -24,7 +23,7 @@ export default function SegmentedControl({ options, selected, onSelect }) {
               styles.option,
               isActive && [
                 styles.activeOption,
-                { backgroundColor: isDark ? '#334155' : '#ffffff' },
+                { backgroundColor: '#ffffff' },
               ],
             ]}
           >
@@ -32,7 +31,7 @@ export default function SegmentedControl({ options, selected, onSelect }) {
               style={[
                 styles.optionText,
                 {
-                  color: isActive ? '#166534' : isDark ? '#94a3b8' : '#64748b',
+                  color: isActive ? '#166534' : '#64748b',
                   fontWeight: isActive ? '700' : '500',
                 },
               ]}
